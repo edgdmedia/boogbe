@@ -8,7 +8,7 @@ Format: ADR-lite. Newest at the bottom. Changing a decision = new entry that sup
 | D-002 | 2026-10-09 | Phase A = operator back office; Phase B = guest online booking + Paystack. | Lagos short-lets close on WhatsApp with transfers; the trustworthy calendar/ledger is the foundation for online booking. | Guest-first booking engine; both at once. |
 | D-003 | 2026-10-09 | v1 includes payments ledger, owner statements, housekeeping, guest messaging. | Owner requirement. Ordered as milestones so Tanuhomes goes live at M4. | Smaller v1. |
 | D-004 | 2026-10-09 | Invite-only onboarding; no billing in v1. | Owner signs up operators personally. Tenancy model keeps self-serve/billing additive later. | Self-serve + Paystack subscriptions now. |
-| D-005 | 2026-10-09 | Roles: admin, frontdesk, housekeeper, owner (+ platform_admin). | Owner requirement. | — |
+| D-005 | 2026-10-09 | Roles: admin, frontdesk, housekeeper, landlord (property owner) + platform admin. (Role key renamed by D-022.) | Owner requirement. | — |
 | D-006 | 2026-10-09 | Pricing: nightly base rate + unit fees, computed total overridable with reason. | Prices are negotiated on WhatsApp. | Seasonal/date-based rates (later); manual totals only. |
 | D-007 | 2026-10-09 | Management fee configurable per property with unit override: % gross, % net, plus optional fixed monthly. | Different owner deals. | Single global rule. |
 | D-008 | 2026-10-09 | Messaging: automatic email + WhatsApp click-to-send (wa.me). | Free, no Meta verification. | WhatsApp Business API (cost, setup per operator). |
@@ -25,3 +25,4 @@ Format: ADR-lite. Newest at the bottom. Changing a decision = new entry that sup
 | D-019 | 2026-10-09 | Crons run in a separate PM2 process (`boogbe-worker`) from the API. | API reloads don't interrupt jobs; jobs never run twice. | Crons inside the API process. |
 | D-020 | 2026-10-09 | Emails go through a DB outbox dispatched by the worker. | No lost or phantom emails on transaction rollback; retries. | Send inline in request. |
 | D-021 | 2026-10-09 | Two builders: Claude Code and OpenCode, coordinated via `AGENTS.md` + `docs/COORDINATION.md`. | Owner decision. | — |
+| D-022 | 2026-10-09 | Property-owner role key is `landlord`; platform admin is Better Auth admin-plugin `user.role = "admin"`. | `owner` is a built-in privileged Better Auth organization role; the organization plugin has no cross-org admin. | Reusing `owner`; custom platform_admin role. |

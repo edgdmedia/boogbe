@@ -89,7 +89,7 @@ boogbe/
 
 ### 3.2 Authentication — Better Auth
 - `better-auth` with plugins: `organization` (operators, members, invitations, active org on session), `admin` (platform admin role), and email+password. Prisma adapter, `provider: "postgresql"`, `transaction: true`.
-- Organization plugin roles defined with `createAccessControl` mirroring `packages/shared/src/permissions.ts`: `admin`, `frontdesk`, `housekeeper`, `owner`. (Better Auth's built-in `owner`/`member` roles are not used; the operator creator gets `admin`.)
+- Organization plugin roles defined with `createAccessControl` mirroring `packages/shared/src/permissions.ts`: `admin`, `frontdesk`, `housekeeper`, `landlord` (UI label "Property owner"). Better Auth's built-in `owner`/`member` roles are **not** used — `owner` is a privileged Better Auth role name, so property owners use `landlord`. `creatorRole: "admin"`. Platform admin = Better Auth **admin plugin** `user.role = "admin"` (the organization plugin has no cross-org admin).
 - Mounted in `main.ts` on the Express instance at `/v1/auth/*` using `toNodeHandler(auth)` **before** Nest's JSON body parser (`bodyParser: false` on `NestFactory.create`, then add `express.json()` for other routes).
 - Invitation emails sent via the messaging module's mailer through the plugin's `sendInvitationEmail` hook.
 - `SessionGuard` (global): resolves session via `auth.api.getSession({ headers })`, loads the **member row from the DB** for `session.activeOrganizationId` (role is never trusted from the session payload — as Unclutter `roles.guard.ts`), checks org not suspended, attaches `req.ctx = { userId, orgId, role, memberId }`.

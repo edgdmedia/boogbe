@@ -17,9 +17,9 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 
 | Table | Owner | Notes |
 |---|---|---|
-| `user`, `session`, `account`, `verification` | Better Auth | `user.role` = `platform_admin` or null (admin plugin) |
+| `user`, `session`, `account`, `verification` | Better Auth | `user.role` = `admin` (platform admin, via admin plugin) or `user` |
 | `organization` | Better Auth org plugin | **The operator.** Additional fields: `timezone` (default `Africa/Lagos`), `currency` (`NGN`), `status` (`active`/`suspended`), `contact_email`, `contact_phone`, `whatsapp_phone`, `address`, `logo_key` |
-| `member` | Better Auth | `role` ∈ admin/frontdesk/housekeeper/owner |
+| `member` | Better Auth | `role` ∈ admin/frontdesk/housekeeper/landlord |
 | `invitation` | Better Auth | `role`, `expires_at` |
 | `login_attempt` | auth module | lockout bookkeeping (AUTH-02) |
 | `job_run` | worker | cron observability |

@@ -5,7 +5,7 @@ Each requirement has a stable ID. Plans, commits, tests and PRs reference these 
 
 **Conventions used below**
 - "Operator" = tenant (Better Auth *organization*). "Org context" = the operator the signed-in user is currently acting in.
-- Roles: `admin`, `frontdesk`, `housekeeper`, `owner`. Platform role: `platform_admin`.
+- Roles: `admin`, `frontdesk`, `housekeeper`, `landlord` (shown as "Property owner"; called "owner" in prose below). Platform admin: Better Auth admin-plugin `user.role = "admin"`.
 - Money is in kobo (integer). Dates are calendar dates in the operator's timezone. A stay is `[checkIn, checkOut)`; nights = `checkOut − checkIn`.
 - "Audited" = writes an `audit_log` row (see AUD-01).
 
@@ -18,7 +18,7 @@ Each requirement has a stable ID. Plans, commits, tests and PRs reference these 
 | PLT-01 | Platform admin can create an operator (name, slug, timezone, currency, contact email/phone). | Operator appears in platform list; slug unique, lowercase `[a-z0-9-]{3,40}`; defaults `Africa/Lagos`, `NGN`. |
 | PLT-02 | Platform admin can invite the operator's first admin by email. | Invite email sent; link valid 7 days; accepting creates/links the user as `admin` of that operator. |
 | PLT-03 | Platform admin can suspend / reactivate an operator. | Suspended operator's members get `403 ORG_SUSPENDED` on every API call; crons skip it; data retained. |
-| PLT-04 | Platform admin pages are only reachable by `platform_admin` users. | Non-platform users get 404 for `/platform/*` UI and 403 for `/v1/platform/*` API. |
+| PLT-04 | Platform admin pages are only reachable by platform admins (`user.role = "admin"`). | Non-platform users get 404 for `/platform/*` UI and 403 for `/v1/platform/*` API. |
 | PLT-05 | Platform admin can view an operator's member list and resend/revoke invites. | Actions are audited. |
 
 ## AUTH — Authentication, membership, roles
@@ -37,7 +37,7 @@ Each requirement has a stable ID. Plans, commits, tests and PRs reference these 
 
 **Permission matrix**
 
-| Capability | admin | frontdesk | housekeeper | owner |
+| Capability | admin | frontdesk | housekeeper | landlord |
 |---|:-:|:-:|:-:|:-:|
 | View calendar, bookings, guests | ✓ | ✓ | — | own units, guest names per setting |
 | Create/edit bookings, guests | ✓ | ✓ | — | — |
@@ -68,7 +68,7 @@ Each requirement has a stable ID. Plans, commits, tests and PRs reference these 
 | INV-03 | Unit owner: each unit has an effective owner = unit.owner ?? property.defaultOwner ?? operator (self-owned). | UI shows the effective owner and where it comes from. Changing ownership affects statements only from the change date forward (see OWN-07). |
 | INV-04 | Management fee config at property level with optional unit override: `type` ∈ {`pct_gross`, `pct_net`, `none`}, `percentBps` (0–10000), `fixedMonthlyKobo`. | Effective config = unit override ?? property config. |
 | INV-05 | Unit fees: kind ∈ {`caution_deposit`, `cleaning`, `extra_guest`, `other`}, label, amount, basis ∈ {`per_stay`, `per_night`, `per_guest_night`}, `includedGuests` (for extra_guest), refundable flag (true only for caution_deposit), active flag. | Fees feed the price calculation (BKG-04). |
-| INV-06 | Owners: CRUD owner records — name, phone, email, bank name, account number, account name, notes. | Owner may exist without a login. "Invite to portal" creates a Better Auth invitation with role `owner` and links `owner.userId` on acceptance. |
+| INV-06 | Owners: CRUD owner records — name, phone, email, bank name, account number, account name, notes. | Owner may exist without a login. "Invite to portal" creates a Better Auth invitation with role `landlord` and links `owner.userId` on acceptance. |
 | INV-07 | Manual blocks: admin/frontdesk can block a unit for a date range with reason ∈ {`maintenance`, `owner_stay`, `other`} and note. | Block refused if it overlaps an active booking (409 `DATES_UNAVAILABLE`). |
 
 ## CAL — Calendar
@@ -166,7 +166,7 @@ Each requirement has a stable ID. Plans, commits, tests and PRs reference these 
 | OWN-05 | Statement lifecycle: `draft` (regenerable) → `finalised` (immutable snapshot + PDF in R2) → `paid` (payout date, reference). | Finalised statement figures never change; later corrections appear as adjustments in the next statement. |
 | OWN-06 | Cron on the 1st at 06:00 operator time generates drafts for the previous month and notifies admins. | Idempotent. |
 | OWN-07 | Ownership history: unit ownership changes are effective-dated; statements use the owner effective on each night. | — |
-| OWN-08 | Owner portal (role `owner`): own units' calendar (guest names per ORG-04), occupancy % and revenue month-to-date, list and download of finalised statements. | Owner cannot see other owners' units, expenses detail of others, guests' contact details. |
+| OWN-08 | Owner portal (role `landlord`): own units' calendar (guest names per ORG-04), occupancy % and revenue month-to-date, list and download of finalised statements. | Owner cannot see other owners' units, expenses detail of others, guests' contact details. |
 | OWN-09 | Statement shows outstanding guest balances for the period as a note (not deducted). | — |
 
 ## NTF — In-app notifications

@@ -1,6 +1,6 @@
 # Boogbe v1 (Phase A) — Design Spec
 
-**Date:** 2026-10-09 · **Status:** Awaiting owner review · **Process:** superpowers brainstorming → this spec → writing-plans
+**Date:** 2026-10-09 · **Status:** Approved · **Process:** superpowers brainstorming → this spec → writing-plans
 
 This spec is the agreed design. Detail lives in the linked documents; where they disagree, **this spec wins** and the other document must be fixed.
 
