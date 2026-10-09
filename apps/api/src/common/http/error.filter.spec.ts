@@ -39,4 +39,16 @@ describe('toErrorBody', () => {
       body: { error: { code: 'INTERNAL', message: 'Something went wrong' } },
     });
   });
+  it('maps body-parser errors (e.g. payload too large) to their 4xx status', () => {
+    const e = Object.assign(new Error('request entity too large'), {
+      status: 413,
+      statusCode: 413,
+      type: 'entity.too.large',
+      expose: true,
+    });
+    expect(toErrorBody(e)).toEqual({
+      status: 413,
+      body: { error: { code: 'PAYLOAD_TOO_LARGE', message: 'That request is too large' } },
+    });
+  });
 });

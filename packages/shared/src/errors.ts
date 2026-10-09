@@ -12,6 +12,7 @@ export const ERROR_CODES = [
   'RATE_LIMITED',
   'ACCOUNT_LOCKED',
   'INTERNAL',
+  'PAYLOAD_TOO_LARGE',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 export interface ApiErrorBody {

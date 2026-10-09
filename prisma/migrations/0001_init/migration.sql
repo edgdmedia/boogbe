@@ -199,3 +199,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE boogbe_migrator IN SCHEMA public
 ALTER DEFAULT PRIVILEGES FOR ROLE boogbe_migrator IN SCHEMA public
   GRANT USAGE, SELECT ON SEQUENCES TO boogbe_app;
 GRANT EXECUTE ON FUNCTION app_current_org() TO boogbe_app;
+
+-- The runtime role must not read or rewrite migration history.
+REVOKE ALL ON TABLE "_prisma_migrations" FROM boogbe_app;

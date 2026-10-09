@@ -24,4 +24,13 @@ describe('health', () => {
       error: { code: 'NOT_FOUND', message: expect.any(String), requestId: expect.any(String) },
     });
   });
+
+  it('oversized JSON bodies get 413 in the error envelope', async () => {
+    const res = await t.http
+      .post('/v1/health')
+      .set('content-type', 'application/json')
+      .send(JSON.stringify({ blob: 'x'.repeat(1_200_000) }));
+    expect(res.status).toBe(413);
+    expect(res.body.error.code).toBe('PAYLOAD_TOO_LARGE');
+  });
 });
