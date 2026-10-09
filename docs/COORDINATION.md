@@ -28,7 +28,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 
 | ID | Title | Track | Depends on | Owner | Status | PR | Notes |
 |---|---|---|---|---|---|---|---|
-| T-M0-01 | Monorepo scaffold + shared money module | infra | — | claude | in_progress | | `docs/plans/M0-foundation.md` Task 1 |
+| T-M0-01 | Monorepo scaffold + shared money module | infra | — | claude | review | [#1](https://github.com/edgdmedia/boogbe/pull/1) | `docs/plans/M0-foundation.md` Task 1 |
 | T-M0-02 | Dates, errors, enums, permissions | domain | T-M0-01 | claude | todo | | |
 | T-M0-03 | Postgres roles, Prisma schema with Better Auth models, base migration | schema, infra | T-M0-02 | claude | todo | | |
 | T-M0-04 | Nest app skeleton — env, health, error envelope, request id | api | T-M0-03 | claude | todo | | |
