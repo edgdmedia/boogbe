@@ -1,0 +1,13 @@
+name: boogbe
+services:
+  db:
+    image: postgres:16
+    ports: ['5433:5432']
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - boogbe-pg:/var/lib/postgresql/data
+      - ./deploy/sql/roles.sql:/docker-entrypoint-initdb.d/01-roles.sql:ro
+      - ./deploy/sql/db-init.sql:/docker-entrypoint-initdb.d/02-db-init.sql:ro
+volumes:
+  boogbe-pg:
