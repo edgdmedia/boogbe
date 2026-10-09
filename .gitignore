@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.*
+!.env.example
+.worktrees/
+logs/
+*.log
+.DS_Store
+playwright-report/
+test-results/
+.wrangler/
+node-compile-cache/
