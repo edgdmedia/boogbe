@@ -18,7 +18,7 @@
 - Node `22.x` (`.nvmrc` = `22`), pnpm `9.x` (`packageManager` field).
 - TypeScript `strict: true`, `noUncheckedIndexedAccess: true`.
 - API port: production `3060`, staging `3061`. API prefix `/v1`. Better Auth base path `/v1/auth`.
-- DB roles: `boogbe_migrator` (owns schema, runs migrations), `boogbe_app` (runtime, `NOBYPASSRLS`). Env: `DATABASE_URL` (app role), `DATABASE_MIGRATE_URL` (migrator).
+- DB roles: `boogbe_migrator` (owns schema, runs migrations, `BYPASSRLS` — FORCE RLS binds table owners, so without it migrations/backups/test setup would see no rows; never used at runtime), `boogbe_app` (runtime, `NOBYPASSRLS`). Env: `DATABASE_URL` (app role), `DATABASE_MIGRATE_URL` (migrator).
 - RLS setting name `app.org_id`; helper SQL function `app_current_org()`.
 - Org roles: `admin`, `frontdesk`, `housekeeper`, `landlord`. Platform admin: `user.role = 'admin'`.
 - Money: integer kobo. Stay dates: `YYYY-MM-DD`. Default timezone `Africa/Lagos`, currency `NGN`.
@@ -593,7 +593,7 @@ volumes:
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'boogbe_migrator') THEN
-    CREATE ROLE boogbe_migrator LOGIN PASSWORD 'migrator' CREATEDB;
+    CREATE ROLE boogbe_migrator LOGIN PASSWORD 'migrator' CREATEDB BYPASSRLS;
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'boogbe_app') THEN
     CREATE ROLE boogbe_app LOGIN PASSWORD 'app' NOBYPASSRLS NOSUPERUSER;
@@ -4654,7 +4654,7 @@ SPA fallback: add `apps/app/public/_redirects` with `/* /index.html 200`.
 1. `sudo adduser boogbe`; install Node 22 (nvm), pnpm 9, PM2 (`npm i -g pm2`), PostgreSQL 16, nginx, awscli v2.
 2. Postgres: `sudo -u postgres psql` →
    ```sql
-   CREATE ROLE boogbe_migrator LOGIN PASSWORD '<strong>' CREATEDB;
+   CREATE ROLE boogbe_migrator LOGIN PASSWORD '<strong>' CREATEDB BYPASSRLS;
    CREATE ROLE boogbe_app LOGIN PASSWORD '<strong>' NOBYPASSRLS NOSUPERUSER;
    CREATE DATABASE boogbe OWNER boogbe_migrator;
    CREATE DATABASE boogbe_staging OWNER boogbe_migrator;

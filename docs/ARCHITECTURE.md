@@ -104,7 +104,7 @@ boogbe/
 2. **Database layer.** Every tenant table: `ALTER TABLE … ENABLE ROW LEVEL SECURITY; ALTER TABLE … FORCE ROW LEVEL SECURITY;` with policy
    `USING (org_id = current_setting('app.org_id', true)) WITH CHECK (org_id = current_setting('app.org_id', true))`.
    If `app.org_id` is unset, `current_setting(…, true)` returns NULL and **no rows match**.
-   - Roles: `boogbe_migrator` (owns schema; runs migrations; used only by deploy), `boogbe_app` (runtime; `NOBYPASSRLS`; not table owner; DML grants only; no UPDATE/DELETE on `payment`, `audit_log`, `statement` snapshots).
+   - Roles: `boogbe_migrator` (owns schema; `BYPASSRLS` because FORCE RLS binds owners; runs migrations, backups and test setup; never used at runtime), `boogbe_app` (runtime; `NOBYPASSRLS`; not table owner; DML grants only; no UPDATE/DELETE on `payment`, `audit_log`, `statement` snapshots).
    - Better Auth tables (`user`, `session`, `account`, `verification`, `organization`, `member`, `invitation`) are global (no RLS); access to them goes only through Better Auth or the `members`/`platform` modules.
 - **Workers/crons** iterate active organizations (global table) and call `orgDb.forOrg(orgId)` per operator — they never run unscoped queries on tenant tables.
 - **Guards in CI:** `tenant-isolation.spec.ts` (static: service methods taking `orgId` must use it; no module imports `PrismaClient`/`PrismaService` directly except `common/db`), `rls-coverage.spec.ts` (queries `pg_class`/`pg_policies`: every table with an `org_id` column has RLS enabled+forced and a policy), and per-endpoint cross-tenant integration tests.
