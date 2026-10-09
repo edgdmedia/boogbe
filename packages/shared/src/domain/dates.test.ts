@@ -34,4 +34,14 @@ describe('dates', () => {
   it('converts a local Lagos time to UTC', () => {
     expect(zonedTimeToUtc('2026-10-09', '14:00', 'Africa/Lagos').toISOString()).toBe('2026-10-09T13:00:00.000Z');
   });
+  it('converts wall times just after a DST change to the right instant', () => {
+    expect(zonedTimeToUtc('2026-03-08', '03:30', 'America/New_York').toISOString()).toBe('2026-03-08T07:30:00.000Z');
+    expect(zonedTimeToUtc('2026-03-29', '01:30', 'Europe/Berlin').toISOString()).toBe('2026-03-29T00:30:00.000Z');
+    expect(zonedTimeToUtc('2026-11-01', '03:00', 'America/New_York').toISOString()).toBe('2026-11-01T08:00:00.000Z');
+  });
+  it('refuses times that are not HH:MM on a 24-hour clock', () => {
+    for (const t of ['25:00', '24:00', '9:5', '14:00:30', '', '14', 'ab:cd']) {
+      expect(() => zonedTimeToUtc('2026-10-09', t, 'Africa/Lagos')).toThrow(`invalid time ${t}`);
+    }
+  });
 });

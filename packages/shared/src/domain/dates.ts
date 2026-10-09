@@ -42,11 +42,16 @@ export function monthOf(d: IsoDate): IsoDate {
   parse(d);
   return `${d.slice(0, 7)}-01`;
 }
+const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
 /** Wall-clock time in `timeZone` on `date` → UTC instant. */
 export function zonedTimeToUtc(date: IsoDate, time: string, timeZone: string): Date {
-  const [hh, mm] = time.split(':').map(Number);
-  const guess = parse(date) + (hh! * 60 + mm!) * 60_000;
-  const offset = tzOffsetMs(new Date(guess), timeZone);
+  const m = TIME_RE.exec(time);
+  if (!m) throw new Error(`invalid time ${time}`);
+  const guess = parse(date) + (Number(m[1]) * 60 + Number(m[2])) * 60_000;
+  // Second pass: the offset at the first estimate can be on the wrong side of a DST change.
+  const first = tzOffsetMs(new Date(guess), timeZone);
+  const offset = tzOffsetMs(new Date(guess - first), timeZone);
   return new Date(guess - offset);
 }
 function tzOffsetMs(at: Date, timeZone: string): number {

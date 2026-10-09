@@ -15,6 +15,27 @@ describe('permissions', () => {
     expect(can('frontdesk', 'payments.void')).toBe(false);
     expect(can('frontdesk', 'members.write')).toBe(false);
   });
+  it('frontdesk has exactly the AUTH-09 front-desk permissions', () => {
+    expect(ROLE_PERMISSIONS.frontdesk).toEqual([
+      'org.settings.read',
+      'inventory.read',
+      'calendar.read',
+      'bookings.read',
+      'bookings.write',
+      'bookings.override',
+      'guests.read',
+      'guests.write',
+      'payments.read',
+      'payments.write',
+      'ical.read',
+      'messages.read',
+      'messages.send',
+      'templates.read',
+      'tasks.read',
+      'tasks.write',
+      'notifications.read',
+    ]);
+  });
   it('housekeeper only touches own tasks', () => {
     expect(ROLE_PERMISSIONS.housekeeper).toEqual(['tasks.read_own', 'tasks.write_own', 'notifications.read']);
   });
