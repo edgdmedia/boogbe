@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = []
+  previewFeatures = ["extendedWhereUnique"]
 }
 
 datasource db {
@@ -157,4 +157,52 @@ model JobRun {
 
   @@index([name, startedAt])
   @@map("job_run")
+}
+
+// ───────────── Tenant tables (RLS) ─────────────
+// Rule: every tenant model has `orgId String @map("org_id")` and NO Prisma relation to Organization
+// (FK is added in SQL) so creates always use scalar fields and the org-scope extension can inject orgId.
+
+model OrgSettings {
+  orgId                 String   @id @map("org_id")
+  checkInTime           String   @default("14:00") @map("check_in_time")
+  checkOutTime          String   @default("12:00") @map("check_out_time")
+  holdHours             Int      @default(24) @map("hold_hours")
+  autoConfirmOnPayment  Boolean  @default(true) @map("auto_confirm_on_payment")
+  ownerSeesGuestNames   Boolean  @default(false) @map("owner_sees_guest_names")
+  receiptPrefix         String   @map("receipt_prefix")
+  statementPrefix       String   @map("statement_prefix")
+  bookingPrefix         String   @map("booking_prefix")
+  logoKey               String?  @map("logo_key")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("org_settings")
+}
+
+model OrgCounter {
+  orgId String @map("org_id")
+  name  String
+  value BigInt @default(0)
+
+  @@id([orgId, name])
+  @@map("org_counter")
+}
+
+model AuditLog {
+  id            String   @id
+  orgId         String   @map("org_id")
+  actorUserId   String   @map("actor_user_id")
+  actorMemberId String?  @map("actor_member_id")
+  action        String
+  entity        String
+  entityId      String   @map("entity_id")
+  before        Json?
+  after         Json?
+  ip            String?
+  at            DateTime @default(now())
+
+  @@index([orgId, entity, entityId])
+  @@index([orgId, at])
+  @@map("audit_log")
 }
