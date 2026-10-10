@@ -1,0 +1,6 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://api.boogbe.com https://staging-api.boogbe.com; img-src 'self' data: blob: https://*.r2.cloudflarestorage.com; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'
