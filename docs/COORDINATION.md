@@ -32,8 +32,8 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M0-02 | Dates, errors, enums, permissions | domain | T-M0-01 | claude | done | [#2](https://github.com/edgdmedia/boogbe/pull/2) | |
 | T-M0-03 | Postgres roles, Prisma schema with Better Auth models, base migration | schema, infra | T-M0-02 | claude | done | [#3](https://github.com/edgdmedia/boogbe/pull/3) | |
 | T-M0-04 | Nest app skeleton — env, health, error envelope, request id | api | T-M0-03 | claude | done | [#3](https://github.com/edgdmedia/boogbe/pull/3) | |
-| T-M0-05 | Better Auth — config, mounting, invite-only sign-up, lockout, password reset | api | T-M0-04 | claude | in_progress | | |
-| T-M0-06 | Session guard, permission decorators, route-permission spec | api | T-M0-05 | claude | todo | | |
+| T-M0-05 | Better Auth — config, mounting, invite-only sign-up, lockout, password reset | api | T-M0-04 | claude | done | [#5](https://github.com/edgdmedia/boogbe/pull/5) | |
+| T-M0-06 | Session guard, permission decorators, route-permission spec | api | T-M0-05 | opencode | in_progress | | |
 | T-M0-07 | OrgDb + RLS + isolation guards | schema, api | T-M0-06 | claude | todo | | |
 | T-M0-08 | Platform admin — operators, first-admin invitation, org settings read | api | T-M0-07 | claude | todo | | |
 | T-M0-09 | Team management rules via Better Auth hooks | api | T-M0-08 | claude | todo | | |
