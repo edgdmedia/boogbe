@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createTestApp, type TestApp } from './helpers/app';
 import { migratorClient, truncateAll } from './helpers/db';
-import { seedOrg, signInAs } from './helpers/users'; // seedUser and signIn needed again when the todo tests are un-todoed in T-M0-08
+import { seedOrg, seedUser, signIn, signInAs } from './helpers/users';
 
 describe('guards', () => {
   let t: TestApp;
@@ -58,7 +58,20 @@ describe('guards', () => {
     expect(res.body.activeOrg).toBeNull();
   });
 
-  // Built in T-M0-08: /v1/org/settings and /v1/platform/operators. Un-todo in Task 8.
-  it.todo('suspended org is refused [PLT-03]');
-  it.todo('platform routes refuse non-platform users [PLT-04]');
+  it('suspended org is refused [PLT-03]', async () => {
+    const org = await seedOrg();
+    const { agent } = await signInAs(t, 'admin', org.id);
+    const c = await migratorClient();
+    await c.query(`update organization set status='suspended' where id=$1`, [org.id]);
+    await c.end();
+    const res = await agent.get('/v1/org/settings');
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('ORG_SUSPENDED');
+  });
+
+  it('platform routes refuse non-platform users [PLT-04]', async () => {
+    const u = await seedUser(t);
+    const agent = await signIn(t, u.email, u.password);
+    expect((await agent.get('/v1/platform/operators')).status).toBe(403);
+  });
 });
