@@ -9,6 +9,7 @@ import type { Env } from '../../env';
 import type { Mailer } from '../mail/mailer';
 import { inviteEmail, resetPasswordEmail } from '../mail/templates';
 import { ac, orgRoles } from './ac';
+import { assertKnownRole, assertNotLastAdmin } from './membership-rules';
 import { isLocked, LOCK_WINDOW_MS } from './lockout';
 
 export function createAuth({ prisma, mailer, env }: { prisma: PrismaClient; mailer: Mailer; env: Env }) {
@@ -115,9 +116,47 @@ export function createAuth({ prisma, mailer, env }: { prisma: PrismaClient; mail
           const url = `${env.APP_ORIGIN}/auth/accept-invite/${id}`;
           await mailer.send({ to: email, ...inviteEmail({ orgName: org.name, role: role as OrgRole, url }) });
         },
-        // Task 9 adds organizationHooks (last-admin guard, audit, landlord linking).
+        organizationHooks: {
+          beforeCreateInvitation: async ({ invitation }) => {
+            assertKnownRole(String(invitation.role));
+          },
+          beforeUpdateMemberRole: async ({ member, newRole, organization: org }) => {
+            assertKnownRole(String(newRole));
+            await assertNotLastAdmin(prisma, org.id, member.id, newRole as OrgRole);
+          },
+          afterUpdateMemberRole: async ({ member, previousRole, user, organization: org }) => {
+            await writeAudit(prisma, org.id, user.id, 'member.role_change', 'member', member.id, { role: previousRole }, { role: member.role });
+          },
+          beforeRemoveMember: async ({ member, organization: org }) => {
+            await assertNotLastAdmin(prisma, org.id, member.id, null);
+          },
+          afterRemoveMember: async ({ member, user, organization: org }) => {
+            await writeAudit(prisma, org.id, user.id, 'member.remove', 'member', member.id, { role: member.role }, null);
+          },
+          afterAcceptInvitation: async ({ member, user, organization: org }) => {
+            await writeAudit(prisma, org.id, user.id, 'member.join', 'member', member.id, null, { role: member.role });
+          },
+        },
       }),
     ],
   });
 }
 export type Auth = ReturnType<typeof createAuth>;
+
+/** Hooks run outside Nest DI, so the audit write uses raw SQL with the RLS org set in the same transaction. */
+async function writeAudit(
+  prisma: PrismaClient,
+  orgId: string,
+  actorUserId: string,
+  action: string,
+  entity: string,
+  entityId: string,
+  before: unknown,
+  after: unknown,
+) {
+  await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT set_config('app.org_id', ${orgId}, true)`;
+    await tx.$executeRaw`INSERT INTO audit_log (id, org_id, actor_user_id, action, entity, entity_id, before, after, at)
+      VALUES (${randomUUID()}, ${orgId}, ${actorUserId}, ${action}, ${entity}, ${entityId}, ${JSON.stringify(before)}::jsonb, ${JSON.stringify(after)}::jsonb, now())`;
+  });
+}
