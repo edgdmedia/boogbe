@@ -38,10 +38,11 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M0-08 | Platform admin — operators, first-admin invitation, org settings read | api | T-M0-07 | opencode | done | [#8](https://github.com/edgdmedia/boogbe/pull/8) | |
 | T-M0-09 | Team management rules via Better Auth hooks | api | T-M0-08 | opencode | done | [#9](https://github.com/edgdmedia/boogbe/pull/9) | |
 | T-M0-10 | Worker process, job runner, cross-tenant isolation harness | infra | T-M0-09 | opencode | done | [#10](https://github.com/edgdmedia/boogbe/pull/10) | |
-| T-M0-11 | App scaffold, UI primitives, API + auth clients, auth pages | ui | T-M0-10 | claude | todo | | unblocked — opencode pauses impl, reviews PRs; owner can reassign |
+| T-M0-11 | App scaffold, UI primitives, API + auth clients, auth pages | ui | T-M0-10 | claude | in_progress | | unblocked — opencode pauses impl, reviews PRs; owner can reassign |
 | T-M0-12 | App shell, role landing, org switcher, platform pages, team & sessions | ui | T-M0-11 | claude | todo | | |
 | T-M0-13 | CI, deploy scripts, PM2, nginx, backups, runbook | infra | T-M0-12 | claude | todo | | |
 | T-M0-14 | Playwright + E2E-01, staging verification | e2e | T-M0-13 | claude | todo | | M0 exit gate |
+| T-M0-15 | Auth hardening from T-M0-05 review: invite-bound sign-up (no squatting), no account enumeration on sign-up, trusted client-IP header for rate limits, origin-check test | api | T-M0-10 | — | todo | | Owner to prioritise; relates to `requireEmailVerificationOnInvitation: false` (T-M0-08) |
 | T-M1-01 | Inventory & calendar contracts, ownership and fee helpers | domain | M0 (T-M0-14) | | todo | | `docs/plans/M1-inventory-calendar.md` Task 1; suggested: claude |
 | T-M1-02 | Inventory tables, RLS, exclusion constraints | schema | T-M1-01 | | todo | | suggested: claude |
 | T-M1-03 | Files service (R2 presigned uploads) and operator logo | api | T-M1-02 | | todo | | suggested: claude |
