@@ -113,3 +113,4 @@ expense 1─* expense_allocation
 2. Raw SQL (RLS policies, grants, exclusion constraints, extensions, triggers) lives in the same migration directory as the Prisma-generated SQL, appended to `migration.sql`.
 3. Every new tenant table migration must include: `ENABLE` + `FORCE ROW LEVEL SECURITY`, the `org_isolation` policy, grants to `boogbe_app`. `rls-coverage.spec.ts` fails otherwise.
 4. Only the schema owner (see `docs/COORDINATION.md`) merges changes to `prisma/schema.prisma`.
+5. Generate migrations with `pnpm db:migrate` (`prisma migrate dev`). If you append raw SQL, anything Prisma can model (foreign keys, indexes, unique constraints) must also be declared in `schema.prisma` with the same name (`map:`) and actions, or the next generated migration will drop it. `apps/api/test/migrations.int.ts` fails on any drift and on migrations that can't replay into an empty shadow database.

@@ -13,15 +13,15 @@ datasource db {
 // if the CLI output differs, the CLI output wins — update this file in the same PR).
 
 model User {
-  id            String    @id
+  id            String       @id
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String       @unique
+  emailVerified Boolean      @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  role          String?   @default("user")
-  banned        Boolean?  @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  role          String?      @default("user")
+  banned        Boolean?     @default(false)
   banReason     String?
   banExpires    DateTime?
   sessions      Session[]
@@ -98,6 +98,9 @@ model Organization {
   address       String?
   members       Member[]
   invitations   Invitation[]
+  orgSettings   OrgSettings?
+  orgCounters   OrgCounter[]
+  auditLogs     AuditLog[]
 
   @@map("organization")
 }
@@ -164,43 +167,46 @@ model JobRun {
 // (FK is added in SQL) so creates always use scalar fields and the org-scope extension can inject orgId.
 
 model OrgSettings {
-  orgId                 String   @id @map("org_id")
-  checkInTime           String   @default("14:00") @map("check_in_time")
-  checkOutTime          String   @default("12:00") @map("check_out_time")
-  holdHours             Int      @default(24) @map("hold_hours")
-  autoConfirmOnPayment  Boolean  @default(true) @map("auto_confirm_on_payment")
-  ownerSeesGuestNames   Boolean  @default(false) @map("owner_sees_guest_names")
-  receiptPrefix         String   @map("receipt_prefix")
-  statementPrefix       String   @map("statement_prefix")
-  bookingPrefix         String   @map("booking_prefix")
-  logoKey               String?  @map("logo_key")
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
+  orgId                String       @id @map("org_id")
+  checkInTime          String       @default("14:00") @map("check_in_time")
+  checkOutTime         String       @default("12:00") @map("check_out_time")
+  holdHours            Int          @default(24) @map("hold_hours")
+  autoConfirmOnPayment Boolean      @default(true) @map("auto_confirm_on_payment")
+  ownerSeesGuestNames  Boolean      @default(false) @map("owner_sees_guest_names")
+  receiptPrefix        String       @map("receipt_prefix")
+  statementPrefix      String       @map("statement_prefix")
+  bookingPrefix        String       @map("booking_prefix")
+  logoKey              String?      @map("logo_key")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+  org                  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "org_settings_org_fk")
 
   @@map("org_settings")
 }
 
 model OrgCounter {
-  orgId String @map("org_id")
+  orgId String       @map("org_id")
   name  String
-  value BigInt @default(0)
+  value BigInt       @default(0)
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "org_counter_org_fk")
 
   @@id([orgId, name])
   @@map("org_counter")
 }
 
 model AuditLog {
-  id            String   @id
-  orgId         String   @map("org_id")
-  actorUserId   String   @map("actor_user_id")
-  actorMemberId String?  @map("actor_member_id")
+  id            String       @id
+  orgId         String       @map("org_id")
+  actorUserId   String       @map("actor_user_id")
+  actorMemberId String?      @map("actor_member_id")
   action        String
   entity        String
-  entityId      String   @map("entity_id")
+  entityId      String       @map("entity_id")
   before        Json?
   after         Json?
   ip            String?
-  at            DateTime @default(now())
+  at            DateTime     @default(now())
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "audit_log_org_fk")
 
   @@index([orgId, entity, entityId])
   @@index([orgId, at])
