@@ -1,0 +1,119 @@
+import type { PrismaClient } from '@prisma/client';
+import { betterAuth } from 'better-auth';
+import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { APIError, createAuthMiddleware } from 'better-auth/api';
+import { admin, organization } from 'better-auth/plugins';
+import { randomUUID } from 'node:crypto';
+import type { OrgRole } from '@boogbe/shared';
+import type { Env } from '../../env';
+import type { Mailer } from '../mail/mailer';
+import { inviteEmail, resetPasswordEmail } from '../mail/templates';
+import { ac, orgRoles } from './ac';
+import { isLocked, LOCK_WINDOW_MS } from './lockout';
+
+export function createAuth({ prisma, mailer, env }: { prisma: PrismaClient; mailer: Mailer; env: Env }) {
+  return betterAuth({
+    appName: 'Boogbe',
+    baseURL: env.BETTER_AUTH_URL,
+    basePath: '/v1/auth',
+    secret: env.BETTER_AUTH_SECRET,
+    trustedOrigins: [env.APP_ORIGIN],
+    database: prismaAdapter(prisma, { provider: 'postgresql', transaction: true }),
+    advanced: {
+      database: { generateId: () => randomUUID() },
+      ...(env.COOKIE_DOMAIN && { crossSubDomainCookies: { enabled: true, domain: env.COOKIE_DOMAIN } }),
+      useSecureCookies: env.NODE_ENV === 'production',
+    },
+    rateLimit: {
+      enabled: env.NODE_ENV !== 'test',
+      window: 60,
+      max: 100,
+      customRules: { '/sign-in/email': { window: 60, max: 10 }, '/request-password-reset': { window: 300, max: 3 } },
+    },
+    emailAndPassword: {
+      enabled: true,
+      minPasswordLength: 10,
+      maxPasswordLength: 128,
+      revokeSessionsOnPasswordReset: true,
+      resetPasswordTokenExpiresIn: 3600,
+      sendResetPassword: async ({ user, url }) => {
+        await mailer.send({ to: user.email, ...resetPasswordEmail({ url }) });
+      },
+    },
+    databaseHooks: {
+      user: {
+        create: {
+          // Invite-only: a user may only be created for an email with a pending invitation,
+          // or one listed in PLATFORM_ADMIN_EMAILS (bootstrap).
+          before: async (user) => {
+            const email = user.email.toLowerCase();
+            if (env.PLATFORM_ADMIN_EMAILS.includes(email)) return { data: user };
+            const invite = await prisma.invitation.findFirst({
+              where: { email, status: 'pending', expiresAt: { gt: new Date() } },
+            });
+            if (!invite) {
+              throw new APIError('FORBIDDEN', { message: 'Boogbe is invite-only. Ask your operator for an invitation.' });
+            }
+            return { data: { ...user, email } };
+          },
+        },
+      },
+    },
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== '/sign-in/email') return;
+        const email = String(ctx.body?.email ?? '').toLowerCase();
+        const attempts = await prisma.loginAttempt.findMany({
+          where: { email, createdAt: { gt: new Date(Date.now() - LOCK_WINDOW_MS) } },
+          select: { success: true, createdAt: true },
+        });
+        if (isLocked(attempts)) {
+          throw new APIError('TOO_MANY_REQUESTS', { message: 'Too many attempts. Try again in 15 minutes.' });
+        }
+      }),
+      after: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== '/sign-in/email') return;
+        const returned = ctx.context.returned as unknown;
+        const failed = returned instanceof APIError || (returned as { name?: string } | null)?.name === 'APIError';
+        await prisma.loginAttempt.create({
+          data: {
+            id: randomUUID(),
+            email: String(ctx.body?.email ?? '').toLowerCase(),
+            ip: ctx.request?.headers.get('x-forwarded-for') ?? null,
+            success: !failed,
+          },
+        });
+      }),
+    },
+    plugins: [
+      admin({ defaultRole: 'user', adminRoles: ['admin'] }),
+      organization({
+        ac,
+        roles: orgRoles,
+        creatorRole: 'admin',
+        allowUserToCreateOrganization: false, // operators are created by the platform module
+        invitationExpiresIn: 7 * 24 * 3600,
+        cancelPendingInvitationsOnReInvite: true,
+        schema: {
+          organization: {
+            additionalFields: {
+              timezone: { type: 'string', required: false, input: false, defaultValue: 'Africa/Lagos' },
+              currency: { type: 'string', required: false, input: false, defaultValue: 'NGN' },
+              status: { type: 'string', required: false, input: false, defaultValue: 'active' },
+              contactEmail: { type: 'string', required: false, input: false },
+              contactPhone: { type: 'string', required: false, input: false },
+              whatsappPhone: { type: 'string', required: false, input: false },
+              address: { type: 'string', required: false, input: false },
+            },
+          },
+        },
+        sendInvitationEmail: async ({ id, email, role, organization: org }) => {
+          const url = `${env.APP_ORIGIN}/auth/accept-invite/${id}`;
+          await mailer.send({ to: email, ...inviteEmail({ orgName: org.name, role: role as OrgRole, url }) });
+        },
+        // Task 9 adds organizationHooks (last-admin guard, audit, landlord linking).
+      }),
+    ],
+  });
+}
+export type Auth = ReturnType<typeof createAuth>;
