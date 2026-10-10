@@ -21,17 +21,13 @@ export async function seedOrg(name = `Org ${randomUUID().slice(0, 6)}`) {
   return { id, slug };
 }
 
-/** Creates a user through Better Auth. A pending invitation is inserted first so the invite-only gate allows it. */
-export async function seedUser(
-  t: TestApp,
-  p: { email?: string; password?: string; name?: string; platformAdmin?: boolean } = {},
-) {
-  const email = (p.email ?? `u-${randomUUID().slice(0, 8)}@test.boogbe`).toLowerCase();
-  const password = p.password ?? 'correct-horse-battery';
+/** Inserts an org + inviter + pending invitation for `email`; returns the invitation id. */
+export async function seedInvitation(email: string): Promise<string> {
   const c = await migratorClient();
   try {
     const org = await seedOrg();
     const inviter = randomUUID();
+    const id = randomUUID();
     await c.query(
       `INSERT INTO "user"(id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,'seed',$2,true,now(),now())`,
       [inviter, `seed-${inviter}@test.boogbe`],
@@ -39,15 +35,35 @@ export async function seedUser(
     await c.query(
       `INSERT INTO invitation(id,"organizationId",email,role,status,"expiresAt","inviterId","createdAt")
        VALUES ($1,$2,$3,'frontdesk','pending', now() + interval '1 day',$4, now())`,
-      [randomUUID(), org.id, email, inviter],
+      [id, org.id, email, inviter],
     );
-    const auth = t.app.get<Auth>(AUTH);
-    const r = await auth.api.signUpEmail({ body: { email, password, name: p.name ?? 'Test User' } });
-    if (p.platformAdmin) await c.query(`UPDATE "user" SET role = 'admin' WHERE id = $1`, [r.user.id]);
-    return { id: r.user.id, email, password };
+    return id;
   } finally {
     await c.end();
   }
+}
+
+/** Creates a user through Better Auth. A pending invitation is created first and its id is
+ *  passed to sign-up, so both the invite-only gate and the invitation-binding check (T-M0-15)
+ *  are satisfied on the server-API path exactly like the real accept-invite flow. */
+export async function seedUser(
+  t: TestApp,
+  p: { email?: string; password?: string; name?: string; platformAdmin?: boolean } = {},
+) {
+  const email = (p.email ?? `u-${randomUUID().slice(0, 8)}@test.boogbe`).toLowerCase();
+  const password = p.password ?? 'correct-horse-battery';
+  const invitationId = await seedInvitation(email);
+  const auth = t.app.get<Auth>(AUTH);
+  const r = await auth.api.signUpEmail({ body: { email, password, name: p.name ?? 'Test User', invitationId } as never });
+  if (p.platformAdmin) {
+    const c = await migratorClient();
+    try {
+      await c.query(`UPDATE "user" SET role = 'admin' WHERE id = $1`, [r.user.id]);
+    } finally {
+      await c.end();
+    }
+  }
+  return { id: r.user.id, email, password };
 }
 
 export async function addMember(orgId: string, userId: string, role: OrgRole): Promise<string> {
