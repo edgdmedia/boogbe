@@ -77,11 +77,11 @@ As [`TESTING.md`](../../TESTING.md): TDD throughout; domain unit tests in `packa
 - External failures (iCal fetch, email send) never fail the user's action: they are recorded (feed health, outbox status), retried, and surfaced as notifications.
 - Unexpected errors → 500 with request id; Sentry with PII scrubbing.
 
-## 9. Open items for the owner (do not block M0)
-1. Confirm domain (`boogbe.com` assumed) and that Cloudflare manages its DNS.
-2. edgdmedia VPS access details (host, SSH user) as GitHub secrets; confirm Postgres 16 can be installed there.
-3. Resend account for the platform sending domain.
-4. Confirm statement revenue basis (accrual per night, D-017).
+## 9. Owner inputs (resolved 2026-10-10)
+1. Domain: `boogbe.com` (app `app.boogbe.com`, API `api.boogbe.com`); Cloudflare DNS still to confirm.
+2. VPS: host `server.edgdmedia.com`, SSH user `boogbe` (GitHub secrets `PROD_SSH_HOST`, `PROD_SSH_USER` set; `PROD_SSH_KEY` still needed). Postgres 16 install still to confirm.
+3. Resend: placeholder for now (D-023). Must be set before go-live (M4 checklist).
+4. Statement revenue basis: accrual per night confirmed (D-017).
 
 ## 10. Next step
 After owner approval of this spec: superpowers `writing-plans` produces `docs/plans/M0-foundation.md` … `M8-hardening.md` with task IDs, and the task board in `COORDINATION.md` is populated.
