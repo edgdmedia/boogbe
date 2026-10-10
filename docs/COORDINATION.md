@@ -35,8 +35,8 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M0-05 | Better Auth — config, mounting, invite-only sign-up, lockout, password reset | api | T-M0-04 | claude | done | [#5](https://github.com/edgdmedia/boogbe/pull/5) | |
 | T-M0-06 | Session guard, permission decorators, route-permission spec | api | T-M0-05 | opencode | done | [#6](https://github.com/edgdmedia/boogbe/pull/6) | |
 | T-M0-07 | OrgDb + RLS + isolation guards | schema, api | T-M0-06 | opencode | done | [#7](https://github.com/edgdmedia/boogbe/pull/7) | |
-| T-M0-08 | Platform admin — operators, first-admin invitation, org settings read | api | T-M0-07 | opencode | in_progress | | |
-| T-M0-09 | Team management rules via Better Auth hooks | api | T-M0-08 | claude | todo | | |
+| T-M0-08 | Platform admin — operators, first-admin invitation, org settings read | api | T-M0-07 | opencode | done | [#8](https://github.com/edgdmedia/boogbe/pull/8) | |
+| T-M0-09 | Team management rules via Better Auth hooks | api | T-M0-08 | opencode | in_progress | | |
 | T-M0-10 | Worker process, job runner, cross-tenant isolation harness | infra | T-M0-09 | claude | todo | | |
 | T-M0-11 | App scaffold, UI primitives, API + auth clients, auth pages | ui | T-M0-10 | claude | todo | | |
 | T-M0-12 | App shell, role landing, org switcher, platform pages, team & sessions | ui | T-M0-11 | claude | todo | | |
