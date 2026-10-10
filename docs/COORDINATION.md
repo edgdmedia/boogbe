@@ -42,6 +42,14 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M0-12 | App shell, role landing, org switcher, platform pages, team & sessions | ui | T-M0-11 | claude | todo | | |
 | T-M0-13 | CI, deploy scripts, PM2, nginx, backups, runbook | infra | T-M0-12 | claude | todo | | |
 | T-M0-14 | Playwright + E2E-01, staging verification | e2e | T-M0-13 | claude | todo | | M0 exit gate |
+| T-M1-01 | Inventory & calendar contracts, ownership and fee helpers | domain | M0 (T-M0-14) | | todo | | `docs/plans/M1-inventory-calendar.md` Task 1; suggested: claude |
+| T-M1-02 | Inventory tables, RLS, exclusion constraints | schema | T-M1-01 | | todo | | suggested: claude |
+| T-M1-03 | Files service (R2 presigned uploads) and operator logo | api | T-M1-02 | | todo | | suggested: claude |
+| T-M1-04 | Owners, properties, units, ownership, fee config API | api | T-M1-02 | | todo | | suggested: claude |
+| T-M1-05 | Unit fees, manual blocks, calendar API | api | T-M1-04 | | todo | | suggested: claude |
+| T-M1-06 | Inventory settings UI | ui | T-M1-01 (stub); merge after T-M1-04 | | todo | | suggested: opencode |
+| T-M1-07 | Calendar grid (desktop) + day list (mobile), blocks | ui | T-M1-01 (stub); merge after T-M1-05 | | todo | | suggested: opencode |
+| T-M1-08 | Logo upload UI + Tanuhomes seed script | ui, infra | T-M1-03, T-M1-06 | | todo | | suggested: opencode |
 
 ## Parallelism map (by milestone)
 
