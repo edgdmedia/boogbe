@@ -78,8 +78,8 @@ As [`TESTING.md`](../../TESTING.md): TDD throughout; domain unit tests in `packa
 - Unexpected errors → 500 with request id; Sentry with PII scrubbing.
 
 ## 9. Owner inputs (resolved 2026-10-10)
-1. Domain: `boogbe.com` (app `app.boogbe.com`, API `api.boogbe.com`); Cloudflare DNS still to confirm.
-2. VPS: host `server.edgdmedia.com`, SSH user `boogbe` (GitHub secrets `PROD_SSH_HOST`, `PROD_SSH_USER` set; `PROD_SSH_KEY` still needed). Postgres 16 install still to confirm.
+1. Domain: `boogbe.com` (app `app.boogbe.com`, API `api.boogbe.com`); DNS on Cloudflare (confirmed).
+2. VPS: host `server.edgdmedia.com`, SSH user `boogbe` (GitHub secrets `PROD_SSH_HOST`, `PROD_SSH_USER` set; `PROD_SSH_KEY` still needed). Postgres 16 on the VPS confirmed.
 3. Resend: placeholder for now (D-023). Must be set before go-live (M4 checklist).
 4. Statement revenue basis: accrual per night confirmed (D-017).
 
