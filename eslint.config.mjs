@@ -15,7 +15,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['apps/api/src/common/db/**', 'apps/api/test/**', 'apps/api/scripts/**', 'apps/api/src/common/auth/auth.ts'],
+    files: ['apps/api/src/common/db/**', 'apps/api/test/**', 'apps/api/scripts/**', 'apps/api/src/common/auth/**'],
     rules: { 'no-restricted-imports': 'off' },
   },
 );
