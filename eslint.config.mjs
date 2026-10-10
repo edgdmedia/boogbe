@@ -15,6 +15,11 @@ export default tseslint.config(
     },
   },
   {
+    // PM2 loads this as CommonJS.
+    files: ['ecosystem.config.js'],
+    languageOptions: { sourceType: 'commonjs', globals: { module: 'writable', process: 'readonly', require: 'readonly' } },
+  },
+  {
     files: ['apps/api/src/common/db/**', 'apps/api/test/**', 'apps/api/scripts/**', 'apps/api/src/common/auth/**'],
     rules: { 'no-restricted-imports': 'off' },
   },
