@@ -38,3 +38,36 @@ jobs:
       - run: pnpm test
       - run: pnpm test:int
       - run: pnpm build
+  e2e:
+    if: github.base_ref == 'main'
+    needs: verify
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ['5433:5432']
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://boogbe_app:app@localhost:5433/boogbe_dev
+      DATABASE_MIGRATE_URL: postgresql://boogbe_migrator:migrator@localhost:5433/boogbe_dev
+      BETTER_AUTH_SECRET: ci-secret-ci-secret-ci-secret-ci-secret-1
+      BETTER_AUTH_URL: http://localhost:5173
+      APP_ORIGIN: http://localhost:5173
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: |
+          PGPASSWORD=postgres psql -h localhost -p 5433 -U postgres -v ON_ERROR_STOP=1 -f deploy/sql/roles.sql
+          PGPASSWORD=postgres psql -h localhost -p 5433 -U postgres -v ON_ERROR_STOP=1 -f deploy/sql/db-init.sql
+      - run: pnpm --filter @boogbe/api prisma:generate
+      # `nest start` resolves @boogbe/shared to its CommonJS dist, which a fresh checkout doesn't have.
+      - run: pnpm --filter @boogbe/shared build
+      - run: npx playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright-report, path: playwright-report }
