@@ -1,0 +1,21 @@
+name: Deploy API
+on:
+  workflow_run: { workflows: [CI], types: [completed], branches: [dev, main] }
+  workflow_dispatch: {}
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-api-${{ github.event.workflow_run.head_branch || github.ref_name }}
+      cancel-in-progress: false
+    steps:
+      - uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          command_timeout: 20m
+          script: |
+            BRANCH="${{ github.event.workflow_run.head_branch || github.ref_name }}"
+            if [ "$BRANCH" = main ]; then cd /home/boogbe/app && bash deploy/deploy.sh prod; else cd /home/boogbe/staging && bash deploy/deploy.sh staging; fi

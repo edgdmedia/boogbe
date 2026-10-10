@@ -1,0 +1,21 @@
+name: Deploy App
+on:
+  workflow_run: { workflows: [CI], types: [completed], branches: [dev, main] }
+jobs:
+  deploy:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: '${{ github.event.workflow_run.head_sha }}' }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter "@boogbe/app..." build
+        env:
+          VITE_API_ORIGIN: ${{ github.event.workflow_run.head_branch == 'main' && 'https://api.boogbe.com' || 'https://staging-api.boogbe.com' }}
+      - run: npx wrangler@3 pages deploy apps/app/dist --project-name boogbe-app --branch ${{ github.event.workflow_run.head_branch }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
