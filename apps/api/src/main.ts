@@ -1,7 +1,9 @@
+import { resolve } from 'node:path';
 import { buildApp } from './build-app';
-import { loadEnv } from './env';
+import { loadDotEnv, loadEnv } from './env';
 
 async function main() {
+  loadDotEnv(resolve(__dirname, '../../../.env'));
   const env = loadEnv();
   const app = await buildApp();
   app.enableShutdownHooks();

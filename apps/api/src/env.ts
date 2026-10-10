@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { z } from 'zod';
 
 const schema = z
@@ -47,4 +48,12 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     throw new Error(`Invalid environment: ${keys}`);
   }
   return r.data;
+}
+
+/**
+ * Loads the repo-root .env into process.env (PM2 and `nest start` don't). Keys already set win,
+ * so PM2's env_production (NODE_ENV, PORT, BOOGBE_ROLE) is never overridden. Missing file = no-op.
+ */
+export function loadDotEnv(path: string): void {
+  if (existsSync(path)) process.loadEnvFile(path);
 }
