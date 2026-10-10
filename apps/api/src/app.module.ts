@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_PIPE, DiscoveryModule } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AuditModule } from './common/audit/audit.module';
@@ -16,6 +16,7 @@ import { PlatformModule } from './modules/platform/platform.module';
 
 @Module({
   imports: [
+    DiscoveryModule, // route enumeration for the isolation harness
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: process.env.NODE_ENV === 'test' ? 10_000 : 120 }]),
     DbModule,
     MailModule,
