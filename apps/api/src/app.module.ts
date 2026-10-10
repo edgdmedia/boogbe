@@ -13,6 +13,9 @@ import { InvitationsModule } from './modules/invitations/invitations.module';
 import { MeModule } from './modules/me/me.module';
 import { OrgModule } from './modules/org/org.module';
 import { PlatformModule } from './modules/platform/platform.module';
+import { TestSupportModule } from './modules/test-support/test-support.module';
+
+const e2e = process.env.E2E === '1' && process.env.NODE_ENV !== 'production';
 
 @Module({
   imports: [
@@ -26,6 +29,7 @@ import { PlatformModule } from './modules/platform/platform.module';
     PlatformModule,
     InvitationsModule,
     OrgModule,
+    ...(e2e ? [TestSupportModule] : []),
   ],
   controllers: [HealthController],
   providers: [
