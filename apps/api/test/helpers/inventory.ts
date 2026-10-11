@@ -54,3 +54,16 @@ export async function seedUnit(
   await m.end();
   return id;
 }
+
+export async function seedGuest(orgId: string, g: Partial<{ fullName: string; phoneE164: string }> = {}) {
+  const m = await migratorClient();
+  const id = newId();
+  await m.query(`insert into guest(id, org_id, full_name, phone_e164, updated_at) values ($1,$2,$3,$4,now())`, [
+    id,
+    orgId,
+    g.fullName ?? 'Ada Guest',
+    g.phoneE164 ?? '+2348030000000',
+  ]);
+  await m.end();
+  return id;
+}
