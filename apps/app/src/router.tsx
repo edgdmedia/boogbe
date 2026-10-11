@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { CalendarDays, Settings, ShieldCheck, Users } from 'lucide-react';
+import { Building2, CalendarDays, Settings, ShieldCheck, UserRound, Users } from 'lucide-react';
 import { createBrowserRouter, Outlet } from 'react-router-dom';
 import { EmptyState } from '@boogbe/ui';
 import { AppShell, type NavItem } from './components/shell/AppShell';
@@ -10,6 +10,9 @@ import { AcceptInvite } from './routes/auth/AcceptInvite';
 import { ForgotPassword } from './routes/auth/ForgotPassword';
 import { ResetPassword } from './routes/auth/ResetPassword';
 import { Home } from './routes/Home';
+import { PropertiesPage } from './features/inventory/PropertiesPage';
+import { PropertyDetail } from './features/inventory/PropertyDetail';
+import { OwnersPage } from './features/inventory/OwnersPage';
 import { NotFound } from './routes/NotFound';
 import { OperatorsList } from './routes/platform/OperatorsList';
 import { CreateOperator } from './routes/platform/CreateOperator';
@@ -22,6 +25,8 @@ import { ChooseOperator } from './routes/ChooseOperator';
 /** Later milestones append to these arrays; keep one source of truth for nav. */
 export const OPERATOR_NAV: NavItem[] = [
   { to: '/calendar', label: 'Calendar', icon: CalendarDays, permission: 'calendar.read' },
+  { to: '/settings/properties', label: 'Properties', icon: Building2, permission: 'inventory.read' },
+  { to: '/settings/owners', label: 'Owners', icon: UserRound, permission: 'owners.read' },
   { to: '/settings/team', label: 'Team', icon: Users, permission: 'members.write' },
   { to: '/settings', label: 'Settings', icon: Settings, permission: 'org.settings.read' },
 ];
@@ -51,6 +56,9 @@ export const router = createBrowserRouter([
       { path: '/settings', element: operator(<OrgProfile />) },
       { path: '/settings/team', element: operator(<Team />) },
       { path: '/settings/sessions', element: operator(<Sessions />) },
+      { path: '/settings/properties', element: operator(<PropertiesPage />) },
+      { path: '/settings/properties/:id', element: operator(<PropertyDetail />) },
+      { path: '/settings/owners', element: operator(<OwnersPage />) },
       {
         path: '/hk',
         element: (

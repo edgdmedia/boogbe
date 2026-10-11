@@ -6,3 +6,5 @@ export * from './Card';
 export * from './Badge';
 export * from './Spinner';
 export * from './EmptyState';
+export * from './Dialog';
+export * from './Table';
