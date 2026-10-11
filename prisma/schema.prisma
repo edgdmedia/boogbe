@@ -83,24 +83,31 @@ model Verification {
 
 /// The operator (tenant).
 model Organization {
-  id            String       @id
-  name          String
-  slug          String       @unique
-  logo          String?
-  createdAt     DateTime     @default(now())
-  metadata      String?
-  timezone      String       @default("Africa/Lagos")
-  currency      String       @default("NGN")
-  status        String       @default("active")
-  contactEmail  String?
-  contactPhone  String?
-  whatsappPhone String?
-  address       String?
-  members       Member[]
-  invitations   Invitation[]
-  orgSettings   OrgSettings?
-  orgCounters   OrgCounter[]
-  auditLogs     AuditLog[]
+  id             String          @id
+  name           String
+  slug           String          @unique
+  logo           String?
+  createdAt      DateTime        @default(now())
+  metadata       String?
+  timezone       String          @default("Africa/Lagos")
+  currency       String          @default("NGN")
+  status         String          @default("active")
+  contactEmail   String?
+  contactPhone   String?
+  whatsappPhone  String?
+  address        String?
+  members        Member[]
+  invitations    Invitation[]
+  orgSettings    OrgSettings?
+  orgCounters    OrgCounter[]
+  auditLogs      AuditLog[]
+  owners         Owner[]
+  properties     Property[]
+  units          Unit[]
+  unitOwnerships UnitOwnership[]
+  unitFees       UnitFee[]
+  blocks         Block[]
+  files          File[]
 
   @@map("organization")
 }
@@ -211,4 +218,155 @@ model AuditLog {
   @@index([orgId, entity, entityId])
   @@index([orgId, at])
   @@map("audit_log")
+}
+
+// ───────────── Inventory (tenant, RLS) — M1 ─────────────
+// FKs to organization/owner are declared here (named via map:) so generated migrations never drop them.
+
+model Owner {
+  id                   String          @id
+  orgId                String          @map("org_id")
+  name                 String
+  phone                String?
+  email                String?
+  bankName             String?         @map("bank_name")
+  accountNumber        String?         @map("account_number")
+  accountName          String?         @map("account_name")
+  notes                String?
+  userId               String?         @map("user_id")
+  active               Boolean         @default(true)
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+  org                  Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "owner_org_fk")
+  defaultForProperties Property[]
+  ownerships           UnitOwnership[]
+
+  @@index([orgId, name])
+  @@map("owner")
+}
+
+model Property {
+  id                  String       @id
+  orgId               String       @map("org_id")
+  name                String
+  address             String
+  area                String?
+  defaultOwnerId      String?      @map("default_owner_id")
+  defaultOwner        Owner?       @relation(fields: [defaultOwnerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "property_default_owner_fk")
+  feeType             String       @default("none") @map("fee_type")
+  feeBps              Int          @default(0) @map("fee_bps")
+  feeFixedMonthlyKobo BigInt       @default(0) @map("fee_fixed_monthly_kobo")
+  notes               String?
+  active              Boolean      @default(true)
+  sortOrder           Int          @default(0) @map("sort_order")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+  org                 Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "property_org_fk")
+  units               Unit[]
+
+  @@index([orgId, sortOrder])
+  @@map("property")
+}
+
+model Unit {
+  id                      String          @id
+  orgId                   String          @map("org_id")
+  propertyId              String          @map("property_id")
+  property                Property        @relation(fields: [propertyId], references: [id])
+  name                    String
+  bedrooms                Int
+  maxGuests               Int             @map("max_guests")
+  nightlyRateKobo         BigInt          @map("nightly_rate_kobo")
+  defaultAssigneeMemberId String?         @map("default_assignee_member_id")
+  checkInInstructions     String?         @map("check_in_instructions")
+  ownerFollowsProperty    Boolean         @default(true) @map("owner_follows_property")
+  feeOverride             Boolean         @default(false) @map("fee_override")
+  feeType                 String          @default("none") @map("fee_type")
+  feeBps                  Int             @default(0) @map("fee_bps")
+  feeFixedMonthlyKobo     BigInt          @default(0) @map("fee_fixed_monthly_kobo")
+  active                  Boolean         @default(true)
+  sortOrder               Int             @default(0) @map("sort_order")
+  createdAt               DateTime        @default(now()) @map("created_at")
+  updatedAt               DateTime        @updatedAt @map("updated_at")
+  org                     Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "unit_org_fk")
+  ownerships              UnitOwnership[]
+  fees                    UnitFee[]
+  blocks                  Block[]
+
+  @@unique([orgId, propertyId, name])
+  @@map("unit")
+}
+
+model UnitOwnership {
+  id            String       @id
+  orgId         String       @map("org_id")
+  unitId        String       @map("unit_id")
+  unit          Unit         @relation(fields: [unitId], references: [id])
+  ownerId       String?      @map("owner_id")
+  owner         Owner?       @relation(fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "unit_ownership_owner_fk")
+  effectiveFrom DateTime     @map("effective_from") @db.Date
+  effectiveTo   DateTime?    @map("effective_to") @db.Date
+  createdAt     DateTime     @default(now()) @map("created_at")
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "unit_ownership_org_fk")
+
+  @@index([orgId, unitId])
+  @@map("unit_ownership")
+}
+
+model UnitFee {
+  id             String       @id
+  orgId          String       @map("org_id")
+  unitId         String       @map("unit_id")
+  unit           Unit         @relation(fields: [unitId], references: [id])
+  kind           String
+  label          String
+  amountKobo     BigInt       @map("amount_kobo")
+  basis          String
+  includedGuests Int?         @map("included_guests")
+  refundable     Boolean      @default(false)
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "unit_fee_org_fk")
+
+  @@index([orgId, unitId])
+  @@map("unit_fee")
+}
+
+model Block {
+  id                String       @id
+  orgId             String       @map("org_id")
+  unitId            String       @map("unit_id")
+  unit              Unit         @relation(fields: [unitId], references: [id])
+  start             DateTime     @db.Date
+  end               DateTime     @db.Date
+  source            String
+  reason            String
+  note              String?
+  feedId            String?      @map("feed_id")
+  externalUid       String?      @map("external_uid")
+  externalSummary   String?      @map("external_summary")
+  createdByMemberId String?      @map("created_by_member_id")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  org               Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "block_org_fk")
+
+  @@index([orgId, unitId, start])
+  @@map("block")
+}
+
+model File {
+  id                 String       @id
+  orgId              String       @map("org_id")
+  key                String       @unique
+  kind               String
+  contentType        String       @map("content_type")
+  sizeBytes          Int          @map("size_bytes")
+  uploadedByMemberId String?      @map("uploaded_by_member_id")
+  confirmed          Boolean      @default(false)
+  createdAt          DateTime     @default(now()) @map("created_at")
+  org                Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "file_org_fk")
+
+  @@index([orgId, kind])
+  @@map("file")
 }

@@ -36,7 +36,7 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 
 **`property`**: `id, org_id, name, address, area, default_owner_id (nullable → owner), fee_type (pct_gross|pct_net|none), fee_bps, fee_fixed_monthly_kobo, notes, active, sort_order`.
 
-**`unit`**: `id, org_id, property_id, name, bedrooms, max_guests, nightly_rate_kobo, default_assignee_member_id (nullable), check_in_instructions (text), fee_override (boolean), fee_type, fee_bps, fee_fixed_monthly_kobo (used only when fee_override), active, sort_order`. Unique `(org_id, property_id, name)`.
+**`unit`**: `id, org_id, property_id, name, bedrooms, max_guests, nightly_rate_kobo, default_assignee_member_id (nullable), check_in_instructions (text), owner_follows_property (bool, default true — the unit's owner tracks the property's default owner), fee_override (boolean), fee_type, fee_bps, fee_fixed_monthly_kobo (used only when fee_override), active, sort_order`. Unique `(org_id, property_id, name)`.
 
 **`unit_ownership`** (effective-dated, OWN-07): `id, org_id, unit_id, owner_id (nullable = operator-owned), effective_from date, effective_to date null`. Exclusion constraint: no overlapping ranges per unit. The "current" owner shown in UI = row covering today; when a property's default owner changes, rows for units without their own override are closed and reopened.
 
