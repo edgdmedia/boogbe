@@ -18,6 +18,7 @@ const PRISMA_ALLOWED = [
   'modules/platform/',
   'modules/invitations/',
   'modules/org/', // organization table is global (Better Auth); tenant reads go through OrgDb
+  'modules/inventory/owners.service.ts', // reads the global invitation table for portal status
 ];
 
 function files(dir: string, pred: (f: string) => boolean): string[] {

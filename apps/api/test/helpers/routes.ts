@@ -1,3 +1,4 @@
+import { seedOwner, seedProperty, seedUnit } from './inventory';
 import type { INestApplication } from '@nestjs/common';
 import { DiscoveryService, MetadataScanner, Reflector } from '@nestjs/core';
 import { ACCESS_KEY, type AccessRule } from '../../src/common/auth/decorators';
@@ -31,3 +32,14 @@ export function listRoutes(app: INestApplication) {
 export const ISOLATION_FIXTURES: Record<string, (orgId: string) => Promise<string>> = {};
 /** Maps a route param name to the fixture that produces a valid id for it. */
 export const PARAM_FIXTURE: Record<string, string> = {};
+/** Path-specific fixtures, checked before PARAM_FIXTURE, for generic params like `:id`. */
+export const ROUTE_FIXTURE: { match: RegExp; fixture: string }[] = [];
+
+ISOLATION_FIXTURES.owner = (orgId) => seedOwner(orgId);
+ISOLATION_FIXTURES.property = (orgId) => seedProperty(orgId);
+ISOLATION_FIXTURES.unit = async (orgId) => seedUnit(orgId, await seedProperty(orgId));
+ROUTE_FIXTURE.push(
+  { match: /^\/v1\/owners\//, fixture: 'owner' },
+  { match: /^\/v1\/properties\//, fixture: 'property' },
+  { match: /^\/v1\/units\//, fixture: 'unit' },
+);

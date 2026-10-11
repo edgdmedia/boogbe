@@ -154,6 +154,14 @@ export function createAuth({ prisma, mailer, env }: { prisma: PrismaClient; mail
           },
           afterAcceptInvitation: async ({ member, user, organization: org }) => {
             await writeAudit(prisma, org.id, user.id, 'member.join', 'member', member.id, null, { role: member.role });
+            // A property owner accepting a portal invite is linked to their owner record by email (INV-06).
+            if (member.role === 'landlord') {
+              await prisma.$transaction(async (tx) => {
+                await tx.$executeRaw`SELECT set_config('app.org_id', ${org.id}, true)`;
+                await tx.$executeRaw`UPDATE owner SET user_id = ${user.id}
+                  WHERE org_id = ${org.id} AND lower(email) = lower(${user.email}) AND user_id IS NULL`;
+              });
+            }
           },
         },
       }),
