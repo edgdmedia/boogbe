@@ -15,9 +15,10 @@ Two AI builders work on this repo: **Claude Code** (`claude`) and **OpenCode** (
    | `AGENTS.md`, `docs/*.md` | Edit via small PRs; never in a feature branch unless the task says so. |
 4. **Merge order:** API task → contract on `dev` → UI task rebases onto it.
 5. **PR review:** each PR is reviewed by the *other* agent (superpowers `requesting-code-review` / `receiving-code-review`) before the owner merges. Reviewer checks FRD AC coverage, tenant isolation, tests.
-6. **Done** = PR merged into `dev` and the task row set to `done` with the PR link.
-7. **Blocked?** Set `Status: blocked`, write why in Notes, and pick another unblocked task.
-8. Never force-push shared branches. Never rewrite `dev`/`main` history.
+6. **Merge check:** before merging, confirm the PR number, task ID and branch all match the board row, and that the PR has an approving review from the other builder. Mismatch → don't merge, ask.
+7. **Done** = PR merged into `dev` and the task row set to `done` with the PR link.
+8. **Blocked?** Set `Status: blocked`, write why in Notes, and pick another unblocked task.
+9. Never force-push shared branches. Never rewrite `dev`/`main` history.
 
 ## Status values
 `todo` · `in_progress` · `review` · `blocked` · `done`

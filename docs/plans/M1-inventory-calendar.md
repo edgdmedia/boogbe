@@ -14,7 +14,7 @@
 
 ## Global Constraints
 
-- Every tenant table: `org_id` first column after `id`, RLS enabled + forced, `org_isolation` policy, FK to `organization` in SQL, **no** Prisma relation to `Organization`.
+- Every tenant table: `org_id` first column after `id`, RLS enabled + forced, `org_isolation` policy, FK to `organization` declared in `schema.prisma`. Prisma relation to Organization allowed for FK declaration only; never written, connected or included.
 - Tenant data only through `OrgDb.run`; creates use scalar FKs (unchecked input).
 - Money integer kobo; percentages integer bps 0–10000.
 - Stay/range dates are `YYYY-MM-DD`, half-open `[start, end)`.

@@ -7,6 +7,7 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 
 - Postgres 16. IDs: `text` primary keys generated app-side as UUIDv7 (`uuidv7` package) — sortable by time; Better Auth tables use Better Auth's own string ids.
 - Every tenant table has `org_id text not null references organization(id)` as its **first** column after `id`, an index leading with `org_id`, RLS enabled + forced (see ARCHITECTURE §3.3).
+- Prisma relation to Organization allowed for FK declaration only; never written, connected or included. Tenant models declare `org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "<table>_org_fk")` so the FK lives in `schema.prisma`; code always uses the scalar `orgId` (the org-scope extension injects it). `apps/api/src/org-relation.spec.ts` fails on any `org`/`organization` key in a tenant-model call.
 - Money: `bigint` kobo, column suffix `_kobo`. Percentages: `int` basis points, suffix `_bps`.
 - Stay dates: `date` (`check_in`, `check_out`, half-open). Instants: `timestamptz` (`created_at`, `updated_at` on all tables).
 - Soft delete is **not** used for money or bookings (status fields instead). `active boolean` for catalogue items (properties, units, fees, templates).

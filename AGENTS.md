@@ -18,6 +18,7 @@ Boogbe by EDGD Media: a multi-tenant back office for Nigerian short-let operator
 - **TDD**: failing test → minimal code → green → refactor. Commit small, often.
 - Commit messages: `<type>(<area>): <summary> [<FRD-IDs>]`, e.g. `feat(bookings): refuse overlapping stays [BKG-02]`.
 - Open a PR to `dev`; ask the other agent to review; update the task board.
+- **Before merging** any PR: confirm the PR number, task ID and branch all match the board row you are closing, and that the PR has an approving review from the *other* builder. If any of these don't line up, don't merge — ask.
 - Do not start work that is not on the task board. If you find missing work, add a `todo` row and tell the owner.
 
 ## Non-negotiable rules
@@ -40,6 +41,10 @@ pnpm workspaces · Node 22 · TypeScript 5 strict · NestJS 10 · Prisma 5 · Po
 
 ## Commands
 Defined in M0; see `README.md`. Before every PR: `pnpm typecheck && pnpm lint && pnpm test && pnpm test:int`.
+
+**Per-agent test databases.** `pnpm test:int` resets its database on every run, so each builder points `TEST_DATABASE_URL` / `TEST_DATABASE_MIGRATE_URL` in its local `.env` at its own database: `boogbe_test_claude` for Claude Code, `boogbe_test_opencode` for OpenCode (CI uses `boogbe_test`). Fresh `docker compose` volumes create both; for an existing volume run once:
+`docker exec boogbe-db-1 psql -U postgres -c "CREATE DATABASE boogbe_test_<agent> OWNER boogbe_migrator" && docker exec boogbe-db-1 psql -U postgres -d boogbe_test_<agent> -c "CREATE EXTENSION IF NOT EXISTS btree_gist; CREATE EXTENSION IF NOT EXISTS pg_trgm; CREATE EXTENSION IF NOT EXISTS citext; GRANT CONNECT ON DATABASE boogbe_test_<agent> TO boogbe_app;"`.
+Don't reset the shared `boogbe_dev` while the other builder may be using it; generate migrations with `prisma migrate diff` against a throwaway shadow database if `migrate dev` wants to reset.
 
 ## Style
 - Match surrounding code. Small focused files (< ~300 lines). Services hold logic; controllers are thin.
