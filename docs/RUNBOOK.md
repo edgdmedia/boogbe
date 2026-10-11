@@ -33,7 +33,8 @@
 7. Backups (crontab -e as boogbe): `30 1 * * * /home/boogbe/app/deploy/backup.sh prod >> /home/boogbe/app/logs/backup.log 2>&1` (01:30 UTC = 02:30 Lagos).
 
 ## Deploys
-- Merging to `dev` deploys staging; merging to `main` deploys production (GitHub Actions `Deploy API` / `Deploy App`, after `CI` passes on the push).
+- **Auto-deploy disabled until the owner completes VPS setup; re-enable by restoring the triggers.** `Deploy API` and `Deploy App` run only via `workflow_dispatch` (Actions → Run workflow, pick `dev` or `main`). To re-enable, restore `workflow_run: { workflows: [CI], types: [completed], branches: [dev, main] }` in both files (and the CI-success `if:` guard). CI still runs on every push and PR.
+- When re-enabled: merging to `dev` deploys staging; merging to `main` deploys production (GitHub Actions `Deploy API` / `Deploy App`, after `CI` passes on the push).
 - `deploy/deploy.sh` builds the API **with its workspace dependencies** (`pnpm --filter "@boogbe/api..." build`): the compiled API requires `packages/shared/dist`.
 - Every deploy takes a `pg_dump` first (`~/backups/boogbe-<instance>/pre-deploy-*.dump`, 14 days) and aborts if it fails.
 
