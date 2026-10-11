@@ -39,6 +39,7 @@ export class OrgService {
         receiptPrefix: s.receiptPrefix,
         statementPrefix: s.statementPrefix,
         bookingPrefix: s.bookingPrefix,
+        logoUrl: null, // real logo URLs arrive with the Files service (T-M1-03)
       },
     };
   }
@@ -46,8 +47,11 @@ export class OrgService {
   async update(ctx: OrgCtx, input: UpdateOrgSettingsInput): Promise<OrgSettingsResponse> {
     const before = await this.get(ctx);
     const orgPatch = Object.fromEntries(ORG_FIELDS.filter((k) => k in input).map((k) => [k, input[k]]));
+    // logoFileId is accepted by the contract but only wired to org_settings.logo_key in T-M1-03;
+    // until then it must not reach Prisma as a column.
+    const nonColumns = new Set(['logoFileId']);
     const settingsPatch = Object.fromEntries(
-      Object.entries(input).filter(([k]) => !(ORG_FIELDS as readonly string[]).includes(k)),
+      Object.entries(input).filter(([k]) => !(ORG_FIELDS as readonly string[]).includes(k) && !nonColumns.has(k)),
     );
     if (Object.keys(orgPatch).length) await this.prisma.organization.updateMany({ where: { id: ctx.orgId }, data: orgPatch });
     await this.orgDb.run(ctx.orgId, async (tx) => {
