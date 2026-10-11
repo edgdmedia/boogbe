@@ -18,7 +18,7 @@ Boogbe by EDGD Media: a multi-tenant back office for Nigerian short-let operator
 - **TDD**: failing test → minimal code → green → refactor. Commit small, often.
 - Commit messages: `<type>(<area>): <summary> [<FRD-IDs>]`, e.g. `feat(bookings): refuse overlapping stays [BKG-02]`.
 - Open a PR to `dev`; ask the other agent to review; update the task board.
-- **Before merging** any PR: confirm the PR number, task ID and branch all match the board row you are closing, and that the PR has an approving review from the *other* builder. If any of these don't line up, don't merge — ask.
+- **Before merging** any PR: confirm the PR number, task ID and branch all match the board row you are closing, and that the PR has an approving review from the *other* builder. (Same GitHub account for both builders: a review comment saying "Approved" with the task ID counts.) If any of these don't line up, don't merge — ask.
 - Do not start work that is not on the task board. If you find missing work, add a `todo` row and tell the owner.
 
 ## Non-negotiable rules
