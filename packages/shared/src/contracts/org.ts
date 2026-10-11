@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { E164 } from './platform';
+import { E164 } from './common';
 
 const Time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM (24-hour)');
 const Prefix = z.string().regex(/^[A-Z0-9]{2,6}$/, '2–6 capital letters or digits');
@@ -25,6 +25,7 @@ export const OrgSettingsResponse = z.object({
     receiptPrefix: Prefix,
     statementPrefix: Prefix,
     bookingPrefix: Prefix,
+    logoUrl: z.string().url().nullable(),
   }),
 });
 export type OrgSettingsResponse = z.infer<typeof OrgSettingsResponse>;
@@ -44,6 +45,7 @@ export const UpdateOrgSettingsInput = z
     receiptPrefix: Prefix.optional(),
     statementPrefix: Prefix.optional(),
     bookingPrefix: Prefix.optional(),
+    logoFileId: z.string().nullable().optional(),
   })
   .strict();
 export type UpdateOrgSettingsInput = z.infer<typeof UpdateOrgSettingsInput>;

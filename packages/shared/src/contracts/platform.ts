@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ORG_ROLES, ORG_STATUSES } from '../enums';
+import { E164 } from './common';
 
-export const E164 = z.string().regex(/^\+[1-9]\d{7,14}$/, 'Use international format, e.g. +2348012345678');
 export const Slug = z.string().regex(/^[a-z0-9-]{3,40}$/, 'Lowercase letters, numbers and dashes (3–40)');
 
 export const CreateOperatorInput = z.object({
