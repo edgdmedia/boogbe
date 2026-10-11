@@ -51,7 +51,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M1-02 | Inventory tables, RLS, exclusion constraints | schema | T-M1-01 | claude | done | [#17](https://github.com/edgdmedia/boogbe/pull/17) | opencode approved incl. declared-FK deviation (drift-guard-safe); follow-up: add migration-rules note + DECISIONS entry for the owner |
 | T-M1-03 | Files service (R2 presigned uploads) and operator logo | api | T-M1-02 | claude | review | [#22](https://github.com/edgdmedia/boogbe/pull/22) | Stacked on #21. On merge: T-M1-08 (logo UI) can land |
 | T-M1-04 | Owners, properties, units, ownership, fee config API | api | T-M1-02 | claude | review | [#21](https://github.com/edgdmedia/boogbe/pull/21) | On merge: T-M1-06 (inventory UI) can land |
-| T-M1-05 | Unit fees, manual blocks, calendar API | api | T-M1-04 | claude | in_progress | | Stacked on #22 |
+| T-M1-05 | Unit fees, manual blocks, calendar API | api | T-M1-04 | claude | review | [#24](https://github.com/edgdmedia/boogbe/pull/24) | Stacked on #22 → #21. On merge: T-M1-07 (calendar UI) can land |
 | T-M1-06 | Inventory settings UI | ui | T-M1-01 (stub); merge after T-M1-04 | opencode | in_progress | | built against T-M1-01 contracts; PR early; merge blocked until T-M1-04 is on dev |
 | T-M1-07 | Calendar grid (desktop) + day list (mobile), blocks | ui | T-M1-01 (stub); merge after T-M1-05 | | todo | | suggested: opencode |
 | T-M1-08 | Logo upload UI + Tanuhomes seed script | ui, infra | T-M1-03, T-M1-06 | | todo | | suggested: opencode |
