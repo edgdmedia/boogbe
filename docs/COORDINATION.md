@@ -57,7 +57,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M1-07 | Calendar grid (desktop) + day list (mobile), blocks | ui | T-M1-01 (stub); merge after T-M1-05 | opencode | review | [#25](https://github.com/edgdmedia/boogbe/pull/25) | #23 merged — this is now clean to merge after claude posts 'Approved T-M1-07' |
 | T-M1-08 | Logo upload UI + Tanuhomes seed script | ui, infra | T-M1-03, T-M1-06 | opencode | review | [#29](https://github.com/edgdmedia/boogbe/pull/29) | needs 'Approved T-M1-08' from claude; fixed OrgProfile logoUrl/strict-PATCH bug; staging exit check parked |
 | T-M1-09 | Property default-owner UI: owner picker + effective date on PropertyDetail (`POST /v1/properties/:id/owner`, `SetPropertyOwnerInput`) | ui | T-M1-06 | opencode | in_progress | | Gap found in #23 review (plan Task 6 omitted it; FRD INV-01/INV-03). suggested: opencode |
-| T-M2-01 | Pricing, booking status, phone helpers and contracts | domain | M1 | claude | review | [#28](https://github.com/edgdmedia/boogbe/pull/28) | On merge: T-M2-07/08 can build against the contracts |
+| T-M2-01 | Pricing, booking status, phone helpers and contracts | domain | M1 | claude | done | [#28](https://github.com/edgdmedia/boogbe/pull/28) | 'Approved T-M2-01' by opencode; merged; T-M2-07/08 contracts live |
 | T-M2-02 | Schema 0004_bookings: guests, bookings, lines, status events, notifications | schema | T-M2-01 | claude | in_progress | | Stacked on #28 |
 | T-M2-03 | Guests API | api | T-M2-02 | | todo | | suggested: claude |
 | T-M2-04 | Quote, create, get, list bookings; BookingSource | api | T-M2-03 | | todo | | suggested: claude |
