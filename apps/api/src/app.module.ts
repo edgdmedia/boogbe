@@ -11,6 +11,7 @@ import { FilesModule } from './common/files/files.module';
 import { FilesHttpModule } from './modules/files/files-http.module';
 import { MailModule } from './common/mail/mail.module';
 import { HealthController } from './modules/health/health.controller';
+import { CalendarModule } from './modules/calendar/calendar.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { MeModule } from './modules/me/me.module';
@@ -32,6 +33,7 @@ const e2e = process.env.NODE_ENV !== 'production' && (process.env.E2E === '1' ||
     PlatformModule,
     InvitationsModule,
     OrgModule,
+    CalendarModule, // before InventoryModule: BlocksService registers itself as a calendar source
     InventoryModule,
     FilesModule,
     FilesHttpModule,

@@ -55,4 +55,28 @@ ROUTE_FIXTURE.push(
   { match: /^\/v1\/properties\//, fixture: 'property' },
   { match: /^\/v1\/units\//, fixture: 'unit' },
   { match: /^\/v1\/files\//, fixture: 'file' },
+  { match: /^\/v1\/fees\//, fixture: 'fee' },
+  { match: /^\/v1\/blocks\//, fixture: 'block' },
 );
+ISOLATION_FIXTURES.fee = async (orgId) => {
+  const unitId = await seedUnit(orgId, await seedProperty(orgId));
+  const m = await migratorClient();
+  const id = newId();
+  await m.query(
+    `insert into unit_fee(id, org_id, unit_id, kind, label, amount_kobo, basis, updated_at) values ($1,$2,$3,'cleaning','Cleaning',100,'per_stay',now())`,
+    [id, orgId, unitId],
+  );
+  await m.end();
+  return id;
+};
+ISOLATION_FIXTURES.block = async (orgId) => {
+  const unitId = await seedUnit(orgId, await seedProperty(orgId));
+  const m = await migratorClient();
+  const id = newId();
+  await m.query(
+    `insert into block(id, org_id, unit_id, start, "end", source, reason, updated_at) values ($1,$2,$3,'2030-01-01','2030-01-02','manual','maintenance',now())`,
+    [id, orgId, unitId],
+  );
+  await m.end();
+  return id;
+};
