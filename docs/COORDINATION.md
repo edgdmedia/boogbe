@@ -47,7 +47,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M0-16 | [schema] Make 0001_init's `_prisma_migrations` REVOKE conditional so `prisma migrate dev` works with a shadow DB (owner-approved re-baseline; local DBs reset once) | schema | T-M0-14 | claude | done | [#15](https://github.com/edgdmedia/boogbe/pull/15) | Late-reviewed+approved by opencode (merged accidentally before review — verified: 45→54 int green, drift guard clean); dev DB reset done |
 | T-M0-17 | Cookie & CSRF hardening tests: session cookie HttpOnly + SameSite (Lax/Strict) + Secure in production; state-changing `/v1/*` routes must reject non-JSON content types (HTML form POST must not reach them). better-auth doesn't hard-403 origins, so these attributes are our cross-site protection — pinned by tests; fix anything that fails | api | T-M0-15 | opencode | in_progress | [#20](https://github.com/edgdmedia/boogbe/pull/20) | awaiting claude's approval; int 62/62 incl. 8 new; per-agent DB used |
 | T-M0-18 | Guards and rules follow-up: Organization-relation static guard, per-agent test DBs, merge-check rule | api, docs | T-M0-16 | claude | done | [#19](https://github.com/edgdmedia/boogbe/pull/19) | reviewed+approved by opencode; merged under the new merge-check rule |
-| T-M0-19 | Disable auto-deploy (Deploy API/App on workflow_dispatch only) until VPS setup; clarify rule 6 approvals for the shared GitHub account | infra, docs | T-M0-13 | claude | in_progress | | Owner instruction; opencode reviews |
+| T-M0-19 | Disable auto-deploy (Deploy API/App on workflow_dispatch only) until VPS setup; clarify rule 6 approvals for the shared GitHub account | infra, docs | T-M0-13 | claude | review | [#26](https://github.com/edgdmedia/boogbe/pull/26) | Owner instruction; opencode reviews |
 | T-M1-01 | Inventory & calendar contracts, ownership and fee helpers | domain | M0 (T-M0-14) | opencode | done | [#18](https://github.com/edgdmedia/boogbe/pull/18) | CI green, int 54/54; T-M1-06/07 unblocked (stubs allowed) |
 | T-M1-02 | Inventory tables, RLS, exclusion constraints | schema | T-M1-01 | claude | done | [#17](https://github.com/edgdmedia/boogbe/pull/17) | opencode approved incl. declared-FK deviation (drift-guard-safe); follow-up: add migration-rules note + DECISIONS entry for the owner |
 | T-M1-03 | Files service (R2 presigned uploads) and operator logo | api | T-M1-02 | claude | done | [#22](https://github.com/edgdmedia/boogbe/pull/22) | opencode approved+merged; 72/72 int re-verified on boogbe_test_opencode; T-M1-08 unblocked |
@@ -57,6 +57,15 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M1-07 | Calendar grid (desktop) + day list (mobile), blocks | ui | T-M1-01 (stub); merge after T-M1-05 | opencode | review | [#25](https://github.com/edgdmedia/boogbe/pull/25) | shares Dialog/Table + RTL-cleanup edits with #23 (verbatim, identical) — merge #23 first |
 | T-M1-08 | Logo upload UI + Tanuhomes seed script | ui, infra | T-M1-03, T-M1-06 | | todo | | suggested: opencode |
 | T-M1-09 | Property default-owner UI: owner picker + effective date on PropertyDetail (`POST /v1/properties/:id/owner`, `SetPropertyOwnerInput`) | ui | T-M1-06 | opencode | in_progress | | Gap found in #23 review (plan Task 6 omitted it; FRD INV-01/INV-03). suggested: opencode |
+| T-M2-01 | Pricing, booking status, phone helpers and contracts | domain | M1 | claude | in_progress | | |
+| T-M2-02 | Schema 0004_bookings: guests, bookings, lines, status events, notifications | schema | T-M2-01 | | todo | | suggested: claude |
+| T-M2-03 | Guests API | api | T-M2-02 | | todo | | suggested: claude |
+| T-M2-04 | Quote, create, get, list bookings; BookingSource | api | T-M2-03 | | todo | | suggested: claude |
+| T-M2-05 | Edit/move/reprice, status transitions, cancel, holds job, notifications | api | T-M2-04 | | todo | | suggested: claude |
+| T-M2-06 | Audit viewer API | api | T-M2-02 | | todo | | suggested: opencode (owner); note: plan suggested claude — it is API, not UI |
+| T-M2-07 | Guests pages and guest picker | ui | T-M2-01 (stub); merge after T-M2-03 | | todo | | suggested: opencode |
+| T-M2-08 | Booking form, booking detail, bookings list | ui | T-M2-01 (stub); merge after T-M2-05 | | todo | | suggested: opencode |
+| T-M2-09 | Notifications bell, audit page, E2E-02 and E2E-03 | ui, e2e | T-M2-05, T-M2-06, T-M2-08 | | todo | | suggested: opencode |
 
 ## Parallelism map (by milestone)
 
