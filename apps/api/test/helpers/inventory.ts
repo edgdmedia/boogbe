@@ -67,3 +67,25 @@ export async function seedGuest(orgId: string, g: Partial<{ fullName: string; ph
   await m.end();
   return id;
 }
+
+export async function seedBooking(
+  orgId: string,
+  unitId: string,
+  guestId: string,
+  b: { checkIn: string; checkOut: string; status?: string; totalKobo?: number; depositKobo?: number },
+) {
+  const m = await migratorClient();
+  const id = newId();
+  await m.query(
+    `insert into booking(id, org_id, ref, unit_id, guest_id, check_in, check_out, guest_count, source, status, computed_total_kobo, final_total_kobo, deposit_kobo, updated_at)
+     values ($1,$2,$3,$4,$5,$6,$7,2,'phone',$8,$9,$9,$10,now())`,
+    [id, orgId, `T-${id.slice(-6)}`, unitId, guestId, b.checkIn, b.checkOut, b.status ?? 'confirmed', b.totalKobo ?? 10_000_000, b.depositKobo ?? 0],
+  );
+  await m.query(
+    `insert into booking_line(id, org_id, booking_id, position, kind, label, quantity, unit_amount_kobo, amount_kobo, refundable, recognition)
+     values ($1,$2,$3,0,'accommodation','Stay',1,$4,$4,false,'per_night')`,
+    [newId(), orgId, id, b.totalKobo ?? 10_000_000],
+  );
+  await m.end();
+  return id;
+}

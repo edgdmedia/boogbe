@@ -3,6 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import { GuestInput, GuestListQuery, GuestMatchQuery } from '@boogbe/shared';
 import { Ctx, Permission } from '../../common/auth/decorators';
 import { requireOrg, type RequestCtx } from '../../common/auth/request-ctx';
+import { BookingsService } from '../bookings/bookings.service';
 import { GuestsService } from './guests.service';
 
 class GuestDto extends createZodDto(GuestInput) {}
@@ -12,7 +13,10 @@ class MatchQ extends createZodDto(GuestMatchQuery) {}
 
 @Controller('guests')
 export class GuestsController {
-  constructor(private readonly svc: GuestsService) {}
+  constructor(
+    private readonly svc: GuestsService,
+    private readonly bookings: BookingsService,
+  ) {}
 
   @Get()
   @Permission('guests.read')
@@ -29,8 +33,11 @@ export class GuestsController {
 
   @Get(':id')
   @Permission('guests.read')
-  get(@Ctx() c: RequestCtx, @Param('id') id: string) {
-    return this.svc.get(requireOrg(c), id);
+  /** Detail view with booking history (GST-04). */
+  async get(@Ctx() c: RequestCtx, @Param('id') id: string) {
+    const ctx = requireOrg(c);
+    const guest = await this.svc.get(ctx, id);
+    return { ...guest, bookings: (await this.bookings.list(ctx, { guestId: id, limit: 100 })).items };
   }
 
   @Post()

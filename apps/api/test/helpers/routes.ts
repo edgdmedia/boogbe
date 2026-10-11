@@ -1,6 +1,6 @@
 import { migratorClient } from './db';
 import { newId } from '../../src/common/db/ids';
-import { seedGuest, seedOwner, seedProperty, seedUnit } from './inventory';
+import { seedBooking, seedGuest, seedOwner, seedProperty, seedUnit } from './inventory';
 import type { INestApplication } from '@nestjs/common';
 import { DiscoveryService, MetadataScanner, Reflector } from '@nestjs/core';
 import { ACCESS_KEY, type AccessRule } from '../../src/common/auth/decorators';
@@ -60,6 +60,11 @@ ROUTE_FIXTURE.push(
   { match: /^\/v1\/guests\//, fixture: 'guest' },
 );
 ISOLATION_FIXTURES.guest = (orgId) => seedGuest(orgId);
+ISOLATION_FIXTURES.booking = async (orgId) => {
+  const u = await seedUnit(orgId, await seedProperty(orgId));
+  return seedBooking(orgId, u, await seedGuest(orgId), { checkIn: '2030-01-01', checkOut: '2030-01-03' });
+};
+ROUTE_FIXTURE.push({ match: /^\/v1\/bookings\//, fixture: 'booking' });
 ISOLATION_FIXTURES.fee = async (orgId) => {
   const unitId = await seedUnit(orgId, await seedProperty(orgId));
   const m = await migratorClient();
