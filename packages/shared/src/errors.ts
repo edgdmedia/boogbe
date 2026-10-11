@@ -13,6 +13,8 @@ export const ERROR_CODES = [
   'ACCOUNT_LOCKED',
   'INTERNAL',
   'PAYLOAD_TOO_LARGE',
+  'ICAL_OVERLAP',
+  'CAPACITY_EXCEEDED',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 export interface ApiErrorBody {
