@@ -53,7 +53,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M1-04 | Owners, properties, units, ownership, fee config API | api | T-M1-02 | claude | done | [#21](https://github.com/edgdmedia/boogbe/pull/21) | opencode approved+merged; 67/67 verified; T-M1-06 (#23) mergeable after claude approves |
 | T-M1-05 | Unit fees, manual blocks, calendar API | api | T-M1-04 | claude | done | [#24](https://github.com/edgdmedia/boogbe/pull/24) | opencode approved+merged; 80/80 verified; T-M1-07 (calendar UI) starting |
 | T-M1-06 | Inventory settings UI | ui | T-M1-01 (stub); merge after T-M1-04 | opencode | in_progress | | built against T-M1-01 contracts; PR early; merge blocked until T-M1-04 is on dev — **approved by claude** (review on #23); follow-up T-M1-09 |
-| T-M1-07 | Calendar grid (desktop) + day list (mobile), blocks | ui | T-M1-01 (stub); merge after T-M1-05 | opencode | in_progress | | T-M1-05 merged, deps met |
+| T-M1-07 | Calendar grid (desktop) + day list (mobile), blocks | ui | T-M1-01 (stub); merge after T-M1-05 | opencode | review | [#25](https://github.com/edgdmedia/boogbe/pull/25) | shares Dialog/Table + RTL-cleanup edits with #23 (verbatim, identical) — merge #23 first |
 | T-M1-08 | Logo upload UI + Tanuhomes seed script | ui, infra | T-M1-03, T-M1-06 | | todo | | suggested: opencode |
 | T-M1-09 | Property default-owner UI: owner picker + effective date on PropertyDetail (`POST /v1/properties/:id/owner`, `SetPropertyOwnerInput`) | ui | T-M1-06 | | todo | | Gap found in #23 review (plan Task 6 omitted it; FRD INV-01/INV-03). suggested: opencode |
 
