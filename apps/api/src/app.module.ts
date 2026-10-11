@@ -9,6 +9,7 @@ import { DbModule } from './common/db/db.module';
 import { ErrorFilter } from './common/http/error.filter';
 import { MailModule } from './common/mail/mail.module';
 import { HealthController } from './modules/health/health.controller';
+import { InventoryModule } from './modules/inventory/inventory.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { MeModule } from './modules/me/me.module';
 import { OrgModule } from './modules/org/org.module';
@@ -29,6 +30,7 @@ const e2e = process.env.NODE_ENV !== 'production' && (process.env.E2E === '1' ||
     PlatformModule,
     InvitationsModule,
     OrgModule,
+    InventoryModule,
     ...(e2e ? [TestSupportModule] : []),
   ],
   controllers: [HealthController],

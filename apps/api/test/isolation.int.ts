@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestApp, type TestApp } from './helpers/app';
 import { truncateAll } from './helpers/db';
 import { seedOrg, signInAs } from './helpers/users';
-import { ISOLATION_FIXTURES, listRoutes, PARAM_FIXTURE } from './helpers/routes';
+import { ISOLATION_FIXTURES, listRoutes, PARAM_FIXTURE, ROUTE_FIXTURE } from './helpers/routes';
 
 describe('cross-tenant isolation [NFR-01]', () => {
   let t: TestApp;
@@ -24,7 +24,7 @@ describe('cross-tenant isolation [NFR-01]', () => {
     for (const r of routes) {
       let path = r.path;
       for (const [, param] of r.path.matchAll(/:(\w+)/g)) {
-        const fixture = PARAM_FIXTURE[param!];
+        const fixture = ROUTE_FIXTURE.find((f) => f.match.test(r.path))?.fixture ?? PARAM_FIXTURE[param!];
         if (!fixture) {
           unmapped.push(`${r.method} ${r.path} (:${param})`);
           continue;
