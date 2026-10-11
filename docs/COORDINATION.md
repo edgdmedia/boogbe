@@ -52,7 +52,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M1-03 | Files service (R2 presigned uploads) and operator logo | api | T-M1-02 | | todo | | suggested: claude |
 | T-M1-04 | Owners, properties, units, ownership, fee config API | api | T-M1-02 | claude | in_progress | | |
 | T-M1-05 | Unit fees, manual blocks, calendar API | api | T-M1-04 | | todo | | suggested: claude |
-| T-M1-06 | Inventory settings UI | ui | T-M1-01 (stub); merge after T-M1-04 | | todo | | suggested: opencode |
+| T-M1-06 | Inventory settings UI | ui | T-M1-01 (stub); merge after T-M1-04 | opencode | in_progress | | built against T-M1-01 contracts; PR early; merge blocked until T-M1-04 is on dev |
 | T-M1-07 | Calendar grid (desktop) + day list (mobile), blocks | ui | T-M1-01 (stub); merge after T-M1-05 | | todo | | suggested: opencode |
 | T-M1-08 | Logo upload UI + Tanuhomes seed script | ui, infra | T-M1-03, T-M1-06 | | todo | | suggested: opencode |
 
