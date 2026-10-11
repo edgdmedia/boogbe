@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createTestApp, type TestApp } from './helpers/app';
 import { truncateAll, migratorClient } from './helpers/db';
-import { seedUser, signIn } from './helpers/users';
+import { seedUser, signIn, seedInvitation } from './helpers/users';
 import { MAILER } from '../src/common/mail/mail.module';
 import type { MemoryMailer } from '../src/common/mail/mailer';
 
@@ -75,10 +75,11 @@ describe('auth', () => {
   });
 
   it('rejects passwords shorter than 10 characters [AUTH-01]', async () => {
+    const inv = await seedInvitation('short@test.boogbe');
     const res = await t
       .agent()
       .post('/v1/auth/sign-up/email')
-      .send({ email: 'short@test.boogbe', password: 'short', name: 'S' });
+      .send({ email: 'short@test.boogbe', password: 'short', name: 'S', invitationId: inv });
     expect(res.status).toBe(400);
   });
 });

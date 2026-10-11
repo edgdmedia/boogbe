@@ -1,9 +1,10 @@
-import { Controller, Get, Inject, Query } from '@nestjs/common';
+import { Controller, Get, Inject, Query, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { Public } from '../../common/auth/decorators';
 import { MAILER } from '../../common/mail/mail.module';
 import type { MemoryMailer } from '../../common/mail/mailer';
 
-/** E2E only: lets Playwright read the emails the API "sent". Never registered in production. */
+/** E2E/test only: lets Playwright read the emails the API "sent". Never registered in production. */
 @Controller('__test')
 export class TestSupportController {
   constructor(@Inject(MAILER) private readonly mailer: MemoryMailer) {}
@@ -12,5 +13,11 @@ export class TestSupportController {
   @Public()
   mail(@Query('to') to: string) {
     return this.mailer.lastTo(to) ?? null;
+  }
+
+  @Get('ip')
+  @Public()
+  ip(@Req() req: Request) {
+    return { ip: req.ip };
   }
 }

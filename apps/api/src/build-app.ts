@@ -20,6 +20,9 @@ export async function buildApp(): Promise<NestExpressApplication> {
   const http = app.getHttpAdapter().getInstance() as express.Express;
   http.set('trust proxy', 1);
   http.use(requestId);
+  // nginx (with the Cloudflare real-IP module) sets a single trusted X-Forwarded-For;
+  // express must trust it so throttling and the auth rate limiter key off the client IP.
+  http.set('trust proxy', 'loopback');
   http.use(helmet());
   http.use(cors({ origin: [env.APP_ORIGIN], credentials: true }));
   // Better Auth reads its own body, so it must be mounted before the JSON parser.

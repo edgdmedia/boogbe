@@ -50,7 +50,14 @@ export function AcceptInvite() {
     setErr(undefined);
     const r = inv.userExists
       ? await authClient.signIn.email({ email: inv.email, password: v.password })
-      : await authClient.signUp.email({ email: inv.email, password: v.password, name: v.name! });
+      : // invitationId binds sign-up to the exact invitation (T-M0-15); the endpoint ignores
+        // unknown fields, so it needs a client-type cast rather than a declared signUp field.
+        await authClient.signUp.email({
+          email: inv.email,
+          password: v.password,
+          name: v.name!,
+          invitationId: inv.id,
+        } as Parameters<typeof authClient.signUp.email>[0]);
     if (r.error) return setErr(r.error.message ?? 'Could not continue');
     const a = await authClient.organization.acceptInvitation({ invitationId: inv.id });
     if (a.error) return setErr(a.error.message ?? 'Could not accept the invitation');

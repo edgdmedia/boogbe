@@ -67,7 +67,7 @@ describe('platform admin', () => {
     const agent = t.agent();
     await agent
       .post('/v1/auth/sign-up/email')
-      .send({ email: 'owner@tanuhomes.com', password: 'correct-horse-battery', name: 'Owner' })
+      .send({ email: 'owner@tanuhomes.com', password: 'correct-horse-battery', name: 'Owner', invitationId: inv.body.id })
       .expect(200);
     await agent.post('/v1/auth/organization/accept-invitation').send({ invitationId: inv.body.id }).expect(200);
     await agent.post('/v1/auth/organization/set-active').send({ organizationId: op.id }).expect(200);
@@ -100,7 +100,7 @@ describe('platform admin', () => {
     const agent = t.agent();
     await agent
       .post('/v1/auth/sign-up/email')
-      .send({ email: 'a@t.ng', password: 'correct-horse-battery', name: 'A' });
+      .send({ email: 'a@t.ng', password: 'correct-horse-battery', name: 'A', invitationId: inv.id });
     await agent.post('/v1/auth/organization/accept-invitation').send({ invitationId: inv.id });
     await agent.post('/v1/auth/organization/set-active').send({ organizationId: op.id });
     await agent.patch('/v1/org/settings').send({ checkInTime: '25:00' }).expect(400);

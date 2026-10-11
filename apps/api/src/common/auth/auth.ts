@@ -62,6 +62,25 @@ export function createAuth({ prisma, mailer, env }: { prisma: PrismaClient; mail
     },
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path === '/sign-up/email') {
+          const email = String(ctx.body?.email ?? '').toLowerCase();
+          if (!env.PLATFORM_ADMIN_EMAILS.includes(email)) {
+            const invitationId = String(ctx.body?.invitationId ?? '');
+            const invite = invitationId
+              ? await prisma.invitation.findFirst({
+                  where: { id: invitationId, email, status: 'pending', expiresAt: { gt: new Date() } },
+                  select: { id: true },
+                })
+              : null;
+            const userExists = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+            // Same response for "no valid invitation" and "account exists" — sign-up must not
+            // reveal whether an email has an account, and knowing the email alone is not enough
+            // to claim the seat: the invitation id from the emailed link is required.
+            if (!invite || userExists) {
+              throw new APIError('FORBIDDEN', { message: 'Boogbe is invite-only. Ask your operator for an invitation.' });
+            }
+          }
+        }
         if (ctx.path !== '/sign-in/email') return;
         const email = String(ctx.body?.email ?? '').toLowerCase();
         const attempts = await prisma.loginAttempt.findMany({

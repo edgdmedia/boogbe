@@ -15,7 +15,7 @@ import { OrgModule } from './modules/org/org.module';
 import { PlatformModule } from './modules/platform/platform.module';
 import { TestSupportModule } from './modules/test-support/test-support.module';
 
-const e2e = process.env.E2E === '1' && process.env.NODE_ENV !== 'production';
+const e2e = process.env.NODE_ENV !== 'production' && (process.env.E2E === '1' || process.env.NODE_ENV === 'test');
 
 @Module({
   imports: [
