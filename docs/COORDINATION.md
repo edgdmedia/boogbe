@@ -45,7 +45,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M0-15 | Auth hardening from T-M0-05 review: invite-bound sign-up (no squatting), no account enumeration on sign-up, trusted client-IP header for rate limits, origin-check test | api | T-M0-10 | opencode | in_progress | | Owner approved priority; relates to `requireEmailVerificationOnInvitation: false` (T-M0-08) |
 | T-M0-16 | [schema] Make 0001_init's `_prisma_migrations` REVOKE conditional so `prisma migrate dev` works with a shadow DB (owner-approved re-baseline; local DBs reset once) | schema | T-M0-14 | claude | review | [#15](https://github.com/edgdmedia/boogbe/pull/15) | Blocks the standard migrate flow for every M1–M7 [schema] task; finish before T-M1-01 starts |
 | T-M1-01 | Inventory & calendar contracts, ownership and fee helpers | domain | M0 (T-M0-14) | opencode | todo | | Owner green-lit early start (no overlap with deploy/E2E work); opencode begins after T-M0-15 merges; unblocks T-M1-06/07 |
-| T-M1-02 | Inventory tables, RLS, exclusion constraints | schema | T-M1-01 | | todo | | suggested: claude |
+| T-M1-02 | Inventory tables, RLS, exclusion constraints | schema | T-M1-01 | claude | in_progress | | Owner approved early start (no code dependency on T-M1-01); stacked on #15 (T-M0-16); names checked against the T-M1-01 contracts in the plan |
 | T-M1-03 | Files service (R2 presigned uploads) and operator logo | api | T-M1-02 | | todo | | suggested: claude |
 | T-M1-04 | Owners, properties, units, ownership, fee config API | api | T-M1-02 | | todo | | suggested: claude |
 | T-M1-05 | Unit fees, manual blocks, calendar API | api | T-M1-04 | | todo | | suggested: claude |
