@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { FilesModule } from './common/files/files.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuditModule } from './common/audit/audit.module';
 import { AuthModule } from './common/auth/auth.module';
@@ -8,7 +9,7 @@ import { MailModule } from './common/mail/mail.module';
 
 /** Cron jobs only. Later milestones add their *.jobs.ts providers here. */
 @Module({
-  imports: [ScheduleModule.forRoot(), DbModule, MailModule, AuthModule, AuditModule, JobsModule],
+  imports: [ScheduleModule.forRoot(), DbModule, MailModule, AuthModule, AuditModule, FilesModule, JobsModule],
   providers: [],
 })
 export class WorkerModule {}

@@ -15,6 +15,11 @@ describe('loadEnv', () => {
   it('refuses the .env.example placeholder secret in production [NFR-04]', () => {
     expect(() => loadEnv({ ...base, NODE_ENV: 'production' })).toThrow('BETTER_AUTH_SECRET');
   });
+  it('requires R2 in production and treats blank R2 keys as unset', () => {
+    const prod = { ...base, NODE_ENV: 'production', BETTER_AUTH_SECRET: 'x'.repeat(40) };
+    expect(() => loadEnv({ ...prod, R2_ENDPOINT: '' })).toThrow('R2_ENDPOINT');
+    expect(loadEnv({ ...base, NODE_ENV: 'development', R2_ENDPOINT: '' }).R2_ENDPOINT).toBeUndefined();
+  });
   it('allows the placeholder secret in development', () => {
     expect(loadEnv({ ...base, NODE_ENV: 'development' }).BETTER_AUTH_SECRET).toBe(base.BETTER_AUTH_SECRET);
   });
