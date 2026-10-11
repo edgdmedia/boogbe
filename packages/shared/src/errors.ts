@@ -15,6 +15,7 @@ export const ERROR_CODES = [
   'PAYLOAD_TOO_LARGE',
   'ICAL_OVERLAP',
   'CAPACITY_EXCEEDED',
+  'UNSUPPORTED_MEDIA_TYPE',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 export interface ApiErrorBody {
