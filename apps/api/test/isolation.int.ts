@@ -18,7 +18,7 @@ describe('cross-tenant isolation [NFR-01]', () => {
     const a = await seedOrg('A');
     const b = await seedOrg('B');
     const { agent } = await signInAs(t, 'admin', a.id);
-    const routes = listRoutes(t.app).filter((r) => r.access?.kind === 'permission' && /:\w+/.test(r.path));
+    const routes = listRoutes(t.app).filter((r) => (r.access?.kind === 'permission' || r.access?.kind === 'signedIn') && /:\w+/.test(r.path));
     const leaks: string[] = [];
     const unmapped: string[] = [];
     for (const r of routes) {

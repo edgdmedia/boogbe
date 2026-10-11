@@ -7,6 +7,8 @@ import { AuthModule } from './common/auth/auth.module';
 import { SessionGuard } from './common/auth/session.guard';
 import { DbModule } from './common/db/db.module';
 import { ErrorFilter } from './common/http/error.filter';
+import { FilesModule } from './common/files/files.module';
+import { FilesHttpModule } from './modules/files/files-http.module';
 import { MailModule } from './common/mail/mail.module';
 import { HealthController } from './modules/health/health.controller';
 import { InventoryModule } from './modules/inventory/inventory.module';
@@ -31,6 +33,8 @@ const e2e = process.env.NODE_ENV !== 'production' && (process.env.E2E === '1' ||
     InvitationsModule,
     OrgModule,
     InventoryModule,
+    FilesModule,
+    FilesHttpModule,
     ...(e2e ? [TestSupportModule] : []),
   ],
   controllers: [HealthController],

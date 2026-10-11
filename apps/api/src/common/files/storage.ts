@@ -1,0 +1,90 @@
+import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+export const STORAGE = 'BOOGBE_STORAGE';
+
+export interface Storage {
+  presignPut(
+    key: string,
+    contentType: string,
+    sizeBytes: number,
+  ): Promise<{ url: string; headers: Record<string, string> }>;
+  presignGet(key: string, filename?: string): Promise<string>;
+  head(key: string): Promise<{ size: number } | null>;
+  put(key: string, body: Buffer, contentType: string): Promise<void>;
+}
+
+const TTL = 300;
+
+export class R2Storage implements Storage {
+  private readonly s3: S3Client;
+  constructor(
+    endpoint: string,
+    private readonly bucket: string,
+    accessKeyId: string,
+    secretAccessKey: string,
+  ) {
+    this.s3 = new S3Client({ region: 'auto', endpoint, credentials: { accessKeyId, secretAccessKey } });
+  }
+
+  async presignPut(key: string, contentType: string, sizeBytes: number) {
+    // ContentLength is signed, so the client cannot upload more than it declared.
+    const url = await getSignedUrl(
+      this.s3,
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: contentType,
+        ContentLength: sizeBytes,
+      }),
+      { expiresIn: TTL },
+    );
+    return { url, headers: { 'content-type': contentType } };
+  }
+
+  presignGet(key: string, filename?: string) {
+    return getSignedUrl(
+      this.s3,
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ...(filename && { ResponseContentDisposition: `attachment; filename="${filename}"` }),
+      }),
+      { expiresIn: TTL },
+    );
+  }
+
+  async head(key: string) {
+    try {
+      const r = await this.s3.send(new HeadObjectCommand({ Bucket: this.bucket, Key: key }));
+      return { size: r.ContentLength ?? 0 };
+    } catch (e) {
+      if ((e as { name?: string }).name === 'NotFound') return null;
+      throw e;
+    }
+  }
+
+  async put(key: string, body: Buffer, contentType: string) {
+    await this.s3.send(
+      new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: body, ContentType: contentType }),
+    );
+  }
+}
+
+/** Dev/test storage: objects in memory, URLs `memory://<key>` (uploads) and `memory://get/<key>` (downloads). */
+export class MemoryStorage implements Storage {
+  readonly objects = new Map<string, { body: Buffer; contentType: string }>();
+  async presignPut(key: string, contentType: string) {
+    return { url: `memory://${key}`, headers: { 'content-type': contentType } };
+  }
+  async presignGet(key: string) {
+    return `memory://get/${key}`;
+  }
+  async head(key: string) {
+    const o = this.objects.get(key);
+    return o ? { size: o.body.length } : null;
+  }
+  async put(key: string, body: Buffer, contentType: string) {
+    this.objects.set(key, { body, contentType });
+  }
+}

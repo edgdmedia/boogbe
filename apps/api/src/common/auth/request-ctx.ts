@@ -9,6 +9,8 @@ export interface RequestCtx {
   role: OrgRole | null;
   memberId: string | null;
   timezone: string | null;
+  /** Status of the active org; set even for @SignedIn routes so requireOrg can refuse suspended operators. */
+  orgStatus: string | null;
 }
 
 export interface OrgCtx {
@@ -23,5 +25,6 @@ export function requireOrg(ctx: RequestCtx): OrgCtx {
   if (!ctx.orgId || !ctx.role || !ctx.memberId || !ctx.timezone) {
     throw new AppError('NO_ACTIVE_ORG', 400, 'Choose an operator first');
   }
+  if (ctx.orgStatus === 'suspended') throw new AppError('ORG_SUSPENDED', 403, 'This operator account is suspended');
   return { orgId: ctx.orgId, role: ctx.role, memberId: ctx.memberId, timezone: ctx.timezone, userId: ctx.userId };
 }

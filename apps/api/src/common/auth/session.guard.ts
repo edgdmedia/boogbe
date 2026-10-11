@@ -34,6 +34,7 @@ export class SessionGuard implements CanActivate {
       role: null,
       memberId: null,
       timezone: null,
+      orgStatus: null,
     };
     const activeOrgId = (session.session as { activeOrganizationId?: string | null }).activeOrganizationId;
     if (activeOrgId) {
@@ -51,6 +52,7 @@ export class SessionGuard implements CanActivate {
           role: member.role as OrgRole,
           memberId: member.id,
           timezone: member.organization.timezone,
+          orgStatus: member.organization.status,
         });
       }
     }

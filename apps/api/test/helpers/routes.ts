@@ -1,3 +1,5 @@
+import { migratorClient } from './db';
+import { newId } from '../../src/common/db/ids';
 import { seedOwner, seedProperty, seedUnit } from './inventory';
 import type { INestApplication } from '@nestjs/common';
 import { DiscoveryService, MetadataScanner, Reflector } from '@nestjs/core';
@@ -38,8 +40,19 @@ export const ROUTE_FIXTURE: { match: RegExp; fixture: string }[] = [];
 ISOLATION_FIXTURES.owner = (orgId) => seedOwner(orgId);
 ISOLATION_FIXTURES.property = (orgId) => seedProperty(orgId);
 ISOLATION_FIXTURES.unit = async (orgId) => seedUnit(orgId, await seedProperty(orgId));
+ISOLATION_FIXTURES.file = async (orgId) => {
+  const m = await migratorClient();
+  const id = newId();
+  await m.query(
+    `insert into file(id, org_id, key, kind, content_type, size_bytes, confirmed) values ($1,$2,$3,'logo','image/png',10,true)`,
+    [id, orgId, `org/${orgId}/logo/${id}.png`],
+  );
+  await m.end();
+  return id;
+};
 ROUTE_FIXTURE.push(
   { match: /^\/v1\/owners\//, fixture: 'owner' },
   { match: /^\/v1\/properties\//, fixture: 'property' },
   { match: /^\/v1\/units\//, fixture: 'unit' },
+  { match: /^\/v1\/files\//, fixture: 'file' },
 );
