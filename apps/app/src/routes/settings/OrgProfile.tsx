@@ -4,18 +4,27 @@ import { useForm } from 'react-hook-form';
 import { OrgSettingsResponse, UpdateOrgSettingsInput } from '@boogbe/shared';
 import { Button, Card, Field, Input, Spinner } from '@boogbe/ui';
 import { api, useApi } from '../../lib/api';
+import { LogoUpload } from './LogoUpload';
 
 export function OrgProfile() {
   const { data, mutate } = useApi('/v1/org/settings', OrgSettingsResponse);
   const f = useForm<UpdateOrgSettingsInput>({ resolver: zodResolver(UpdateOrgSettingsInput) as never });
   useEffect(() => {
     if (data) {
+      // logoUrl is response-only; list the editable settings so the strict PATCH schema never sees it.
       f.reset({
         name: data.org.name,
         contactEmail: data.org.contactEmail,
         whatsappPhone: data.org.whatsappPhone,
         address: data.org.address,
-        ...data.settings,
+        checkInTime: data.settings.checkInTime,
+        checkOutTime: data.settings.checkOutTime,
+        holdHours: data.settings.holdHours,
+        autoConfirmOnPayment: data.settings.autoConfirmOnPayment,
+        ownerSeesGuestNames: data.settings.ownerSeesGuestNames,
+        receiptPrefix: data.settings.receiptPrefix,
+        statementPrefix: data.settings.statementPrefix,
+        bookingPrefix: data.settings.bookingPrefix,
       });
     }
   }, [data, f]);
@@ -24,6 +33,9 @@ export function OrgProfile() {
   return (
     <Card className="max-w-2xl">
       <h1 className="mb-4 text-xl font-semibold">Business settings</h1>
+      <div className="mb-4">
+        <LogoUpload logoUrl={data.settings.logoUrl} onChanged={mutate} />
+      </div>
       <form
         className="grid gap-4 md:grid-cols-2"
         noValidate

@@ -3,9 +3,10 @@ import type { LucideIcon } from 'lucide-react';
 import { LogOut } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import { can, type Permission } from '@boogbe/shared';
+import { can, OrgSettingsResponse, type Permission } from '@boogbe/shared';
 import { authClient } from '../../lib/auth-client';
 import { useMe } from '../../lib/use-me';
+import { useApi } from '../../lib/api';
 import { OrgSwitcher } from './OrgSwitcher';
 
 export interface NavItem {
@@ -19,6 +20,9 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
   const { me } = useMe();
   const role = me?.activeOrg?.role;
   const items = nav.filter((n) => !n.permission || (role && can(role, n.permission)));
+  // Logo only where the viewer can read org settings; the API already refuses everyone else.
+  const { data: orgSettings } = useApi(role && can(role, 'org.settings.read') ? '/v1/org/settings' : null, OrgSettingsResponse);
+  const logo = orgSettings?.settings.logoUrl;
   const link = ({ isActive }: { isActive: boolean }) =>
     clsx(
       'flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm',
@@ -27,7 +31,8 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[220px_1fr]">
       <aside className="hidden border-r border-line bg-surface p-3 md:flex md:flex-col md:gap-1">
-        <div className="mb-4 px-2">
+        <div className="mb-4 flex items-center gap-2 px-2">
+          {logo && <img src={logo} alt="" className="h-8 w-8 shrink-0 rounded-md border border-line object-contain" />}
           <OrgSwitcher />
         </div>
         {items.map((n) => (
@@ -47,8 +52,11 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
           Sign out
         </button>
       </aside>
-      <header className="flex items-center justify-between border-b border-line bg-surface p-3 md:hidden">
-        <OrgSwitcher />
+      <header className="flex items-center justify-between gap-2 border-b border-line bg-surface p-3 md:hidden">
+        <div className="flex items-center gap-2">
+          {logo && <img src={logo} alt="" className="h-7 w-7 shrink-0 rounded-md border border-line object-contain" />}
+          <OrgSwitcher />
+        </div>
       </header>
       <main className="p-4 pb-24 md:p-6">{children}</main>
       <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t border-line bg-surface md:hidden" aria-label="Main">
