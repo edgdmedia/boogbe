@@ -13,21 +13,22 @@ datasource db {
 // if the CLI output differs, the CLI output wins — update this file in the same PR).
 
 model User {
-  id            String       @id
+  id            String         @id
   name          String
-  email         String       @unique
-  emailVerified Boolean      @default(false)
+  email         String         @unique
+  emailVerified Boolean        @default(false)
   image         String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  role          String?      @default("user")
-  banned        Boolean?     @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  role          String?        @default("user")
+  banned        Boolean?       @default(false)
   banReason     String?
   banExpires    DateTime?
   sessions      Session[]
   accounts      Account[]
   members       Member[]
   invitations   Invitation[]
+  notifications Notification[]
 
   @@map("user")
 }
@@ -83,31 +84,36 @@ model Verification {
 
 /// The operator (tenant).
 model Organization {
-  id             String          @id
-  name           String
-  slug           String          @unique
-  logo           String?
-  createdAt      DateTime        @default(now())
-  metadata       String?
-  timezone       String          @default("Africa/Lagos")
-  currency       String          @default("NGN")
-  status         String          @default("active")
-  contactEmail   String?
-  contactPhone   String?
-  whatsappPhone  String?
-  address        String?
-  members        Member[]
-  invitations    Invitation[]
-  orgSettings    OrgSettings?
-  orgCounters    OrgCounter[]
-  auditLogs      AuditLog[]
-  owners         Owner[]
-  properties     Property[]
-  units          Unit[]
-  unitOwnerships UnitOwnership[]
-  unitFees       UnitFee[]
-  blocks         Block[]
-  files          File[]
+  id                  String               @id
+  name                String
+  slug                String               @unique
+  logo                String?
+  createdAt           DateTime             @default(now())
+  metadata            String?
+  timezone            String               @default("Africa/Lagos")
+  currency            String               @default("NGN")
+  status              String               @default("active")
+  contactEmail        String?
+  contactPhone        String?
+  whatsappPhone       String?
+  address             String?
+  members             Member[]
+  invitations         Invitation[]
+  orgSettings         OrgSettings?
+  orgCounters         OrgCounter[]
+  auditLogs           AuditLog[]
+  owners              Owner[]
+  properties          Property[]
+  units               Unit[]
+  unitOwnerships      UnitOwnership[]
+  unitFees            UnitFee[]
+  blocks              Block[]
+  files               File[]
+  guests              Guest[]
+  bookings            Booking[]
+  bookingLines        BookingLine[]
+  bookingStatusEvents BookingStatusEvent[]
+  notifications       Notification[]
 
   @@map("organization")
 }
@@ -292,6 +298,7 @@ model Unit {
   ownerships              UnitOwnership[]
   fees                    UnitFee[]
   blocks                  Block[]
+  bookings                Booking[]
 
   @@unique([orgId, propertyId, name])
   @@map("unit")
@@ -369,4 +376,119 @@ model File {
 
   @@index([orgId, kind])
   @@map("file")
+}
+
+// ───────────── Guests & bookings (tenant, RLS) — M2 ─────────────
+
+model Guest {
+  id           String       @id
+  orgId        String       @map("org_id")
+  fullName     String       @map("full_name")
+  phoneE164    String       @map("phone_e164")
+  email        String?
+  notes        String?
+  anonymisedAt DateTime?    @map("anonymised_at")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "guest_org_fk")
+  bookings     Booking[]
+
+  @@index([orgId, phoneE164])
+  // Name search (GST-02); also created in 0004_bookings SQL with the same name.
+  @@index([fullName(ops: raw("gin_trgm_ops"))], type: Gin, map: "guest_name_trgm")
+  @@map("guest")
+}
+
+model Booking {
+  id                     String               @id
+  orgId                  String               @map("org_id")
+  ref                    String
+  unitId                 String               @map("unit_id")
+  unit                   Unit                 @relation(fields: [unitId], references: [id])
+  guestId                String               @map("guest_id")
+  guest                  Guest                @relation(fields: [guestId], references: [id])
+  checkIn                DateTime             @map("check_in") @db.Date
+  checkOut               DateTime             @map("check_out") @db.Date
+  guestCount             Int                  @map("guest_count")
+  source                 String
+  status                 String
+  holdUntil              DateTime?            @map("hold_until")
+  computedTotalKobo      BigInt               @map("computed_total_kobo")
+  finalTotalKobo         BigInt               @map("final_total_kobo")
+  depositKobo            BigInt               @default(0) @map("deposit_kobo")
+  overrideReason         String?              @map("override_reason")
+  capacityOverrideReason String?              @map("capacity_override_reason")
+  priceStale             Boolean              @default(false) @map("price_stale")
+  icalWarningAck         Boolean              @default(false) @map("ical_warning_ack")
+  notes                  String?
+  cancelledAt            DateTime?            @map("cancelled_at")
+  cancelReason           String?              @map("cancel_reason")
+  checkedInAt            DateTime?            @map("checked_in_at")
+  checkedOutAt           DateTime?            @map("checked_out_at")
+  createdByMemberId      String?              @map("created_by_member_id")
+  createdAt              DateTime             @default(now()) @map("created_at")
+  updatedAt              DateTime             @updatedAt @map("updated_at")
+  org                    Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "booking_org_fk")
+  lines                  BookingLine[]
+  events                 BookingStatusEvent[]
+
+  @@unique([orgId, ref])
+  @@index([orgId, unitId, checkIn])
+  @@index([orgId, status, holdUntil])
+  @@map("booking")
+}
+
+model BookingLine {
+  id             String       @id
+  orgId          String       @map("org_id")
+  bookingId      String       @map("booking_id")
+  booking        Booking      @relation(fields: [bookingId], references: [id])
+  position       Int
+  kind           String
+  feeKind        String?      @map("fee_kind")
+  label          String
+  quantity       Decimal      @db.Decimal(10, 2)
+  unitAmountKobo BigInt       @map("unit_amount_kobo")
+  amountKobo     BigInt       @map("amount_kobo")
+  refundable     Boolean
+  recognition    String
+  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "booking_line_org_fk")
+
+  @@index([orgId, bookingId])
+  @@map("booking_line")
+}
+
+model BookingStatusEvent {
+  id            String       @id
+  orgId         String       @map("org_id")
+  bookingId     String       @map("booking_id")
+  booking       Booking      @relation(fields: [bookingId], references: [id])
+  fromStatus    String?      @map("from_status")
+  toStatus      String       @map("to_status")
+  actorMemberId String?      @map("actor_member_id")
+  reason        String?
+  at            DateTime     @default(now())
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "booking_status_event_org_fk")
+
+  @@index([orgId, bookingId, at])
+  @@map("booking_status_event")
+}
+
+model Notification {
+  id        String       @id
+  orgId     String       @map("org_id")
+  userId    String       @map("user_id")
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notification_user_fk")
+  kind      String
+  title     String
+  body      String?
+  link      String?
+  dedupeKey String?      @map("dedupe_key")
+  readAt    DateTime?    @map("read_at")
+  createdAt DateTime     @default(now()) @map("created_at")
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notification_org_fk")
+
+  @@unique([orgId, userId, dedupeKey])
+  @@index([orgId, userId, createdAt])
+  @@map("notification")
 }

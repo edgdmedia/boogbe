@@ -48,7 +48,7 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 ### Guests & bookings
 **`guest`**: `id, org_id, full_name, phone_e164, email null, notes, anonymised_at null`. Indexes: `(org_id, phone_e164)`, `(org_id, lower(email))`, trigram on `full_name` (`pg_trgm`).
 
-**`booking`**: `id, org_id, ref (unique per org), unit_id, guest_id, check_in date, check_out date, guest_count int, source (whatsapp|phone|walk_in|direct|airbnb|booking_com|other), status (tentative|confirmed|checked_in|checked_out|cancelled|no_show), hold_until timestamptz null, computed_total_kobo, final_total_kobo, override_reason null, ical_warning_ack bool, notes, cancelled_at, cancel_reason, checked_in_at, checked_out_at, created_by_member_id`.
+**`booking`**: `id, org_id, ref (unique per org), unit_id, guest_id, check_in date, check_out date, guest_count int, source (whatsapp|phone|walk_in|direct|airbnb|booking_com|other), status (tentative|confirmed|checked_in|checked_out|cancelled|no_show), hold_until timestamptz null, computed_total_kobo, final_total_kobo, deposit_kobo, override_reason null, capacity_override_reason null, price_stale bool (dates/unit changed without repricing), ical_warning_ack bool, notes, cancelled_at, cancel_reason, checked_in_at, checked_out_at, created_by_member_id`.
 Constraints:
 ```sql
 CHECK (check_out > check_in)
@@ -59,9 +59,9 @@ EXCLUDE USING gist (
 ```
 (`CREATE EXTENSION IF NOT EXISTS btree_gist;` in the first migration.)
 
-**`booking_line`**: `id, org_id, booking_id, kind (accommodation|fee|deposit|discount|adjustment), fee_kind null, label, quantity numeric(10,2), unit_amount_kobo, amount_kobo, refundable bool, recognition (per_night|on_check_in)`. Snapshot at create/reprice. `final_total_kobo = Σ amount where kind != deposit`.
+**`booking_line`**: `id, org_id, booking_id, position, kind (accommodation|fee|deposit|discount|adjustment), fee_kind null, label, quantity numeric(10,2), unit_amount_kobo, amount_kobo, refundable bool, recognition (per_night|on_check_in)`. Snapshot at create/reprice. `final_total_kobo = Σ amount where kind != deposit`.
 
-**`booking_status_event`**: `id, org_id, booking_id, from_status, to_status, actor_member_id, reason, at`.
+**`booking_status_event`**: `id, org_id, booking_id, from_status, to_status, actor_member_id, reason, at`. Append-only (app role has no UPDATE/DELETE).
 
 ### Money
 **`payment`** (append-only; app role has INSERT/SELECT only): `id, org_id, booking_id, kind (payment|refund|deposit_received|deposit_returned|deposit_withheld|void), amount_kobo (>0), method (bank_transfer|cash|pos|card|paystack|other), received_on date, reference, external_ref null, note, receipt_no null, voids_payment_id null, recorded_by_member_id, created_at`.
@@ -93,7 +93,7 @@ EXCLUDE USING gist (
 **`statement`**: `id, org_id, number, owner_id, period (date = first of month), status (draft|finalised|paid), figures jsonb (StatementFigures snapshot), gross_kobo, expenses_kobo, fee_kobo, fixed_fee_kobo, opening_balance_kobo, net_payout_kobo, pdf_file_key null, finalised_at, finalised_by_member_id, paid_on, payout_reference`. Unique `(owner_id, period)`. App role cannot UPDATE rows where status ≠ draft except the `paid_on`/`payout_reference`/`status='paid'` transition (enforced by trigger).
 
 ### Platform-wide utilities
-**`notification`**: `id, org_id, user_id, kind, title, body, link, read_at, created_at`.
+**`notification`**: `id, org_id, user_id, kind, title, body, link, dedupe_key null, read_at, created_at`. Unique `(org_id, user_id, dedupe_key)` so jobs can't notify twice.
 
 **`audit_log`** (append-only): `id, org_id, actor_user_id, actor_member_id, action, entity, entity_id, before jsonb, after jsonb, ip, user_agent, at`.
 
