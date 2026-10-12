@@ -114,6 +114,7 @@ model Organization {
   bookingLines        BookingLine[]
   bookingStatusEvents BookingStatusEvent[]
   notifications       Notification[]
+  payments            Payment[]
 
   @@map("organization")
 }
@@ -431,6 +432,7 @@ model Booking {
   org                    Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "booking_org_fk")
   lines                  BookingLine[]
   events                 BookingStatusEvent[]
+  payments               Payment[]
 
   @@unique([orgId, ref])
   @@index([orgId, unitId, checkIn])
@@ -491,4 +493,31 @@ model Notification {
   @@unique([orgId, userId, dedupeKey])
   @@index([orgId, userId, createdAt])
   @@map("notification")
+}
+
+// ───────────── Payments ledger (tenant, RLS, append-only) — M3 ─────────────
+
+model Payment {
+  id                 String       @id
+  orgId              String       @map("org_id")
+  bookingId          String       @map("booking_id")
+  booking            Booking      @relation(fields: [bookingId], references: [id])
+  kind               String
+  amountKobo         BigInt       @map("amount_kobo")
+  method             String
+  receivedOn         DateTime     @map("received_on") @db.Date
+  reference          String?
+  externalRef        String?      @map("external_ref")
+  note               String?
+  receiptNo          String?      @map("receipt_no")
+  voidsPaymentId     String?      @map("voids_payment_id")
+  voids              Payment?     @relation("PaymentVoids", fields: [voidsPaymentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "payment_voids_fk")
+  voidedBy           Payment[]    @relation("PaymentVoids")
+  recordedByMemberId String?      @map("recorded_by_member_id")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  org                Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payment_org_fk")
+
+  @@index([orgId, bookingId, createdAt])
+  @@index([orgId, receivedOn])
+  @@map("payment")
 }
