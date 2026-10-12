@@ -2,12 +2,14 @@ import { z } from 'zod';
 import { TEMPLATE_KEYS, unknownPlaceholders } from '../domain/templates';
 
 export const TemplateKeyEnum = z.enum(TEMPLATE_KEYS);
-const noUnknown = (v: { emailSubject: string; emailBody: string; whatsappBody: string }, ctx: z.RefinementCtx) => {
-  for (const f of ['emailSubject', 'emailBody', 'whatsappBody'] as const) {
-    const bad = unknownPlaceholders(v[f]);
+const checkPlaceholders = (ctx: z.RefinementCtx, fields: Record<string, string | undefined>) => {
+  for (const [f, text] of Object.entries(fields)) {
+    const bad = unknownPlaceholders(text ?? '');
     if (bad.length) ctx.addIssue({ code: 'custom', path: [f], message: `Unknown placeholder: ${bad.map((b) => `{{${b}}}`).join(', ')}` });
   }
 };
+const noUnknown = (v: { emailSubject: string; emailBody: string; whatsappBody: string }, ctx: z.RefinementCtx) =>
+  checkPlaceholders(ctx, { emailSubject: v.emailSubject, emailBody: v.emailBody, whatsappBody: v.whatsappBody });
 export const MessageTemplate = z.object({
   key: TemplateKeyEnum, label: z.string(), emailSubject: z.string(), emailBody: z.string(), whatsappBody: z.string(),
   autoEmail: z.boolean(), active: z.boolean(), updatedAt: z.string(),
@@ -18,7 +20,7 @@ export const UpdateTemplateInput = z.object({
   autoEmail: z.boolean(), active: z.boolean(),
 }).superRefine(noUnknown);
 export type UpdateTemplateInput = z.infer<typeof UpdateTemplateInput>;
-export const PreviewTemplateInput = z.object({ emailSubject: z.string(), emailBody: z.string(), whatsappBody: z.string() }).superRefine(noUnknown);
+export const PreviewTemplateInput = z.object({ emailSubject: z.string().max(150), emailBody: z.string().max(5000), whatsappBody: z.string().max(1500) }).superRefine(noUnknown);
 export type PreviewTemplateInput = z.infer<typeof PreviewTemplateInput>;
 export const PreviewResponse = z.object({ emailSubject: z.string(), emailHtml: z.string(), whatsappText: z.string() });
 export type PreviewResponse = z.infer<typeof PreviewResponse>;
@@ -28,7 +30,8 @@ export const BookingMessagePreview = z.object({
   whatsapp: z.object({ to: z.string(), text: z.string(), url: z.string() }),
 });
 export type BookingMessagePreview = z.infer<typeof BookingMessagePreview>;
-export const SendEmailInput = z.object({ templateKey: TemplateKeyEnum, subject: z.string().trim().min(1).max(150).optional(), body: z.string().trim().min(1).max(5000).optional() });
+export const SendEmailInput = z.object({ templateKey: TemplateKeyEnum, subject: z.string().trim().min(1).max(150).optional(), body: z.string().trim().min(1).max(5000).optional() })
+  .superRefine((v, ctx) => checkPlaceholders(ctx, { subject: v.subject, body: v.body }));
 export type SendEmailInput = z.infer<typeof SendEmailInput>;
 export const WhatsappOpenedInput = z.object({ templateKey: TemplateKeyEnum });
 export type WhatsappOpenedInput = z.infer<typeof WhatsappOpenedInput>;

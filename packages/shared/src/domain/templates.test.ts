@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { UpdateTemplateInput } from '../contracts/messages';
+import { PreviewTemplateInput, SendEmailInput, UpdateTemplateInput } from '../contracts/messages';
 import { DEFAULT_TEMPLATES, PLACEHOLDERS, markdownToHtml, render, renderHtml, SAMPLE_VARS, TEMPLATE_KEYS, TEMPLATE_LABELS, unknownPlaceholders, waLink } from './templates';
 
 describe('templates [MSG-02]', () => {
@@ -72,6 +72,12 @@ describe('renderHtml', () => {
     const html = renderHtml('Hi {{guest.firstName}}', { ...SAMPLE_VARS, 'guest.firstName': '**Ada** [pay here](https://evil.example)' });
     expect(html).toBe('<p>Hi **Ada** [pay here](https://evil.example)</p>');
   });
+  it('URL-encodes values used inside a link address', () => {
+    const vars = { ...SAMPLE_VARS, 'guest.fullName': '@evil.com/x?a="b"', 'booking.ref': 'TAN 1' };
+    expect(renderHtml('[Pay](https://pay.example.com{{guest.fullName}}) for {{ guest.fullName }}', vars)).toBe(
+      '<p><a href="https://pay.example.com%40evil.com%2Fx%3Fa%3D%22b%22">Pay</a> for @evil.com/x?a=&quot;b&quot;</p>');
+    expect(renderHtml('[{{booking.ref}}](https://x.com/{{booking.ref}})', vars)).toBe('<p><a href="https://x.com/TAN%201">TAN 1</a></p>');
+  });
   it('keeps line breaks in multi-line values', () => {
     expect(renderHtml('{{unit.checkInInstructions}}', { ...SAMPLE_VARS, 'unit.checkInInstructions': 'Gate 4821\nKey in lockbox' })).toBe('<p>Gate 4821<br>Key in lockbox</p>');
   });
@@ -92,6 +98,14 @@ describe('UpdateTemplateInput', () => {
     const r = UpdateTemplateInput.safeParse({ ...ok, emailBody: 'Hi {{guest.nickname}}' });
     expect(r.success).toBe(false);
     expect(r.error!.issues).toEqual([expect.objectContaining({ path: ['emailBody'], message: 'Unknown placeholder: {{guest.nickname}}' })]);
+  });
+  it('one-off email edits refuse unknown placeholders too', () => {
+    expect(SendEmailInput.safeParse({ templateKey: 'booking_confirmation', body: 'Hi {{guset.firstName}}' }).success).toBe(false);
+    expect(SendEmailInput.safeParse({ templateKey: 'booking_confirmation', subject: 'Hi {{guest.firstName}}' }).success).toBe(true);
+    expect(SendEmailInput.safeParse({ templateKey: 'booking_confirmation' }).success).toBe(true);
+  });
+  it('preview has the same size limits as saving', () => {
+    expect(PreviewTemplateInput.safeParse({ emailSubject: 'x', emailBody: 'y'.repeat(5001), whatsappBody: 'z' }).success).toBe(false);
   });
   it('refuses an empty subject', () => {
     expect(UpdateTemplateInput.safeParse({ ...ok, emailSubject: '  ' }).success).toBe(false);

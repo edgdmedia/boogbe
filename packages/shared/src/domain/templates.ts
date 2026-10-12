@@ -36,11 +36,18 @@ export function markdownToHtml(md: string): string {
   }).join('');
 }
 
-/** Email HTML: the template is Markdown, but placeholder values are plain text — a guest name can never add a link or formatting. */
+/**
+ * Email HTML: the template is Markdown, but placeholder values are plain text — a guest name can never add a link or formatting.
+ * Inside a link address values are URL-encoded, so they cannot change where the link points.
+ */
 export function renderHtml(md: string, vars: TemplateVars): string {
   const keys: string[] = [];
-  const tokenised = md.replace(/\uE001/g, '').replace(RE, (_, k: string) => `\uE001${keys.push(k) - 1}\uE001`);
-  return markdownToHtml(tokenised).replace(/\uE001(\d+)\uE001/g, (_, i: string) => esc(value(vars, keys[Number(i)]!)).replace(/\r?\n/g, '<br>'));
+  const token = /(\d+)/g;
+  const val = (i: string) => value(vars, keys[Number(i)]!);
+  const tokenised = md.replace(//g, '').replace(RE, (_, k: string) => `${keys.push(k) - 1}`);
+  return markdownToHtml(tokenised)
+    .replace(/href="([^"]*)"/g, (_, url: string) => `href="${url.replace(token, (__, i: string) => esc(encodeURIComponent(val(i))))}"`)
+    .replace(token, (_, i: string) => esc(val(i)).replace(/\r?\n/g, '<br>'));
 }
 
 export const waLink = (e164: string, text: string) => `https://wa.me/${waDigits(e164)}?text=${encodeURIComponent(text)}`;
