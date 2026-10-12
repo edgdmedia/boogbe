@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { can, type Booking } from '@boogbe/shared';
-import { Button, Field, Input } from '@boogbe/ui';
-import { api, ApiError } from '../../lib/api';
+import { z } from 'zod';
+import { can, Unit, type Booking } from '@boogbe/shared';
+import { Button, Field, Input, Select } from '@boogbe/ui';
+import { api, ApiError, useApi } from '../../lib/api';
 import { useMe } from '../../lib/use-me';
 import { MoneyInput } from '../inventory/money-input';
 import { bookingErrorMessage } from './errors';
 
 export function EditBookingForm({ booking, onSaved }: { booking: Booking; onSaved: () => void }) {
   const { me } = useMe();
+  const { data: units } = useApi('/v1/units', z.object({ items: z.array(Unit.pick({ id: true, name: true, maxGuests: true })) }));
   const [v, setV] = useState({
+    unitId: booking.unit.id,
     checkIn: booking.checkIn,
     checkOut: booking.checkOut,
     guestCount: booking.guestCount,
@@ -21,19 +24,26 @@ export function EditBookingForm({ booking, onSaved }: { booking: Booking; onSave
   const [ack, setAck] = useState(false);
   const [busy, setBusy] = useState(false);
   const canOverride = !!me?.activeOrg && can(me.activeOrg.role, 'bookings.override');
+  const totalChanged = v.total !== booking.finalTotalKobo;
   return (
     <form
       className="flex flex-col gap-3"
       onSubmit={async (e) => {
         e.preventDefault();
         setErr(undefined);
+        // mirror the server rule (UpdateBookingInput refine): a new total needs a reason
+        if (totalChanged && v.reason.trim().length < 3) {
+          setErr('Give a reason for changing the total');
+          return;
+        }
         setBusy(true);
         const body: Record<string, unknown> = { notes: v.notes || null };
+        if (v.unitId !== booking.unit.id) body.unitId = v.unitId;
         if (v.checkIn !== booking.checkIn) body.checkIn = v.checkIn;
         if (v.checkOut !== booking.checkOut) body.checkOut = v.checkOut;
         if (v.guestCount !== booking.guestCount) body.guestCount = v.guestCount;
         if (v.reprice) body.reprice = true;
-        if (v.total !== booking.finalTotalKobo) Object.assign(body, { finalTotalKobo: v.total, overrideReason: v.reason });
+        if (totalChanged) Object.assign(body, { finalTotalKobo: v.total, overrideReason: v.reason });
         if (ack) body.acknowledgeIcalOverlap = true;
         try {
           await api(`/v1/bookings/${booking.id}`, { method: 'PATCH', body });
@@ -46,6 +56,21 @@ export function EditBookingForm({ booking, onSaved }: { booking: Booking; onSave
         }
       }}
     >
+      {units && (
+        <Field label="Unit">
+          <Select
+            value={v.unitId}
+            disabled={booking.status === 'checked_in'}
+            onChange={(e) => setV({ ...v, unitId: e.target.value })}
+          >
+            {units.items.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      )}
       <div className="grid grid-cols-2 gap-2">
         <Field label="Check-in">
           <Input type="date" value={v.checkIn} disabled={booking.status === 'checked_in'} onChange={(e) => setV({ ...v, checkIn: e.target.value })} />
