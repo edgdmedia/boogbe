@@ -61,8 +61,8 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M2-02 | Schema 0004_bookings: guests, bookings, lines, status events, notifications | schema | T-M2-01 | claude | review | [#30](https://github.com/edgdmedia/boogbe/pull/30) | Stacked on #28 |
 | T-M2-03 | Guests API | api | T-M2-02 | claude | review | [#31](https://github.com/edgdmedia/boogbe/pull/31) | Stacked on #30. On merge: T-M2-07 (guests UI) can land |
 | T-M2-04 | Quote, create, get, list bookings; BookingSource | api | T-M2-03 | claude | review | [#32](https://github.com/edgdmedia/boogbe/pull/32) | Stacked on #31 → #30 |
-| T-M2-05 | Edit/move/reprice, status transitions, cancel, holds job, notifications | api | T-M2-04 | | todo | | suggested: claude |
-| T-M2-06 | Audit viewer API | api | T-M2-02 | | todo | | suggested: opencode (owner); note: plan suggested claude — it is API, not UI |
+| T-M2-05 | Edit/move/reprice, status transitions, cancel, holds job, notifications | api | T-M2-04 | claude | in_progress | | Stacked on #32 (4th; no deeper per owner) |
+| T-M2-06 | Audit viewer API | api | T-M2-02 | claude | todo | | Owner: claude (API); OpenCode keeps T-M2-07..09 incl. audit page |
 | T-M2-07 | Guests pages and guest picker | ui | T-M2-01 (stub); merge after T-M2-03 | | todo | | suggested: opencode |
 | T-M2-08 | Booking form, booking detail, bookings list | ui | T-M2-01 (stub); merge after T-M2-05 | | todo | | suggested: opencode |
 | T-M2-09 | Notifications bell, audit page, E2E-02 and E2E-03 | ui, e2e | T-M2-05, T-M2-06, T-M2-08 | | todo | | suggested: opencode |
