@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { Guest } from '@boogbe/shared';
 import { useNavigate } from 'react-router-dom';
 import { Button, Dialog, EmptyState, Input, Spinner, Table } from '@boogbe/ui';
 import { formatDate, formatNaira } from '../../lib/format';
@@ -7,9 +8,19 @@ import { useGuests } from './hooks';
 
 export function GuestsPage() {
   const [q, setQ] = useState('');
-  const { data, mutate } = useGuests(q);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const { data, mutate } = useGuests(q, cursor);
+  const [acc, setAcc] = useState<Guest[] | null>(null);
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    setCursor(null);
+    setAcc(null); // new search restarts paging
+  }, [q]);
+  useEffect(() => {
+    if (!data) return;
+    setAcc((prev) => (cursor ? [...(prev ?? []), ...data.items] : data.items));
+  }, [data]); // eslint-disable-next-line react-hooks/exhaustive-deps
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -19,11 +30,11 @@ export function GuestsPage() {
       </div>
       {!data ? (
         <Spinner />
-      ) : data.items.length === 0 ? (
+      ) : (acc ?? data.items).length === 0 ? (
         <EmptyState title="No guests found" />
       ) : (
         <Table
-          rows={data.items}
+          rows={acc ?? data.items}
           onRowClick={(g) => nav(`/guests/${g.id}`)}
           columns={[
             { key: 'n', header: 'Name', cell: (g) => g.fullName },
@@ -34,10 +45,17 @@ export function GuestsPage() {
           ]}
         />
       )}
+      {data?.nextCursor && (
+        <button className="self-center text-sm text-brand" onClick={() => setCursor(data.nextCursor)}>
+          Load more
+        </button>
+      )}
       <Dialog open={open} onClose={() => setOpen(false)} title="Add guest">
         <GuestForm
           onSaved={async (g) => {
             setOpen(false);
+            setCursor(null);
+            setAcc(null);
             await mutate();
             nav(`/guests/${g.id}`);
           }}
