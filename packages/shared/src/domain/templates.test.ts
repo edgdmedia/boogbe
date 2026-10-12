@@ -55,6 +55,10 @@ describe('markdownToHtml', () => {
   it('does not put bold tags inside a link address', () => {
     expect(markdownToHtml('[x](https://a.com/**y**)')).toBe('<p><a href="https://a.com/**y**">x</a></p>');
   });
+  it('ignores internal token characters typed into the text', () => {
+    expect(markdownToHtml('a0b [x](https://a.com)')).toBe('<p>a0b <a href="https://a.com">x</a></p>');
+    expect(renderHtml('0{{guest.firstName}}', { ...SAMPLE_VARS, 'guest.firstName': 'Ada' })).toBe('<p>0Ada</p>');
+  });
   it('treats Windows line endings like Unix ones', () => {
     expect(markdownToHtml('a\r\nb\r\n\r\nc')).toBe('<p>a<br>b</p><p>c</p>');
   });

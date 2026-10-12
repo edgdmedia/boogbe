@@ -23,14 +23,14 @@ export const render = (t: string, vars: TemplateVars) => t.replace(RE, (_, k: st
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 // Links become tokens before escaping so bold markers in a URL never turn into tags inside href.
 const LINK = /\[([^\]\n]+)\]\((https:\/\/[^\s()"'<>]+)\)/g;
-const LINK_TOKEN = /\u0000(\d+)\u0000/g;
+const LINK_TOKEN = /\uE000(\d+)\uE000/g;
 const inline = (s: string) => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
 /** Safe subset: paragraphs, line breaks, **bold**, [text](https://…). Everything else is escaped text. */
 export function markdownToHtml(md: string): string {
-  return md.replace(/\r\n?/g, '\n').trim().split(/\n{2,}/).map((para) => {
+  return md.replace(/\uE000/g, '').replace(/\r\n?/g, '\n').trim().split(/\n{2,}/).map((para) => {
     const links: string[] = [];
-    const tokenised = para.replace(LINK, (_, text: string, url: string) => `\u0000${links.push(`<a href="${esc(url)}">${inline(text)}</a>`) - 1}\u0000`);
+    const tokenised = para.replace(LINK, (_, text: string, url: string) => `\uE000${links.push(`<a href="${esc(url)}">${inline(text)}</a>`) - 1}\uE000`);
     const h = inline(tokenised).replace(LINK_TOKEN, (_, i: string) => links[Number(i)]!);
     return `<p>${h.replace(/\n/g, '<br>')}</p>`;
   }).join('');
@@ -39,8 +39,8 @@ export function markdownToHtml(md: string): string {
 /** Email HTML: the template is Markdown, but placeholder values are plain text — a guest name can never add a link or formatting. */
 export function renderHtml(md: string, vars: TemplateVars): string {
   const keys: string[] = [];
-  const tokenised = md.replace(RE, (_, k: string) => `\u0001${keys.push(k) - 1}\u0001`);
-  return markdownToHtml(tokenised).replace(/\u0001(\d+)\u0001/g, (_, i: string) => esc(value(vars, keys[Number(i)]!)).replace(/\r?\n/g, '<br>'));
+  const tokenised = md.replace(/\uE001/g, '').replace(RE, (_, k: string) => `\uE001${keys.push(k) - 1}\uE001`);
+  return markdownToHtml(tokenised).replace(/\uE001(\d+)\uE001/g, (_, i: string) => esc(value(vars, keys[Number(i)]!)).replace(/\r?\n/g, '<br>'));
 }
 
 export const waLink = (e164: string, text: string) => `https://wa.me/${waDigits(e164)}?text=${encodeURIComponent(text)}`;
