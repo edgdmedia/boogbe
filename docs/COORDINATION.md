@@ -87,6 +87,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M7-01 | Revenue recognition, allocation, statement maths | domain | M3 (T-M3-01) | claude | review | [#49](https://github.com/edgdmedia/boogbe/pull/49) | From dev; pure domain, not stacked; opencode reviews |
 | T-M5-01 | Template renderer, safe Markdown, wa.me links, defaults, message contracts | domain | M3 (T-M3-01) | claude | review | [#50](https://github.com/edgdmedia/boogbe/pull/50) | From dev; pure domain, not stacked; opencode reviews |
 | T-M6-01 | Turnover due-time rule and task contracts | domain | M2 | claude | review | [#51](https://github.com/edgdmedia/boogbe/pull/51) | From dev; pure domain, not stacked; opencode reviews |
+| T-M7-02 | Expense, statement and owner portal contracts | domain | T-M7-01 (plan order only; no code dependency) | claude | in_progress | | From dev; not stacked |
 
 ## Parallelism map (by milestone)
 
