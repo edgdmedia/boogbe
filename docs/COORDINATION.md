@@ -66,6 +66,13 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M2-07 | Guests pages and guest picker | ui | T-M2-01 (stub); merge after T-M2-03 | opencode | in_progress | | T-M2-03 merged; building against #28/#31 contracts and endpoints |
 | T-M2-08 | Booking form, booking detail, bookings list | ui | T-M1-01 (stub); merge after T-M2-05 | opencode | in_progress | | all endpoints on dev (#30-#33) |
 | T-M2-09 | Notifications bell, audit page, E2E-02 and E2E-03 | ui, e2e | T-M2-05, T-M2-06, T-M2-08 | | todo | | suggested: opencode |
+| T-M3-01 | Ledger maths and payment contracts | domain | M2 | claude | in_progress | | |
+| T-M3-02 | Schema 0005: payment table, booking_money view, append-only grants | schema | T-M3-01 | | todo | | suggested: claude |
+| T-M3-03 | Payments API, booking decoration, auto-confirm, balance filter, calendar balances | api | T-M3-02 | | todo | | suggested: claude |
+| T-M3-04 | Cancel with refund; receipt PDF | api | T-M3-03 | | todo | | suggested: claude |
+| T-M3-05 | Money summary API | api | T-M3-03 | | todo | | suggested: claude |
+| T-M3-06 | Payments panel and refund-on-cancel UI | ui | T-M3-01 (stub); merge after T-M3-04 | | todo | | suggested: opencode |
+| T-M3-07 | Money dashboard UI + E2E-04 | ui, e2e | T-M3-05, T-M3-06 | | todo | | suggested: opencode |
 
 ## Parallelism map (by milestone)
 
