@@ -65,6 +65,19 @@ ISOLATION_FIXTURES.booking = async (orgId) => {
   return seedBooking(orgId, u, await seedGuest(orgId), { checkIn: '2030-01-01', checkOut: '2030-01-03' });
 };
 ROUTE_FIXTURE.push({ match: /^\/v1\/bookings\//, fixture: 'booking' });
+ISOLATION_FIXTURES.payment = async (orgId) => {
+  const bookingId = await ISOLATION_FIXTURES.booking!(orgId);
+  const id = newId();
+  const c = await migratorClient();
+  await c.query(
+    `insert into payment(id, org_id, booking_id, kind, amount_kobo, method, received_on, receipt_no)
+     values ($1,$2,$3,'payment',100,'cash','2026-10-10','ISO-R-000001')`,
+    [id, orgId, bookingId],
+  );
+  await c.end();
+  return id;
+};
+ROUTE_FIXTURE.push({ match: /^\/v1\/payments\//, fixture: 'payment' });
 ISOLATION_FIXTURES.notification = async (orgId) => {
   const m = await migratorClient();
   const userId = newId();

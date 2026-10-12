@@ -10,7 +10,6 @@ import {
   todayIn,
   type Booking,
   type BookingStatus,
-  type CancelBookingInput,
   type CreateBookingInput,
   type TransitionInput,
   type UpdateBookingInput,
@@ -387,13 +386,6 @@ export class BookingsService {
   transition(ctx: OrgCtx, id: string, input: TransitionInput) {
     return this.orgDb.run(ctx.orgId, (tx) =>
       this.transitionIn(tx, ctx, ctx.orgId, id, input.to, input.reason),
-    );
-  }
-
-  /** Cancelling frees the dates at once: the exclusion constraint only covers active statuses (BKG-11). */
-  cancel(ctx: OrgCtx, id: string, input: CancelBookingInput) {
-    return this.orgDb.run(ctx.orgId, (tx) =>
-      this.transitionIn(tx, ctx, ctx.orgId, id, 'cancelled', input.reason),
     );
   }
 

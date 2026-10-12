@@ -1,7 +1,11 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import {
+  ENTRY_LABELS,
   ledger,
+  METHOD_LABELS,
+  todayIn,
   validateEntry,
+  type CancelBookingInput,
   type Booking,
   type BookingLedger,
   type LedgerEntry,
@@ -10,6 +14,9 @@ import {
 } from '@boogbe/shared';
 import { OrgDb, type OrgTx } from '../../common/db/org-db.service';
 import { MemberNames } from '../../common/db/member-names';
+import { OrgInfo } from '../../common/db/org-info';
+import { STORAGE, type Storage } from '../../common/files/storage';
+import { renderReceipt } from '../../common/pdf/receipt';
 import { newId } from '../../common/db/ids';
 import { AuditService } from '../../common/audit/audit.service';
 import { AppError, notFound } from '../../common/http/app-error';
@@ -21,6 +28,7 @@ import { toEntries } from './payments.mapper';
 import { PaymentHooks } from './payment-hooks';
 
 type VoidRequest = { kind: 'void'; voidsPaymentId: string; reason: string };
+type ReceiptFile = { filename: string; pdf: Buffer };
 
 @Injectable()
 export class PaymentsService implements OnModuleInit {
@@ -31,6 +39,8 @@ export class PaymentsService implements OnModuleInit {
     private readonly bookingHooks: BookingHooks,
     private readonly bookings: BookingsService,
     readonly hooks: PaymentHooks,
+    private readonly orgInfo: OrgInfo,
+    @Inject(STORAGE) private readonly storage: Storage,
   ) {}
 
   /** Every Booking leaving the API carries paid/balance/deposit computed from the ledger (PAY-05: never stored). */
@@ -182,5 +192,70 @@ export class PaymentsService implements OnModuleInit {
       });
       return this.ledgerIn(tx, ctx.orgId, bookingId);
     });
+  }
+
+  /** Cancel and refund in one transaction: a refund that fails validation rolls the cancel back (BKG-11). */
+  cancelWithRefund(ctx: OrgCtx, bookingId: string, input: CancelBookingInput) {
+    return this.orgDb.run(ctx.orgId, async (tx) => {
+      await this.bookings.transitionIn(tx, ctx, ctx.orgId, bookingId, 'cancelled', input.reason);
+      if (input.refundKobo && input.refundKobo > 0) {
+        await this.recordIn(tx, ctx, bookingId, {
+          kind: 'refund',
+          amountKobo: input.refundKobo,
+          method: input.refundMethod!,
+          receivedOn: todayIn(ctx.timezone),
+          reference: input.refundReference ?? null,
+          note: input.reason,
+        } as RecordEntryInput);
+      }
+      return this.bookings.getIn(tx, ctx.orgId, bookingId);
+    });
+  }
+
+  /** Receipt PDF for one money-in entry; the balance shown is the balance right after that entry (PAY-06). */
+  async receipt(ctx: OrgCtx, paymentId: string): Promise<ReceiptFile> {
+    const data = await this.orgDb.run(ctx.orgId, async (tx) => {
+      const p = await tx.payment.findFirst({ where: { id: paymentId } });
+      if (!p || !p.receiptNo) throw notFound('Receipt');
+      const booking = await this.bookings.getIn(tx, ctx.orgId, p.bookingId);
+      const rows = await tx.payment.findMany({
+        where: { bookingId: p.bookingId, createdAt: { lte: p.createdAt } },
+        orderBy: { createdAt: 'asc' },
+      });
+      const t = ledger(
+        rows.map((r) => ({
+          id: r.id,
+          kind: r.kind as LedgerEntry['kind'],
+          amountKobo: kobo(r.amountKobo),
+          voidsPaymentId: r.voidsPaymentId,
+        })),
+        { finalTotalKobo: booking.finalTotalKobo, status: booking.status },
+      );
+      const s = await tx.orgSettings.findFirstOrThrow();
+      const org = await this.orgInfo.get(ctx.orgId, tx);
+      return { p, receiptNo: p.receiptNo, booking, t, logoKey: s.logoKey, org };
+    });
+    const logo = data.logoKey ? await this.storage.get(data.logoKey) : null;
+    const pdf = await renderReceipt({
+      org: { ...data.org, logo },
+      receiptNo: data.receiptNo,
+      issuedOn: data.p.receivedOn.toISOString().slice(0, 10),
+      booking: {
+        ref: data.booking.ref,
+        unitName: data.booking.unit.name,
+        propertyName: data.booking.unit.propertyName,
+        checkIn: data.booking.checkIn,
+        checkOut: data.booking.checkOut,
+        nights: data.booking.nights,
+      },
+      guestName: data.booking.guest.fullName,
+      entryLabel: ENTRY_LABELS[data.p.kind as keyof typeof ENTRY_LABELS],
+      amountKobo: kobo(data.p.amountKobo),
+      method: METHOD_LABELS[data.p.method as keyof typeof METHOD_LABELS],
+      reference: data.p.reference,
+      balanceAfterKobo: data.t.balanceKobo,
+      depositHeldKobo: data.t.depositHeldKobo,
+    });
+    return { filename: `${data.receiptNo}.pdf`, pdf };
   }
 }

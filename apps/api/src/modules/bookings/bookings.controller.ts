@@ -2,7 +2,6 @@ import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query } from '@nes
 import { createZodDto } from 'nestjs-zod';
 import {
   BookingListQuery,
-  CancelBookingInput,
   CreateBookingInput,
   QuoteRequest,
   TransitionInput,
@@ -18,7 +17,6 @@ class CreateDto extends createZodDto(CreateBookingInput) {}
 class ListQ extends createZodDto(BookingListQuery) {}
 class UpdateDto extends createZodDto(UpdateBookingInput) {}
 class TransitionDto extends createZodDto(TransitionInput) {}
-class CancelDto extends createZodDto(CancelBookingInput) {}
 
 @Controller()
 export class BookingsController {
@@ -71,12 +69,5 @@ export class BookingsController {
   @Permission('bookings.write')
   transition(@Ctx() c: RequestCtx, @Param('id') id: string, @Body() b: TransitionDto) {
     return this.svc.transition(requireOrg(c), id, b);
-  }
-
-  @Post('bookings/:id/cancel')
-  @HttpCode(200)
-  @Permission('bookings.write')
-  cancel(@Ctx() c: RequestCtx, @Param('id') id: string, @Body() b: CancelDto) {
-    return this.svc.cancel(requireOrg(c), id, b);
   }
 }
