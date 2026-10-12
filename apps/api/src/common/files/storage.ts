@@ -12,6 +12,7 @@ export interface Storage {
   presignGet(key: string, filename?: string): Promise<string>;
   head(key: string): Promise<{ size: number } | null>;
   put(key: string, body: Buffer, contentType: string): Promise<void>;
+  get(key: string): Promise<Buffer | null>;
 }
 
 const TTL = 300;
@@ -69,6 +70,16 @@ export class R2Storage implements Storage {
       new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: body, ContentType: contentType }),
     );
   }
+
+  async get(key: string) {
+    try {
+      const r = await this.s3.send(new GetObjectCommand({ Bucket: this.bucket, Key: key }));
+      return r.Body ? Buffer.from(await r.Body.transformToByteArray()) : null;
+    } catch (e) {
+      if ((e as { name?: string }).name === 'NoSuchKey') return null;
+      throw e;
+    }
+  }
 }
 
 /** Dev/test storage: objects in memory, URLs `memory://<key>` (uploads) and `memory://get/<key>` (downloads). */
@@ -86,5 +97,8 @@ export class MemoryStorage implements Storage {
   }
   async put(key: string, body: Buffer, contentType: string) {
     this.objects.set(key, { body, contentType });
+  }
+  async get(key: string) {
+    return this.objects.get(key)?.body ?? null;
   }
 }
