@@ -1,0 +1,40 @@
+{
+  "properties": [
+    {
+      "name": "Matthew Osawemen Estate",
+      "address": "Matthew Osawemen Estate, Ologolo, Lekki",
+      "area": "Ologolo, Lekki",
+      "units": [{ "name": "Alaska", "bedrooms": 1, "maxGuests": 2, "nightlyRateKobo": 15000000 }]
+    },
+    {
+      "name": "Brownstone Estate",
+      "address": "Brownstone Estate, Kunsela, Ikate, Lekki",
+      "area": "Ikate, Lekki",
+      "units": [{ "name": "Destiny", "bedrooms": 2, "maxGuests": 4, "nightlyRateKobo": 17500000 }]
+    },
+    {
+      "name": "Josephine's Apartment (Jakande–Ologolo)",
+      "address": "Josephine’s Apartment, Jakande–Ologolo, Lekki",
+      "area": "Jakande–Ologolo, Lekki",
+      "units": [{ "name": "Ebony", "bedrooms": 2, "maxGuests": 4, "nightlyRateKobo": 12000000 }]
+    },
+    {
+      "name": "The Rock Apartments",
+      "address": "3 Olu-Babajide Close, off Freedom Way, Lekki Phase 1",
+      "area": "Freedom Way, Lekki Phase 1",
+      "units": [{ "name": "Kairo", "bedrooms": 2, "maxGuests": 4, "nightlyRateKobo": 20000000 }]
+    },
+    {
+      "name": "Thore Signature",
+      "address": "Gbangbala Street, Freedom Way, Ikate, Lekki",
+      "area": "Ikate, Lekki",
+      "units": [{ "name": "Lumina", "bedrooms": 2, "maxGuests": 4, "nightlyRateKobo": 18000000 }]
+    },
+    {
+      "name": "Josephines Apartment (Ologolo)",
+      "address": "Josephines Apartment, Ologolo, Lekki",
+      "area": "Ologolo, Lekki",
+      "units": [{ "name": "Veyra", "bedrooms": 2, "maxGuests": 4, "nightlyRateKobo": 15000000 }]
+    }
+  ]
+}
