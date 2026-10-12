@@ -69,10 +69,10 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M2-11 | Booking edit dialog: move to another unit + require reason client-side when total changes | ui | T-M2-08 | opencode | in_progress | | Owner follow-up after #37; claude reviews |
 | T-M2-09 | Notifications bell, audit page, E2E-02 and E2E-03 | ui, e2e | T-M2-05, T-M2-06, T-M2-08 | | todo | | suggested: opencode |
 | T-M3-01 | Ledger maths and payment contracts | domain | M2 | claude | done | [#36](https://github.com/edgdmedia/boogbe/pull/36) | On merge: T-M3-06 can build against the contracts |
-| T-M3-02 | Schema 0005: payment table, booking_money view, append-only grants | schema | T-M3-01 | claude | review | [#38](https://github.com/edgdmedia/boogbe/pull/38) | Rebased on dev after #36 merged |
-| T-M3-03 | Payments API, booking decoration, auto-confirm, balance filter, calendar balances | api | T-M3-02 | claude | review | [#39](https://github.com/edgdmedia/boogbe/pull/39) | Stacked on #38 |
-| T-M3-04 | Cancel with refund; receipt PDF | api | T-M3-03 | claude | review | [#40](https://github.com/edgdmedia/boogbe/pull/40) | Stacked on #39 (rebased) |
-| T-M3-05 | Money summary API | api | T-M3-03 | claude | in_progress |  | Stacked on #39 (#36 merged, so stack stays at 4) |
+| T-M3-02 | Schema 0005: payment table, booking_money view, append-only grants | schema | T-M3-01 | claude | done | [#38](https://github.com/edgdmedia/boogbe/pull/38) | Rebased on dev after #36 merged |
+| T-M3-03 | Payments API, booking decoration, auto-confirm, balance filter, calendar balances | api | T-M3-02 | claude | done | [#39](https://github.com/edgdmedia/boogbe/pull/39) | Stacked on #38 |
+| T-M3-04 | Cancel with refund; receipt PDF | api | T-M3-03 | claude | done | [#40](https://github.com/edgdmedia/boogbe/pull/40) | Stacked on #39 (rebased) |
+| T-M3-05 | Money summary API | api | T-M3-03 | claude | review | [#44](https://github.com/edgdmedia/boogbe/pull/44) | From dev |
 | T-M3-06 | Payments panel and refund-on-cancel UI | ui | T-M3-01 (stub); merge after T-M3-04 | | todo | | suggested: opencode |
 | T-M3-07 | Money dashboard UI + E2E-04 | ui, e2e | T-M3-05, T-M3-06 | | todo | | suggested: opencode |
 | T-M4-01 | iCal contracts | domain | M2 | claude | review | [#42](https://github.com/edgdmedia/boogbe/pull/42) | From dev; independent of M3 |
