@@ -26,8 +26,12 @@ export function GuestForm({
   const check = async () => {
     if (initial || (!v.phoneE164 && !v.email)) return;
     const qs = new URLSearchParams({ ...(v.phoneE164 && { phone: v.phoneE164 }), ...(v.email && { email: v.email }) });
-    const r = await api(`/v1/guests/match?${qs}`, { schema: z.object({ items: z.array(Guest) }) });
-    setMatch(r.items[0] ?? null);
+    try {
+      const r = await api(`/v1/guests/match?${qs}`, { schema: z.object({ items: z.array(Guest) }) });
+      setMatch(r.items[0] ?? null);
+    } catch {
+      setMatch(null); // half-typed emails or API hiccups must never surface as an uncaught error
+    }
   };
   return (
     <form
