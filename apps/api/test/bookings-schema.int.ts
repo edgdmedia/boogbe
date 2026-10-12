@@ -6,6 +6,7 @@ import { seedProperty, seedUnit } from './helpers/inventory';
 import { OrgDb } from '../src/common/db/org-db.service';
 import { newId } from '../src/common/db/ids';
 import { Client } from 'pg';
+import { ACTIVE_STATUSES } from '@boogbe/shared';
 
 describe('booking exclusion constraint', () => {
   let t: TestApp;
@@ -81,5 +82,18 @@ describe('booking exclusion constraint', () => {
     } finally {
       await app.end();
     }
+  });
+
+  // The constraint's WHERE list and ACTIVE_STATUSES must agree: a status added to one but not the
+  // other would let two bookings hold the same nights (or block dates nobody holds).
+  it('booking_no_overlap covers exactly ACTIVE_STATUSES', async () => {
+    const m = await migratorClient();
+    const { rows } = await m.query(
+      `select pg_get_constraintdef(oid) as def from pg_constraint where conname = 'booking_no_overlap'`,
+    );
+    await m.end();
+    const where = /WHERE \((.*)\)\s*$/s.exec(rows[0].def)?.[1] ?? '';
+    const statuses = [...where.matchAll(/'([a-z_]+)'/g)].map((x) => x[1]).sort();
+    expect(statuses).toEqual([...ACTIVE_STATUSES].sort());
   });
 });

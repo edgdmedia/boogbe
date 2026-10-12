@@ -4,6 +4,7 @@ import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { admin, organization } from 'better-auth/plugins';
 import { randomUUID } from 'node:crypto';
+import { newId } from '../db/ids';
 import type { OrgRole } from '@boogbe/shared';
 import type { Env } from '../../env';
 import type { Mailer } from '../mail/mailer';
@@ -184,6 +185,6 @@ async function writeAudit(
   await prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT set_config('app.org_id', ${orgId}, true)`;
     await tx.$executeRaw`INSERT INTO audit_log (id, org_id, actor_user_id, action, entity, entity_id, before, after, at)
-      VALUES (${randomUUID()}, ${orgId}, ${actorUserId}, ${action}, ${entity}, ${entityId}, ${JSON.stringify(before)}::jsonb, ${JSON.stringify(after)}::jsonb, now())`;
+      VALUES (${newId()}, ${orgId}, ${actorUserId}, ${action}, ${entity}, ${entityId}, ${JSON.stringify(before)}::jsonb, ${JSON.stringify(after)}::jsonb, now())`;
   });
 }
