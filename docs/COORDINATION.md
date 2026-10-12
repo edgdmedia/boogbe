@@ -68,7 +68,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M2-10 | Guests list paging: 'Load more' via cursor (currently only the first 30) | ui | T-M2-07 | opencode | in_progress | | Owner follow-up after #34; claude reviews |
 | T-M2-09 | Notifications bell, audit page, E2E-02 and E2E-03 | ui, e2e | T-M2-05, T-M2-06, T-M2-08 | | todo | | suggested: opencode |
 | T-M3-01 | Ledger maths and payment contracts | domain | M2 | claude | review | [#36](https://github.com/edgdmedia/boogbe/pull/36) | On merge: T-M3-06 can build against the contracts |
-| T-M3-02 | Schema 0005: payment table, booking_money view, append-only grants | schema | T-M3-01 | claude | review | [#38](https://github.com/edgdmedia/boogbe/pull/38) | Stacked on #36 |
+| T-M3-02 | Schema 0005: payment table, booking_money view, append-only grants | schema | T-M3-01 | claude | review | [#38](https://github.com/edgdmedia/boogbe/pull/38) | Rebased on dev after #36 merged |
 | T-M3-03 | Payments API, booking decoration, auto-confirm, balance filter, calendar balances | api | T-M3-02 | claude | review | [#39](https://github.com/edgdmedia/boogbe/pull/39) | Stacked on #38 |
 | T-M3-04 | Cancel with refund; receipt PDF | api | T-M3-03 | claude | review | [#40](https://github.com/edgdmedia/boogbe/pull/40) | Stacked on #39 (4th — T-M3-05 waits for merges) |
 | T-M3-05 | Money summary API | api | T-M3-03 | | todo | | suggested: claude |
@@ -76,7 +76,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M3-07 | Money dashboard UI + E2E-04 | ui, e2e | T-M3-05, T-M3-06 | | todo | | suggested: opencode |
 | T-M4-01 | iCal contracts | domain | M2 | claude | review | [#42](https://github.com/edgdmedia/boogbe/pull/42) | From dev; independent of M3 |
 | T-M4-02 | Schema: feeds, exports, conflicts, token lookup function | schema | T-M4-01 |  | todo |  | suggested: claude |
-| T-M4-03 | SSRF-safe fetcher, node-ical parser and fixtures | api | T-M4-01 | claude | in_progress |  | From dev (needs only dates helpers, not T-M4-01 contracts) |
+| T-M4-03 | SSRF-safe fetcher, node-ical parser and fixtures | api | T-M4-01 | claude | review | [#43](https://github.com/edgdmedia/boogbe/pull/43) | From dev; independent of M3 and #42 |
 | T-M4-04 | Feeds API, sync service, import job, health alerts, AlertMailer | api | T-M4-02, T-M4-03 |  | todo |  | suggested: claude |
 | T-M4-05 | Conflicts: detection, resolution, calendar flag | api | T-M4-04; M3 (cancelWithRefund) |  | todo |  | suggested: claude |
 | T-M4-06 | Export links and public .ics | api | T-M4-02 |  | todo |  | suggested: claude |
