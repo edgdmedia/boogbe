@@ -22,3 +22,4 @@ export * from './contracts/audit';
 export * from './domain/ledger';
 export * from './contracts/payments';
 export * from './contracts/money';
+export * from './contracts/ical';
