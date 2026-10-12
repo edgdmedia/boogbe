@@ -4,10 +4,16 @@ import {
   ACTIVE_STATUSES,
   applyOverride,
   can,
+  canTransition,
   quote,
+  STATUS_LABELS,
   todayIn,
   type Booking,
+  type BookingStatus,
+  type CancelBookingInput,
   type CreateBookingInput,
+  type TransitionInput,
+  type UpdateBookingInput,
   type IsoDate,
   type PriceResult,
   type QuoteRequest,
@@ -312,6 +318,187 @@ export class BookingsService {
             ? Buffer.from(JSON.stringify({ c: iso(last.checkIn), id: last.id })).toString('base64url')
             : null,
       };
+    });
+  }
+
+  /** Shared by the API, the holds job (ctx null) and M3 auto-confirm. Conditional on the current status, so racing writers get 409. */
+  async transitionIn(
+    tx: OrgTx,
+    ctx: OrgCtx | null,
+    orgId: string,
+    id: string,
+    to: BookingStatus,
+    reason?: string,
+  ): Promise<Booking> {
+    const b = await tx.booking.findFirst({ where: { id } });
+    if (!b) throw notFound('Booking');
+    const from = b.status as BookingStatus;
+    if (!canTransition(from, to)) {
+      throw new AppError(
+        'INVALID_TRANSITION',
+        422,
+        `A ${STATUS_LABELS[from].toLowerCase()} booking cannot become ${STATUS_LABELS[to].toLowerCase()}`,
+      );
+    }
+    const now = new Date();
+    const r = await tx.booking.updateMany({
+      where: { id, status: from },
+      data: {
+        status: to,
+        holdUntil: null,
+        ...(to === 'checked_in' && { checkedInAt: now }),
+        ...(to === 'checked_out' && { checkedOutAt: now }),
+        ...(to === 'cancelled' && { cancelledAt: now, cancelReason: reason ?? null }),
+      },
+    });
+    if (!r.count) throw new AppError('CONFLICT', 409, 'The booking changed — refresh and try again');
+    await tx.bookingStatusEvent.create({
+      data: {
+        id: newId(),
+        bookingId: id,
+        fromStatus: from,
+        toStatus: to,
+        actorMemberId: ctx?.memberId ?? null,
+        reason: reason ?? null,
+      } as never,
+    });
+    if (ctx) {
+      await this.audit.record(tx, {
+        actor: ctx,
+        action: `booking.${to}`,
+        entity: 'booking',
+        entityId: id,
+        before: { status: from },
+        after: { status: to, reason },
+      });
+    }
+    const booking = await this.getIn(tx, orgId, id);
+    await this.hooks.run('afterTransition', tx, ctx, booking, from);
+    return booking;
+  }
+
+  transition(ctx: OrgCtx, id: string, input: TransitionInput) {
+    return this.orgDb.run(ctx.orgId, (tx) =>
+      this.transitionIn(tx, ctx, ctx.orgId, id, input.to, input.reason),
+    );
+  }
+
+  /** Cancelling frees the dates at once: the exclusion constraint only covers active statuses (BKG-11). */
+  cancel(ctx: OrgCtx, id: string, input: CancelBookingInput) {
+    return this.orgDb.run(ctx.orgId, (tx) =>
+      this.transitionIn(tx, ctx, ctx.orgId, id, 'cancelled', input.reason),
+    );
+  }
+
+  update(ctx: OrgCtx, id: string, input: UpdateBookingInput): Promise<Booking> {
+    if (input.finalTotalKobo !== undefined && !can(ctx.role, 'bookings.override'))
+      throw forbidden('You cannot change prices');
+    return this.orgDb.run(ctx.orgId, async (tx) => {
+      const before = await this.getIn(tx, ctx.orgId, id);
+      const editable = before.status === 'tentative' || before.status === 'confirmed';
+      const datesChanging =
+        input.unitId !== undefined || input.checkIn !== undefined || input.checkOut !== undefined;
+      if (!editable && before.status !== 'checked_in') {
+        throw new AppError('INVALID_TRANSITION', 422, 'This booking can no longer be changed');
+      }
+      if (before.status === 'checked_in' && (input.unitId !== undefined || input.checkIn !== undefined)) {
+        throw new AppError('INVALID_TRANSITION', 422, 'Only the check-out date can change after check-in');
+      }
+
+      const next = {
+        unitId: input.unitId ?? before.unit.id,
+        checkIn: input.checkIn ?? before.checkIn,
+        checkOut: input.checkOut ?? before.checkOut,
+        guestCount: input.guestCount ?? before.guestCount,
+      };
+      if (next.checkOut <= next.checkIn)
+        throw new AppError('VALIDATION_FAILED', 400, 'Check-out must be after check-in');
+      const { unit, fees } = await this.loadPricingInputs(tx, next.unitId);
+      if (input.guestCount !== undefined || input.unitId !== undefined) {
+        this.checkCapacity(ctx, next.guestCount, unit.maxGuests, input.capacityOverrideReason);
+      }
+      let icalAck = before.icalWarningAck;
+      if (datesChanging) {
+        // Ignoring itself lets a stay be extended or moved onto dates it already holds.
+        await this.blocks.assertUnitFree(tx, next.unitId, next.checkIn, next.checkOut, { bookingId: id });
+        const warnings = await this.icalWarnings(tx, next.unitId, next.checkIn, next.checkOut);
+        if (warnings.length && !input.acknowledgeIcalOverlap) {
+          throw new AppError('ICAL_OVERLAP', 409, 'These dates overlap a booking on another channel', {
+            warnings,
+          });
+        }
+        icalAck = warnings.length > 0;
+      }
+      if (
+        input.guestId &&
+        !(await tx.guest.findFirst({ where: { id: input.guestId, anonymisedAt: null } }))
+      ) {
+        throw new AppError('VALIDATION_FAILED', 400, 'Guest not found');
+      }
+
+      const pricingChanged = datesChanging || input.guestCount !== undefined;
+      const data: Record<string, unknown> = {
+        unitId: next.unitId,
+        checkIn: day(next.checkIn),
+        checkOut: day(next.checkOut),
+        guestCount: next.guestCount,
+        icalWarningAck: icalAck,
+        ...(input.guestId && { guestId: input.guestId }),
+        ...(input.source && { source: input.source }),
+        ...(input.notes !== undefined && { notes: input.notes }),
+        ...(input.capacityOverrideReason && { capacityOverrideReason: input.capacityOverrideReason }),
+      };
+      if (input.reprice || input.finalTotalKobo !== undefined) {
+        // Without reprice the stored lines are kept; applyOverride only reads lines and computedTotalKobo.
+        let price: PriceResult = input.reprice
+          ? quote({
+              nightlyRateKobo: kobo(unit.nightlyRateKobo),
+              fees,
+              checkIn: next.checkIn,
+              checkOut: next.checkOut,
+              guestCount: next.guestCount,
+            })
+          : {
+              nights: 0,
+              lines: before.lines,
+              computedTotalKobo: before.computedTotalKobo,
+              finalTotalKobo: before.finalTotalKobo,
+              depositKobo: before.depositKobo,
+            };
+        if (input.finalTotalKobo !== undefined) price = applyOverride(price, input.finalTotalKobo);
+        await this.writeLines(tx, id, price);
+        Object.assign(data, {
+          computedTotalKobo: BigInt(price.computedTotalKobo),
+          finalTotalKobo: BigInt(price.finalTotalKobo),
+          depositKobo: BigInt(price.depositKobo),
+          overrideReason:
+            input.finalTotalKobo !== undefined
+              ? input.overrideReason
+              : input.reprice
+                ? null
+                : before.overrideReason,
+          priceStale: input.reprice ? false : before.priceStale || pricingChanged,
+        });
+      } else if (pricingChanged) {
+        data.priceStale = true;
+      }
+      await tx.booking.updateMany({ where: { id }, data });
+      const after = await this.getIn(tx, ctx.orgId, id);
+      await this.audit.record(tx, {
+        actor: ctx,
+        action: 'booking.update',
+        entity: 'booking',
+        entityId: id,
+        before: {
+          unitId: before.unit.id,
+          checkIn: before.checkIn,
+          checkOut: before.checkOut,
+          finalTotalKobo: before.finalTotalKobo,
+        },
+        after: input,
+      });
+      await this.hooks.run('afterUpdate', tx, ctx, before, after);
+      return after;
     });
   }
 }
