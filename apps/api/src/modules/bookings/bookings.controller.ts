@@ -1,6 +1,13 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import { BookingListQuery, CreateBookingInput, QuoteRequest } from '@boogbe/shared';
+import {
+  BookingListQuery,
+  CancelBookingInput,
+  CreateBookingInput,
+  QuoteRequest,
+  TransitionInput,
+  UpdateBookingInput,
+} from '@boogbe/shared';
 import { Ctx, Permission } from '../../common/auth/decorators';
 import { requireOrg, type RequestCtx } from '../../common/auth/request-ctx';
 import { GuestsService } from '../guests/guests.service';
@@ -9,6 +16,9 @@ import { BookingsService } from './bookings.service';
 class QuoteDto extends createZodDto(QuoteRequest) {}
 class CreateDto extends createZodDto(CreateBookingInput) {}
 class ListQ extends createZodDto(BookingListQuery) {}
+class UpdateDto extends createZodDto(UpdateBookingInput) {}
+class TransitionDto extends createZodDto(TransitionInput) {}
+class CancelDto extends createZodDto(CancelBookingInput) {}
 
 @Controller()
 export class BookingsController {
@@ -48,5 +58,25 @@ export class BookingsController {
     const ctx = requireOrg(c);
     await this.guests.get(ctx, id); // 404 for unknown or other-operator guests, not an empty list
     return { items: (await this.svc.list(ctx, { guestId: id, limit: 100 })).items };
+  }
+
+  @Patch('bookings/:id')
+  @Permission('bookings.write')
+  update(@Ctx() c: RequestCtx, @Param('id') id: string, @Body() b: UpdateDto) {
+    return this.svc.update(requireOrg(c), id, b);
+  }
+
+  @Post('bookings/:id/transition')
+  @HttpCode(200)
+  @Permission('bookings.write')
+  transition(@Ctx() c: RequestCtx, @Param('id') id: string, @Body() b: TransitionDto) {
+    return this.svc.transition(requireOrg(c), id, b);
+  }
+
+  @Post('bookings/:id/cancel')
+  @HttpCode(200)
+  @Permission('bookings.write')
+  cancel(@Ctx() c: RequestCtx, @Param('id') id: string, @Body() b: CancelDto) {
+    return this.svc.cancel(requireOrg(c), id, b);
   }
 }
