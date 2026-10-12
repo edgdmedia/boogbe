@@ -74,7 +74,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M3-03 | Payments API, booking decoration, auto-confirm, balance filter, calendar balances | api | T-M3-02 | claude | done | [#39](https://github.com/edgdmedia/boogbe/pull/39) | Stacked on #38 |
 | T-M3-04 | Cancel with refund; receipt PDF | api | T-M3-03 | claude | done | [#40](https://github.com/edgdmedia/boogbe/pull/40) | Stacked on #39 (rebased) |
 | T-M3-05 | Money summary API | api | T-M3-03 | claude | review | [#44](https://github.com/edgdmedia/boogbe/pull/44) | From dev |
-| T-M3-06 | Payments panel and refund-on-cancel UI | ui | T-M3-01 (stub); merge after T-M3-04 | | todo | | suggested: opencode |
+| T-M3-06 | Payments panel and refund-on-cancel UI | ui | T-M3-01 (stub); merge after T-M3-04 | opencode | review | [#54](https://github.com/edgdmedia/boogbe/pull/54) | deps merged; app 36/36, int 137/137 — awaiting 'Approved T-M3-06' |
 | T-M3-07 | Money dashboard UI + E2E-04 | ui, e2e | T-M3-05, T-M3-06 | | todo | | suggested: opencode |
 | T-M4-01 | iCal contracts | domain | M2 | claude | review | [#42](https://github.com/edgdmedia/boogbe/pull/42) | From dev; independent of M3 |
 | T-M4-02 | Schema: feeds, exports, conflicts, token lookup function | schema | T-M4-01 | claude | review | [#47](https://github.com/edgdmedia/boogbe/pull/47) | Stacked on #42 |
