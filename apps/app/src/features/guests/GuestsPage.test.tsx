@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { SWRConfig } from 'swr';
@@ -24,7 +24,14 @@ vi.mock('../../lib/api', async (orig) => {
     ...real,
     api: vi.fn(async (path: string) => (path.includes('cursor=c2') ? page2 : page1)),
     useApi: (path: string | null) => ({
-      data: path ? (path.includes('cursor=c2') ? page2 : path.startsWith('/v1/guests?') ? page1 : undefined) : undefined,
+      // fresh object identities per render, like SWR revalidation
+      data: path
+        ? path.includes('cursor=c2')
+          ? { ...page2, items: [...page2.items] }
+          : path.startsWith('/v1/guests?')
+            ? { ...page1, items: [...page1.items] }
+            : undefined
+        : undefined,
       mutate: vi.fn(),
     }),
   };
@@ -32,7 +39,7 @@ vi.mock('../../lib/api', async (orig) => {
 
 describe('GuestsPage paging [GST-02]', () => {
   it('appends the next page on Load more', async () => {
-    render(
+    const { rerender } = render(
       <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
         <MemoryRouter>
           <GuestsPage />
@@ -45,6 +52,20 @@ describe('GuestsPage paging [GST-02]', () => {
     await waitFor(() => expect(screen.getByText('Zainab Yusuf')).toBeInTheDocument());
     expect(screen.getByText('Adaeze Okafor')).toBeInTheDocument(); // appended, not replaced
     expect(screen.queryByRole('button', { name: /load more/i })).toBeNull(); // page 2 is last
+
+    // revalidation delivering fresh objects must replace, not duplicate (review item 3)
+    rerender(
+      <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
+        <MemoryRouter>
+          <GuestsPage />
+        </MemoryRouter>
+      </SWRConfig>,
+    );
+    await waitFor(() => {
+      const table = screen.getByRole('table');
+      expect(within(table).getAllByText('Zainab Yusuf')).toHaveLength(1);
+      expect(within(table).getAllByText('Adaeze Okafor')).toHaveLength(1);
+    });
   });
 
   it('resets paging when the search changes', async () => {
