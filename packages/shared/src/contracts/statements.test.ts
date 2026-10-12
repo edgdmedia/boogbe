@@ -16,7 +16,15 @@ describe('ExpenseInput [OWN-01 OWN-02]', () => {
     expect(ExpenseInput.safeParse({ ...shared, allocation: { method: 'equal', unitIds: ['u1', 'u2'] } }).success).toBe(true);
   });
   it('a unit expense cannot also be allocated', () => {
-    expect(ExpenseInput.safeParse({ ...unitExpense, allocation: { method: 'equal', unitIds: ['u1'] } }).success).toBe(false);
+    expect(issues(ExpenseInput.safeParse({ ...unitExpense, allocation: { method: 'equal', unitIds: ['u1'] } }))).toEqual([['allocation', 'Only property-wide expenses are shared between units']]);
+  });
+  it('custom shares only go with a custom split', () => {
+    expect(issues(ExpenseInput.safeParse({ ...shared, allocation: { method: 'equal', unitIds: ['u1', 'u2'], customBps: { u1: 5000, u2: 5000 } } }))).toEqual([['allocation.customBps', 'Custom shares need the custom split']]);
+  });
+  it('refuses empty ids', () => {
+    expect(ExpenseInput.safeParse({ ...unitExpense, propertyId: '' }).success).toBe(false);
+    expect(ExpenseInput.safeParse({ ...unitExpense, unitId: '' }).success).toBe(false);
+    expect(ExpenseInput.safeParse({ ...shared, allocation: { method: 'equal', unitIds: [''] } }).success).toBe(false);
   });
   it('custom shares must cover the chosen units and add up to 100%', () => {
     const custom = (customBps?: Record<string, number>) => ExpenseInput.safeParse({ ...shared, allocation: { method: 'custom', unitIds: ['u1', 'u2'], customBps } });
