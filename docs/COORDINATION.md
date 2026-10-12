@@ -54,17 +54,17 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M1-04 | Owners, properties, units, ownership, fee config API | api | T-M1-02 | claude | done | [#21](https://github.com/edgdmedia/boogbe/pull/21) | opencode approved+merged; 67/67 verified; T-M1-06 (#23) mergeable after claude approves |
 | T-M1-05 | Unit fees, manual blocks, calendar API | api | T-M1-04 | claude | done | [#24](https://github.com/edgdmedia/boogbe/pull/24) | opencode approved+merged; 80/80 verified; T-M1-07 (calendar UI) starting |
 | T-M1-06 | Inventory settings UI | ui | T-M1-01 (stub); merge after T-M1-04 | opencode | done | [#23](https://github.com/edgdmedia/boogbe/pull/23) | approved by claude, merged; follow-up T-M1-09 |
-| T-M1-07 | Calendar grid (desktop) + day list (mobile), blocks | ui | T-M1-01 (stub); merge after T-M1-05 | opencode | review | [#25](https://github.com/edgdmedia/boogbe/pull/25) | #23 merged — this is now clean to merge after claude posts 'Approved T-M1-07' |
+| T-M1-07 | Calendar grid (desktop) + day list (mobile), blocks | ui | T-M1-01 (stub); merge after T-M1-05 | opencode | done | [#25](https://github.com/edgdmedia/boogbe/pull/25) | Approved T-M1-07 by claude (re-review of the window fix); merged |
 | T-M1-08 | Logo upload UI + Tanuhomes seed script | ui, infra | T-M1-03, T-M1-06 | opencode | done | [#29](https://github.com/edgdmedia/boogbe/pull/29) | Approved T-M1-08 by claude; OrgProfile logoUrl/strict-PATCH bug fixed; seed figures confirmed by owner; staging exit check parked |
 | T-M1-09 | Property default-owner UI: owner picker + effective date on PropertyDetail (`POST /v1/properties/:id/owner`, `SetPropertyOwnerInput`) | ui | T-M1-06 | opencode | done | [#27](https://github.com/edgdmedia/boogbe/pull/27) | Approved T-M1-09 by claude; merged |
 | T-M2-01 | Pricing, booking status, phone helpers and contracts | domain | M1 | claude | done | [#28](https://github.com/edgdmedia/boogbe/pull/28) | 'Approved T-M2-01' by opencode; merged; T-M2-07/08 contracts live |
 | T-M2-02 | Schema 0004_bookings: guests, bookings, lines, status events, notifications | schema | T-M2-01 | claude | done | [#30](https://github.com/edgdmedia/boogbe/pull/30) | Approved T-M2-02 by opencode; no-overlap WHERE matches ACTIVE_STATUSES; 82/82 verified |
 | T-M2-03 | Guests API | api | T-M2-02 | claude | done | [#31](https://github.com/edgdmedia/boogbe/pull/31) | Approved T-M2-03 by opencode; 88/88 verified; T-M2-07 unblocked |
 | T-M2-04 | Quote, create, get, list bookings; BookingSource | api | T-M2-03 | claude | done | [#32](https://github.com/edgdmedia/boogbe/pull/32) | Approved T-M2-04 by opencode; 101/101 verified incl. 20-way race; pool-starvation fix noted |
-| T-M2-05 | Edit/move/reprice, status transitions, cancel, holds job, notifications | api | T-M2-04 | claude | review | [#33](https://github.com/edgdmedia/boogbe/pull/33) | Stacked on #32 → #31 → #30. On merge: T-M2-08 has all endpoints |
+| T-M2-05 | Edit/move/reprice, status transitions, cancel, holds job, notifications | api | T-M2-04 | claude | done | [#33](https://github.com/edgdmedia/boogbe/pull/33) | Approved T-M2-05 by opencode; 107/107 verified; T-M2-08 unblocked |
 | T-M2-06 | Audit viewer API | api | T-M2-02 | claude | todo | | Owner: claude (API); OpenCode keeps T-M2-07..09 incl. audit page; starts when #30 merges (owner: max 4 stacked PRs) |
 | T-M2-07 | Guests pages and guest picker | ui | T-M2-01 (stub); merge after T-M2-03 | opencode | in_progress | | T-M2-03 merged; building against #28/#31 contracts and endpoints |
-| T-M2-08 | Booking form, booking detail, bookings list | ui | T-M2-01 (stub); merge after T-M2-05 | | todo | | suggested: opencode |
+| T-M2-08 | Booking form, booking detail, bookings list | ui | T-M1-01 (stub); merge after T-M2-05 | opencode | in_progress | | all endpoints on dev (#30-#33) |
 | T-M2-09 | Notifications bell, audit page, E2E-02 and E2E-03 | ui, e2e | T-M2-05, T-M2-06, T-M2-08 | | todo | | suggested: opencode |
 
 ## Parallelism map (by milestone)
