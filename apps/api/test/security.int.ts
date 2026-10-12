@@ -39,6 +39,11 @@ describe('cookie & CSRF hardening [NFR-02 AUTH-01]', () => {
     process.env.BETTER_AUTH_SECRET = 'x'.repeat(40);
     process.env.BETTER_AUTH_URL = 'https://api.boogbe.com';
     process.env.APP_ORIGIN = 'https://app.boogbe.com';
+    // #22 requires R2_* in production; dummy values — nothing touches the network here.
+    process.env.R2_ENDPOINT = 'https://r2.invalid';
+    process.env.R2_BUCKET = 'boogbe-test';
+    process.env.R2_ACCESS_KEY_ID = 'dummy';
+    process.env.R2_SECRET_ACCESS_KEY = 'dummy';
     let prod: NestExpressApplication | undefined;
     try {
       prod = await buildApp();
@@ -60,7 +65,7 @@ describe('cookie & CSRF hardening [NFR-02 AUTH-01]', () => {
       expect(cookies.some((c) => c.startsWith('__Secure-'))).toBe(true);
     } finally {
       await prod?.close();
-      for (const k of ['NODE_ENV', 'DATABASE_URL', 'BETTER_AUTH_SECRET', 'BETTER_AUTH_URL', 'APP_ORIGIN']) delete process.env[k];
+      for (const k of ['NODE_ENV', 'DATABASE_URL', 'BETTER_AUTH_SECRET', 'BETTER_AUTH_URL', 'APP_ORIGIN', 'R2_ENDPOINT', 'R2_BUCKET', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY']) delete process.env[k];
       Object.assign(process.env, saved);
     }
   });
