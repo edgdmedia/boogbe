@@ -273,7 +273,16 @@ export class BookingsService {
   list(ctx: OrgCtx, q: BookingListParams) {
     return this.orgDb.run(ctx.orgId, async (tx) => {
       const digits = q.q?.replace(/\D/g, '').replace(/^0/, '');
+      // Balance lives in the ledger view, so the filter is resolved in SQL before paging (replaces the M2 post-filter).
+      let idFilter: Prisma.BookingWhereInput = {};
+      if (q.balanceDue === 'true') {
+        const due = await tx.$queryRaw<
+          { booking_id: string }[]
+        >`SELECT booking_id FROM booking_money WHERE balance_kobo > 0`;
+        idFilter = { id: { in: due.map((d) => d.booking_id) } };
+      }
       const where: Prisma.BookingWhereInput = {
+        ...idFilter,
         ...(q.status && { status: q.status }),
         ...(q.unitId && { unitId: q.unitId }),
         ...(q.source && { source: q.source }),
@@ -307,9 +316,7 @@ export class BookingsService {
         take: q.limit + 1,
       });
       const page = rows.slice(0, q.limit);
-      let items = (await this.hydrate(tx, ctx.orgId, page)).map(toSummary);
-      // Filtered after pagination for v1 page sizes; M3 moves this into SQL on the ledger.
-      if (q.balanceDue === 'true') items = items.filter((b) => (b.balanceKobo ?? 0) > 0);
+      const items = (await this.hydrate(tx, ctx.orgId, page)).map(toSummary);
       const last = page.at(-1);
       return {
         items,
