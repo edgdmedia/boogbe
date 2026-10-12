@@ -104,12 +104,8 @@ export class GuestsService {
     return toGuest(rows[0]);
   }
 
-  /** Detail view (GST-04). `bookings` is filled by BookingsService.listForGuest from T-M2-04. */
   get(ctx: OrgCtx, id: string) {
-    return this.orgDb.run(ctx.orgId, async (tx) => ({
-      ...(await this.getIn(tx, id)),
-      bookings: [] as unknown[],
-    }));
+    return this.orgDb.run(ctx.orgId, (tx) => this.getIn(tx, id));
   }
 
   create(ctx: OrgCtx, input: GuestInput) {
