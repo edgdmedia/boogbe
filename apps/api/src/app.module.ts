@@ -16,6 +16,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { GuestsModule } from './modules/guests/guests.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AuditHttpModule } from './modules/audit/audit-http.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { MeModule } from './modules/me/me.module';
 import { OrgModule } from './modules/org/org.module';
@@ -41,6 +42,7 @@ const e2e = process.env.NODE_ENV !== 'production' && (process.env.E2E === '1' ||
     GuestsModule,
     BookingsModule,
     NotificationsModule,
+    AuditHttpModule,
     FilesModule,
     FilesHttpModule,
     ...(e2e ? [TestSupportModule] : []),
