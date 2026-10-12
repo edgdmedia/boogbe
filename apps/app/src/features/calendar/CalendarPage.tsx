@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { addDays, todayIn, type CalendarItem } from '@boogbe/shared';
 import { Button, Dialog, EmptyState, Input, Spinner } from '@boogbe/ui';
 import { api } from '../../lib/api';
 import { useMe } from '../../lib/use-me';
 import { BlockForm } from './BlockDialog';
+import { BookingForm } from '../bookings/BookingForm';
 import { CalendarGrid } from './CalendarGrid';
 import { DayList } from './DayList';
 import { useCalendar } from './use-calendar';
@@ -21,6 +23,7 @@ const useNarrow = () => {
 
 export function CalendarPage() {
   const { me } = useMe();
+  const nav = useNavigate();
   const narrow = useNarrow();
   const today = todayIn(me?.activeOrg?.timezone ?? 'Africa/Lagos');
   const [from, setFrom] = useState(addDays(today, -1));
@@ -29,6 +32,7 @@ export function CalendarPage() {
   // narrow window starts the day before so stays ending today appear under 'Leaving'
   const { data, mutate } = useCalendar(narrow ? addDays(day, -1) : from, narrow ? 3 : days);
   const [sel, setSel] = useState<{ unitId: string; start: string; end: string } | null>(null);
+  const [mode, setMode] = useState<'booking' | 'block'>('booking');
   const [item, setItem] = useState<CalendarItem | null>(null);
   if (!data) return <Spinner />;
   if (!data.properties.length) return <EmptyState title="No units yet" body="Add your properties and units in Settings → Properties." />;
@@ -62,12 +66,35 @@ export function CalendarPage() {
         )}
       </div>
       {narrow ? (
-        <DayList data={data} day={day} onItemClick={setItem} onNew={(unitId) => setSel({ unitId, start: day, end: addDays(day, 1) })} />
+        <DayList
+          data={data}
+          day={day}
+          onItemClick={(i) => (i.kind === 'booking' ? nav(`/bookings/${i.id}`) : setItem(i))}
+          onNew={(unitId) => {
+            setSel({ unitId, start: day, end: addDays(day, 1) });
+            setMode('booking');
+          }}
+        />
       ) : (
-        <CalendarGrid data={data} onEmptySelect={(unitId, start, end) => setSel({ unitId, start, end })} onItemClick={setItem} />
+        <CalendarGrid
+          data={data}
+          onEmptySelect={(unitId, start, end) => {
+            setSel({ unitId, start, end });
+            setMode('booking');
+          }}
+          onItemClick={(i) => (i.kind === 'booking' ? nav(`/bookings/${i.id}`) : setItem(i))}
+        />
       )}
-      <Dialog open={!!sel} onClose={() => setSel(null)} title="Block dates">
-        {sel && (
+      <Dialog open={!!sel} onClose={() => setSel(null)} title={mode === 'booking' ? 'New booking' : 'Block dates'}>
+        {sel && mode === 'booking' && (
+          <div className="flex flex-col gap-3">
+            <BookingForm unitId={sel.unitId} checkIn={sel.start} checkOut={sel.end} onCreated={(b) => { setSel(null); nav(`/bookings/${b.id}`); }} />
+            <Button variant="ghost" onClick={() => setMode('block')}>
+              Block these dates instead
+            </Button>
+          </div>
+        )}
+        {sel && mode === 'block' && (
           <BlockForm
             {...sel}
             onSaved={async () => {
