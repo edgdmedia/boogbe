@@ -84,6 +84,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M4-07 | Calendar-sync UI, conflicts page, calendar markers | ui | T-M4-01 (stub); merge after T-M4-05/06 |  | todo |  | suggested: opencode |
 | T-M4-08 | Production go-live for Tanuhomes | infra | all above |  | todo |  | claude + owner; blocked until owner allows VPS work |
 | T-M7-01 | Revenue recognition, allocation, statement maths | domain | M3 (T-M3-01) | claude | in_progress | | From dev; pure domain, not stacked |
+| T-M5-01 | Template renderer, safe Markdown, wa.me links, defaults, message contracts | domain | M3 (T-M3-01) | claude | in_progress | | From dev; pure domain, not stacked |
 
 ## Parallelism map (by milestone)
 
