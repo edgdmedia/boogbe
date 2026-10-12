@@ -65,7 +65,8 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M2-06 | Audit viewer API | api | T-M2-02 | claude | review | [#35](https://github.com/edgdmedia/boogbe/pull/35) | Includes booking_no_overlap ↔ ACTIVE_STATUSES guard |
 | T-M2-07 | Guests pages and guest picker | ui | T-M2-01 (stub); merge after T-M2-03 | opencode | done | [#34](https://github.com/edgdmedia/boogbe/pull/34) | Approved by claude; merged with the silent duplicate-check fix (app 24/24) |
 | T-M2-08 | Booking form, booking detail, bookings list | ui | T-M1-01 (stub); merge after T-M2-05 | opencode | review | [#37](https://github.com/edgdmedia/boogbe/pull/37) | rebased onto dev (booking commit only); app 33/33, int 115/115; awaiting 'Approved T-M2-08' |
-| T-M2-10 | Guests list paging: 'Load more' via cursor (currently only the first 30) | ui | T-M2-07 | opencode | in_progress | | Owner follow-up after #34; claude reviews |
+| T-M2-10 | Guests list paging: 'Load more' via cursor (currently only the first 30) | ui | T-M2-07 | opencode | review | [#45](https://github.com/edgdmedia/boogbe/pull/45) | Owner follow-up after #34; claude reviews |
+| T-M2-11 | Booking edit dialog: move to another unit + require reason client-side when total changes | ui | T-M2-08 | opencode | in_progress | | Owner follow-up after #37; claude reviews |
 | T-M2-09 | Notifications bell, audit page, E2E-02 and E2E-03 | ui, e2e | T-M2-05, T-M2-06, T-M2-08 | | todo | | suggested: opencode |
 | T-M3-01 | Ledger maths and payment contracts | domain | M2 | claude | done | [#36](https://github.com/edgdmedia/boogbe/pull/36) | On merge: T-M3-06 can build against the contracts |
 | T-M3-02 | Schema 0005: payment table, booking_money view, append-only grants | schema | T-M3-01 | claude | review | [#38](https://github.com/edgdmedia/boogbe/pull/38) | Rebased on dev after #36 merged |
