@@ -11,6 +11,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { BookingHoldsJob } from './modules/bookings/booking-holds.job';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 /** Cron jobs only. Later milestones add their *.jobs.ts providers here. */
 @Module({
@@ -26,6 +27,7 @@ import { BookingHoldsJob } from './modules/bookings/booking-holds.job';
     InventoryModule,
     NotificationsModule,
     BookingsModule,
+    PaymentsModule,
   ],
   // Crons live only here (D-019): the API process never runs jobs.
   providers: [BookingHoldsJob],

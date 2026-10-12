@@ -31,6 +31,11 @@ export class BookingSourceImpl implements CalendarSource, OnModuleInit {
       },
       include: { guest: { select: { fullName: true } } },
     });
+    const money = rows.length
+      ? await tx.$queryRaw<{ booking_id: string; balance_kobo: bigint }[]>`
+          SELECT booking_id, balance_kobo FROM booking_money WHERE booking_id = ANY(${rows.map((r) => r.id)})`
+      : [];
+    const bal = new Map(money.map((m) => [m.booking_id, Number(m.balance_kobo)]));
     return rows.map((b) => ({
       kind: 'booking',
       id: b.id,
@@ -40,7 +45,7 @@ export class BookingSourceImpl implements CalendarSource, OnModuleInit {
       status: b.status as never,
       ref: b.ref,
       guestName: b.guest.fullName,
-      balanceKobo: null,
+      balanceKobo: bal.get(b.id) ?? null,
       hasConflict: false,
     }));
   }
