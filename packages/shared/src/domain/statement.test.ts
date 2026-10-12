@@ -4,7 +4,7 @@ import { effectiveFeeConfig } from './fees';
 import { sumKobo } from './money';
 import { ownerOn, type OwnershipPeriod } from './ownership';
 import { inMonth, recognise, type RevenueEntry } from './revenue';
-import { computeStatement, feeLabel, ownedDuring, type StatementInput } from './statement';
+import { computeStatement, feeLabel, fixedFeeShares, ownedDuring, type StatementInput } from './statement';
 
 const gross20: FeeConfig = { feeType: 'pct_gross', feeBps: 2000, feeFixedMonthlyKobo: 0 };
 const rev = (unitId: string, date: string, amountKobo: number, ref = 'R'): RevenueEntry => ({ unitId, date, amountKobo, bookingId: ref, ref, source: 'stay' });
@@ -140,16 +140,34 @@ describe('ownership changing mid-month [OWN-07]', () => {
     expect(computeStatement(input).expensesKobo).toBe(0);
     expect(computeStatement({ ...input, ownerId: 'o0' }).expensesKobo).toBe(5_000_000);
   });
-  it('both owners pay the full fixed fee for the month of the handover', () => {
+  it('fixed fee is prorated by days owned and the two parts sum to the full fee [D-024]', () => {
     const fee: FeeConfig = { feeType: 'pct_gross', feeBps: 2000, feeFixedMonthlyKobo: 1_000_000 };
     const input = base({ ownership: { u1: handover }, units: [{ unitId: 'u1', unitName: 'Kairo', propertyName: 'Rock', fee }] });
-    expect(computeStatement(input).fixedFeeKobo).toBe(1_000_000);
-    expect(computeStatement({ ...input, ownerId: 'o0' }).fixedFeeKobo).toBe(1_000_000);
+    const buyer = computeStatement(input).fixedFeeKobo;
+    const seller = computeStatement({ ...input, ownerId: 'o0' }).fixedFeeKobo;
+    expect([seller, buyer]).toEqual([322_581, 677_419]); // 10 and 21 of 31 days; the spare kobo goes to the larger fraction
+    expect(seller + buyer).toBe(1_000_000);
   });
   it('an owner who sold before the month starts gets no line for the unit', () => {
     const s = computeStatement(base({ ownerId: 'o0', ownership: { u1: [{ ownerId: 'o0', from: '2026-01-01', to: '2026-10-01' }, { ownerId: 'o1', from: '2026-10-01', to: null }] } }));
     expect(s.units).toEqual([]);
     expect(s).toMatchObject({ grossKobo: 0, fixedFeeKobo: 0, netPayoutKobo: 0 });
+  });
+  it('a sale on the 1st leaves the buyer the full fixed fee [D-024]', () => {
+    const fee: FeeConfig = { feeType: 'none', feeBps: 0, feeFixedMonthlyKobo: 1_000_000 };
+    const s = computeStatement(base({
+      units: [{ unitId: 'u1', unitName: 'Kairo', propertyName: 'Rock', fee }],
+      ownership: { u1: [{ ownerId: 'o0', from: '2026-01-01', to: '2026-10-01' }, { ownerId: 'o1', from: '2026-10-01', to: null }] },
+    }));
+    expect(s.fixedFeeKobo).toBe(1_000_000);
+  });
+  it('days the operator owned the unit are not charged to the owner [D-024]', () => {
+    const fee: FeeConfig = { feeType: 'none', feeBps: 0, feeFixedMonthlyKobo: 3_100_000 };
+    const s = computeStatement(base({
+      units: [{ unitId: 'u1', unitName: 'Kairo', propertyName: 'Rock', fee }],
+      ownership: { u1: [{ ownerId: null, from: '2026-01-01', to: '2026-10-21' }, { ownerId: 'o1', from: '2026-10-21', to: null }] },
+    }));
+    expect(s.fixedFeeKobo).toBe(1_100_000); // 11 of 31 days
   });
   it('an owner who buys on the last day of the month gets that night only', () => {
     const fee: FeeConfig = { feeType: 'pct_gross', feeBps: 2000, feeFixedMonthlyKobo: 1_000_000 };
@@ -158,7 +176,7 @@ describe('ownership changing mid-month [OWN-07]', () => {
       ownership: { u1: [{ ownerId: 'o0', from: '2026-01-01', to: '2026-10-31' }, { ownerId: 'o1', from: '2026-10-31', to: null }] },
       revenue: [rev('u1', '2026-10-30', 100), rev('u1', '2026-10-31', 200)], expenses: [],
     }));
-    expect(s).toMatchObject({ grossKobo: 200, feeKobo: 40, fixedFeeKobo: 1_000_000 });
+    expect(s).toMatchObject({ grossKobo: 200, feeKobo: 40, fixedFeeKobo: 32_258 });
   });
   it('nights while the operator owned the unit go to no owner', () => {
     const input = base({ ownership: { u1: [{ ownerId: null, from: '2026-01-01', to: '2026-10-11' }, { ownerId: 'o1', from: '2026-10-11', to: null }] } });
@@ -196,6 +214,44 @@ describe('reconciliation: Σ owner gross + operator-owned gross = total recognis
     const operatorGross = sumKobo(inPeriod.filter((r) => ownerOn(ownership[r.unitId]!, r.date).ownerId === null).map((r) => r.amountKobo));
     expect(operatorGross).toBeGreaterThan(0);
     expect(ownerGross + operatorGross).toBe(sumKobo(inPeriod.map((r) => r.amountKobo)));
+  });
+});
+
+describe('fixedFeeShares [D-024]', () => {
+  it('splits by days owned, operator days included, and sums to the full fee', () => {
+    expect(fixedFeeShares(1_000_000, [{ ownerId: 'o0', from: '2026-01-01', to: '2026-10-11' }, { ownerId: null, from: '2026-10-11', to: '2026-10-21' }, { ownerId: 'o1', from: '2026-10-21', to: null }], '2026-10-01')).toEqual([
+      { ownerId: 'o0', days: 10, amountKobo: 322_581 }, { ownerId: null, days: 10, amountKobo: 322_580 }, { ownerId: 'o1', days: 11, amountKobo: 354_839 },
+    ]);
+  });
+  it('days with no ownership period count as the operator’s', () => {
+    expect(fixedFeeShares(300, [{ ownerId: 'o1', from: '2026-11-11', to: null }], '2026-11-01')).toEqual([
+      { ownerId: null, days: 10, amountKobo: 100 }, { ownerId: 'o1', days: 20, amountKobo: 200 },
+    ]);
+  });
+  it('adds up separate stretches for the same owner', () => {
+    const shares = fixedFeeShares(1_000_000, [{ ownerId: 'o1', from: '2026-01-01', to: '2026-10-11' }, { ownerId: 'o2', from: '2026-10-11', to: '2026-10-21' }, { ownerId: 'o1', from: '2026-10-21', to: null }], '2026-10-01');
+    expect(shares.map((x) => [x.ownerId, x.days])).toEqual([['o1', 21], ['o2', 10]]);
+    expect(shares.reduce((t, x) => t + x.amountKobo, 0)).toBe(1_000_000);
+  });
+  it('gives spare kobo to the largest fractions, earliest owner first on a tie', () => {
+    const p = [{ ownerId: 'a', from: '2026-11-01', to: '2026-11-11' }, { ownerId: 'b', from: '2026-11-11', to: '2026-11-21' }, { ownerId: 'c', from: '2026-11-21', to: null }];
+    expect(fixedFeeShares(100, p, '2026-11-01').map((x) => x.amountKobo)).toEqual([34, 33, 33]);
+    expect(fixedFeeShares(101, p, '2026-11-01').map((x) => x.amountKobo)).toEqual([34, 34, 33]);
+  });
+  it('uses the length of the month, including February', () => {
+    expect(fixedFeeShares(1_000_000, [{ ownerId: 'o1', from: '2027-02-15', to: null }], '2027-02-01').find((x) => x.ownerId === 'o1')).toEqual({ ownerId: 'o1', days: 14, amountKobo: 500_000 });
+    expect(fixedFeeShares(2_900_000, [{ ownerId: 'o1', from: '2028-02-01', to: null }], '2028-02-01')).toEqual([{ ownerId: 'o1', days: 29, amountKobo: 2_900_000 }]);
+  });
+  it('no fixed fee means nothing to share', () => {
+    expect(fixedFeeShares(0, [{ ownerId: 'o1', from: '2026-01-01', to: null }], '2026-10-01')).toEqual([{ ownerId: 'o1', days: 31, amountKobo: 0 }]);
+  });
+  it('always sums to the fee (sweep)', () => {
+    for (const fee of [1, 7, 99_999, 1_000_000, 12_345_679]) {
+      for (let d = 2; d <= 31; d++) {
+        const p = [{ ownerId: 'x', from: '2026-01-01', to: `2026-10-${String(d).padStart(2, '0')}` }, { ownerId: null, from: `2026-10-${String(d).padStart(2, '0')}`, to: null }];
+        expect(fixedFeeShares(fee, p, '2026-10-01').reduce((t, x) => t + x.amountKobo, 0)).toBe(fee);
+      }
+    }
   });
 });
 

@@ -1,6 +1,6 @@
 import type { FeeConfig } from '../contracts/inventory';
-import { addDays, type IsoDate } from './dates';
-import { formatNaira, pctOfBps, sumKobo } from './money';
+import { addDays, eachNight, type IsoDate } from './dates';
+import { assertKobo, formatNaira, pctOfBps, sumKobo } from './money';
 import { ownerOn, type OwnershipPeriod } from './ownership';
 import { inMonth, type RevenueEntry } from './revenue';
 
@@ -35,12 +35,35 @@ export const feeLabel = (f: FeeConfig) => {
   return f.feeFixedMonthlyKobo ? `${base} + ${formatNaira(f.feeFixedMonthlyKobo)}/month` : base;
 };
 
-/** Fee is rounded per unit; a loss-making unit pays no percentage fee, but the fixed fee still applies for any month owned (OWN-04). */
+/**
+ * D-024: the fixed monthly fee is split by days owned in the month (operator-owned days included, never charged to an owner).
+ * Largest-remainder rounding, earliest owner first on a tie, so the parts always sum to the full fee.
+ */
+export function fixedFeeShares(feeKobo: number, periods: OwnershipPeriod[], period: IsoDate): { ownerId: string | null; days: number; amountKobo: number }[] {
+  assertKobo(feeKobo);
+  const days = eachNight(period, nextMonth(period));
+  const counts = new Map<string | null, number>();
+  for (const d of days) {
+    const owner = ownerOn(periods, d).ownerId;
+    counts.set(owner, (counts.get(owner) ?? 0) + 1);
+  }
+  const shares = [...counts].map(([ownerId, n]) => ({ ownerId, days: n, amountKobo: Math.floor((feeKobo * n) / days.length), rem: (feeKobo * n) % days.length }));
+  let spare = feeKobo - shares.reduce((t, x) => t + x.amountKobo, 0);
+  for (const s of [...shares].sort((a, b) => b.rem - a.rem)) {
+    if (spare-- <= 0) break;
+    s.amountKobo += 1;
+  }
+  return shares.map(({ ownerId, days: n, amountKobo }) => ({ ownerId, days: n, amountKobo }));
+}
+
+/** Fee is rounded per unit; a loss-making unit pays no percentage fee, the fixed fee is prorated by days owned (D-024). */
 function unitFee(fee: FeeConfig, grossKobo: number, expensesKobo: number): number {
   if (fee.feeType === 'pct_gross') return pctOfBps(Math.max(0, grossKobo), fee.feeBps);
   if (fee.feeType === 'pct_net') return pctOfBps(Math.max(0, grossKobo - expensesKobo), fee.feeBps);
   return 0;
 }
+
+const ownerShare = (shares: ReturnType<typeof fixedFeeShares>, ownerId: string) => shares.find((x) => x.ownerId === ownerId)?.amountKobo ?? 0;
 
 export function computeStatement(i: StatementInput): StatementFigures {
   assertPeriod(i.period);
@@ -56,7 +79,7 @@ export function computeStatement(i: StatementInput): StatementFigures {
     const expensesKobo = sumKobo(ex.map((e) => e.amountKobo));
     units.push({
       unitId: u.unitId, unitName: u.unitName, propertyName: u.propertyName, feeLabel: feeLabel(u.fee),
-      grossKobo, expensesKobo, feeKobo: unitFee(u.fee, grossKobo, expensesKobo), fixedFeeKobo: u.fee.feeFixedMonthlyKobo, lines,
+      grossKobo, expensesKobo, feeKobo: unitFee(u.fee, grossKobo, expensesKobo), fixedFeeKobo: ownerShare(fixedFeeShares(u.fee.feeFixedMonthlyKobo, i.ownership[u.unitId] ?? [], i.period), i.ownerId), lines,
     });
     for (const e of ex) expenses.push({ date: e.date, unitName: u.unitName, category: e.category, description: e.description, amountKobo: e.amountKobo });
   }

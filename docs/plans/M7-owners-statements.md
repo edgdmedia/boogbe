@@ -18,7 +18,7 @@
 - `per_night` lines are split evenly across the stay's nights; the remainder kobo (positive or negative) goes to the **first** night. `on_check_in` lines land on the check-in night.
 - Cancelled bookings: `retained = paid − refunded` is recognised on the cancellation date (operator tz). Withheld deposits are recognised on their `received_on` date as damage recovery.
 - Each revenue night/expense date is attributed to the owner **effective on that date** (`ownerOn`).
-- Fee: computed per unit, rounded half-up per unit; `pct_gross` = bps × unit gross; `pct_net` = bps × max(0, unit gross − unit expenses); fixed monthly fee charged once per unit for any month in which the owner owned the unit at least one day. Fee config used is the unit's **current** effective config (historic fee changes are out of scope for v1 — documented).
+- Fee: computed per unit, rounded half-up per unit; `pct_gross` = bps × unit gross; `pct_net` = bps × max(0, unit gross − unit expenses); fixed monthly fee prorated by days owned in the month, parts summing to the full fee (D-024). Fee config used is the unit's **current** effective config (historic fee changes are out of scope for v1 — documented).
 - Opening balance: the previous finalised statement's `net_payout_kobo` if negative, else 0.
 - Statement number: `<statementPrefix>-S-<YYYY>-<MM>-<seq 3>`; seq from `org_counter('statement')`.
 - Months locked: once any statement for month M is finalised, expenses dated in M for units in that statement cannot be edited or deleted (422) — corrections are entered in a later month.
