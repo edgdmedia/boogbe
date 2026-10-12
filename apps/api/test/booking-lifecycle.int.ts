@@ -67,6 +67,21 @@ describe('booking lifecycle [BKG-07 BKG-08 BKG-10 BKG-11]', () => {
     ]);
   });
 
+  it('changing the total on edit needs a reason [BKG-05]', async () => {
+    const b = await create();
+    const r = await fd.patch(`/v1/bookings/${b.id}`).send({ finalTotalKobo: 15_000_000 }).expect(400);
+    expect(r.body.error.code).toBe('VALIDATION_FAILED');
+    expect(JSON.stringify(r.body.error.details)).toContain('overrideReason');
+    expect((await fd.get(`/v1/bookings/${b.id}`).expect(200)).body.finalTotalKobo).toBe(20_000_000);
+    const ok = (
+      await fd
+        .patch(`/v1/bookings/${b.id}`)
+        .send({ finalTotalKobo: 15_000_000, overrideReason: 'Repeat guest' })
+        .expect(200)
+    ).body;
+    expect(ok).toMatchObject({ finalTotalKobo: 15_000_000, overrideReason: 'Repeat guest' });
+  });
+
   it('extending a stay ignores itself; moving keeps price and flags stale', async () => {
     const b = await create();
     const ext = (await fd.patch(`/v1/bookings/${b.id}`).send({ checkOut: '2026-11-05' }).expect(200)).body;
