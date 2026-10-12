@@ -19,12 +19,16 @@ export const Task = z.object({
   photos: z.array(z.object({ fileId: z.string() })), completedAt: z.string().nullable(), createdAt: z.string(),
 });
 export type Task = z.infer<typeof Task>;
+const Id = z.string().min(1);
+// Offsets are allowed (e.g. +01:00); the API stores the instant in UTC.
+const DateTime = z.string().datetime({ offset: true });
 const PhotoIds = z.array(z.string()).max(5, 'Up to 5 photos').refine((ids) => new Set(ids).size === ids.length, 'The same photo is attached twice');
-export const CreateTaskInput = z.object({ type: TaskType, unitId: z.string(), title: z.string().trim().min(2).max(120), notes: z.string().max(2000).nullable().optional(), dueAt: z.string().datetime(), assigneeMemberId: z.string().nullable(), priority: TaskPriority.default('normal') });
+export const CreateTaskInput = z.object({ type: TaskType, unitId: Id, title: z.string().trim().min(2).max(120), notes: z.string().max(2000).nullable().optional(), dueAt: DateTime, assigneeMemberId: Id.nullable(), priority: TaskPriority.default('normal') });
 export type CreateTaskInput = z.infer<typeof CreateTaskInput>;
-export const UpdateTaskInput = z.object({ title: z.string().trim().min(2).max(120).optional(), notes: z.string().max(2000).nullable().optional(), dueAt: z.string().datetime().optional(), assigneeMemberId: z.string().nullable().optional(), priority: TaskPriority.optional(), status: z.enum(['todo', 'cancelled']).optional() }).strict();
+export const UpdateTaskInput = z.object({ title: z.string().trim().min(2).max(120).optional(), notes: z.string().max(2000).nullable().optional(), dueAt: DateTime.optional(), assigneeMemberId: Id.nullable().optional(), priority: TaskPriority.optional(), status: z.enum(['todo', 'cancelled']).optional() }).strict();
 export type UpdateTaskInput = z.infer<typeof UpdateTaskInput>;
-export const TaskListQuery = z.object({ status: TaskStatus.optional(), assigneeMemberId: z.string().optional(), unitId: z.string().optional(), from: IsoDateSchema.optional(), to: IsoDateSchema.optional() });
+export const TaskListQuery = z.object({ status: TaskStatus.optional(), assigneeMemberId: z.string().optional(), unitId: z.string().optional(), from: IsoDateSchema.optional(), to: IsoDateSchema.optional() })
+  .refine((q) => !q.from || !q.to || q.from <= q.to, { path: ['to'], message: 'End date is before the start date' });
 export type TaskListQuery = z.infer<typeof TaskListQuery>;
 export const MyTasksQuery = z.object({ scope: z.enum(['today', 'upcoming']).default('today') });
 export type MyTasksQuery = z.infer<typeof MyTasksQuery>;

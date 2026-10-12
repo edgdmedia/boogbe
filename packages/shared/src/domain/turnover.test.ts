@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CompleteTaskInput, CreateTaskInput, ReportIssueInput, UpdateTaskInput } from '../contracts/tasks';
+import { CompleteTaskInput, CreateTaskInput, ReportIssueInput, TaskListQuery, UpdateTaskInput } from '../contracts/tasks';
 import { turnoverDue } from './turnover';
 
 const lagos = { checkInTime: '14:00', timeZone: 'Africa/Lagos' };
@@ -51,6 +51,24 @@ describe('task contracts [HSK-01]', () => {
     const t = { type: 'cleaning', unitId: 'u', title: 'Deep clean', dueAt: '2026-11-04T13:00:00Z', assigneeMemberId: null };
     expect(CreateTaskInput.parse(t).priority).toBe('normal');
     expect(CreateTaskInput.safeParse({ ...t, dueAt: '2026-11-04' }).success).toBe(false);
+  });
+  it('refuses empty unit and assignee ids', () => {
+    const t = { type: 'cleaning', unitId: 'u', title: 'Deep clean', dueAt: '2026-11-04T13:00:00Z', assigneeMemberId: null };
+    expect(CreateTaskInput.safeParse({ ...t, unitId: '' }).success).toBe(false);
+    expect(CreateTaskInput.safeParse({ ...t, assigneeMemberId: '' }).success).toBe(false);
+    expect(UpdateTaskInput.safeParse({ assigneeMemberId: '' }).success).toBe(false);
+    expect(UpdateTaskInput.safeParse({ assigneeMemberId: null }).success).toBe(true);
+  });
+  it('accepts a due time with a UTC offset', () => {
+    const t = { type: 'cleaning', unitId: 'u', title: 'Deep clean', dueAt: '2026-11-04T14:00:00+01:00', assigneeMemberId: null };
+    expect(CreateTaskInput.safeParse(t).success).toBe(true);
+    expect(UpdateTaskInput.safeParse({ dueAt: '2026-11-04T14:00:00+01:00' }).success).toBe(true);
+  });
+  it('task list refuses a range that ends before it starts', () => {
+    expect(TaskListQuery.safeParse({ from: '2026-11-01', to: '2026-11-30' }).success).toBe(true);
+    expect(TaskListQuery.safeParse({ from: '2026-11-01' }).success).toBe(true);
+    const r = TaskListQuery.safeParse({ from: '2026-11-30', to: '2026-11-01' });
+    expect(r.error?.issues.map((i) => [i.path.join('.'), i.message])).toEqual([['to', 'End date is before the start date']]);
   });
   it('staff can only reopen or cancel through an update', () => {
     expect(UpdateTaskInput.safeParse({ status: 'cancelled' }).success).toBe(true);
