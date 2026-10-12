@@ -69,7 +69,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M3-01 | Ledger maths and payment contracts | domain | M2 | claude | review | [#36](https://github.com/edgdmedia/boogbe/pull/36) | On merge: T-M3-06 can build against the contracts |
 | T-M3-02 | Schema 0005: payment table, booking_money view, append-only grants | schema | T-M3-01 | claude | review | [#38](https://github.com/edgdmedia/boogbe/pull/38) | Stacked on #36 |
 | T-M3-03 | Payments API, booking decoration, auto-confirm, balance filter, calendar balances | api | T-M3-02 | claude | review | [#39](https://github.com/edgdmedia/boogbe/pull/39) | Stacked on #38 |
-| T-M3-04 | Cancel with refund; receipt PDF | api | T-M3-03 | claude | in_progress |  | Stacked on #39 (4th, max) |
+| T-M3-04 | Cancel with refund; receipt PDF | api | T-M3-03 | claude | review | [#40](https://github.com/edgdmedia/boogbe/pull/40) | Stacked on #39 (4th — T-M3-05 waits for merges) |
 | T-M3-05 | Money summary API | api | T-M3-03 | | todo | | suggested: claude |
 | T-M3-06 | Payments panel and refund-on-cancel UI | ui | T-M3-01 (stub); merge after T-M3-04 | | todo | | suggested: opencode |
 | T-M3-07 | Money dashboard UI + E2E-04 | ui, e2e | T-M3-05, T-M3-06 | | todo | | suggested: opencode |
