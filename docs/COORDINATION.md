@@ -74,6 +74,14 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M3-05 | Money summary API | api | T-M3-03 | | todo | | suggested: claude |
 | T-M3-06 | Payments panel and refund-on-cancel UI | ui | T-M3-01 (stub); merge after T-M3-04 | | todo | | suggested: opencode |
 | T-M3-07 | Money dashboard UI + E2E-04 | ui, e2e | T-M3-05, T-M3-06 | | todo | | suggested: opencode |
+| T-M4-01 | iCal contracts | domain | M2 | claude | in_progress |  | Independent of M3 (owner: start while M3 is in review) |
+| T-M4-02 | Schema: feeds, exports, conflicts, token lookup function | schema | T-M4-01 |  | todo |  | suggested: claude |
+| T-M4-03 | SSRF-safe fetcher, node-ical parser and fixtures | api | T-M4-01 |  | todo |  | suggested: claude (next after T-M4-01) |
+| T-M4-04 | Feeds API, sync service, import job, health alerts, AlertMailer | api | T-M4-02, T-M4-03 |  | todo |  | suggested: claude |
+| T-M4-05 | Conflicts: detection, resolution, calendar flag | api | T-M4-04; M3 (cancelWithRefund) |  | todo |  | suggested: claude |
+| T-M4-06 | Export links and public .ics | api | T-M4-02 |  | todo |  | suggested: claude |
+| T-M4-07 | Calendar-sync UI, conflicts page, calendar markers | ui | T-M4-01 (stub); merge after T-M4-05/06 |  | todo |  | suggested: opencode |
+| T-M4-08 | Production go-live for Tanuhomes | infra | all above |  | todo |  | claude + owner; blocked until owner allows VPS work |
 
 ## Parallelism map (by milestone)
 
