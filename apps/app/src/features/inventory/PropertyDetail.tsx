@@ -8,6 +8,7 @@ import { useMe } from '../../lib/use-me';
 import { useProperty, useUnits } from './hooks';
 import { feeSummary } from './money-input';
 import { PropertyForm } from './PropertyForm';
+import { PropertyOwnerForm } from './PropertyOwnerDialog';
 import { UnitFees } from './UnitFees';
 import { UnitForm } from './UnitForm';
 import { UnitOwnerForm } from './UnitOwnerDialog';
@@ -20,7 +21,7 @@ export function PropertyDetail() {
   const { data: p, mutate: mutateP } = useProperty(id);
   const { data: units, mutate: mutateU } = useUnits(id);
   const [dialog, setDialog] = useState<
-    null | { kind: 'edit' } | { kind: 'unit'; unit?: Unit } | { kind: 'owner'; unit: Unit } | { kind: 'fees'; unit: Unit }
+    null | { kind: 'edit' } | { kind: 'unit'; unit?: Unit } | { kind: 'owner'; unit: Unit } | { kind: 'fees'; unit: Unit } | { kind: 'propowner' }
   >(null);
   const role = me?.activeOrg?.role;
   const canWrite = !!role && can(role, 'inventory.write');
@@ -34,6 +35,7 @@ export function PropertyDetail() {
           <h1 className="text-xl font-semibold">{p.name}</h1>
           <p className="text-sm text-ink-muted">{p.address}</p>
           <p className="mt-1 text-sm">{feeSummary(p, formatNaira)}</p>
+          <p className="mt-1 text-sm">Default owner: <span className="font-medium">{p.defaultOwnerName ?? 'Operator'}</span></p>
         </div>
         {canWrite && (
           <div className="flex gap-2">
@@ -41,6 +43,11 @@ export function PropertyDetail() {
               Edit
             </Button>
             <Button onClick={() => setDialog({ kind: 'unit' })}>Add unit</Button>
+            {canOwners && (
+              <Button variant="secondary" onClick={() => setDialog({ kind: 'propowner' })}>
+                Default owner
+              </Button>
+            )}
           </div>
         )}
       </Card>
@@ -115,6 +122,19 @@ export function PropertyDetail() {
             unit={dialog.unit}
             onSaved={async () => {
               close();
+              await mutateU();
+            }}
+          />
+        )}
+      </Dialog>
+      <Dialog open={dialog?.kind === 'propowner'} onClose={close} title="Property default owner">
+        {dialog?.kind === 'propowner' && (
+          <PropertyOwnerForm
+            propertyId={p.id}
+            currentName={p.defaultOwnerName}
+            onSaved={async () => {
+              close();
+              await mutateP();
               await mutateU();
             }}
           />
