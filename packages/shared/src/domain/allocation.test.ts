@@ -21,6 +21,11 @@ describe('allocate [OWN-02]', () => {
     expect(() => allocate(1000, units, 'custom', { a: 6000, b: 5000, c: -1000 })).toThrow('Shares must be whole basis points from 0 to 10000');
     expect(() => allocate(1000, units, 'custom', { a: 5000.5, b: 2999.5, c: 2000 })).toThrow('Shares must be whole basis points from 0 to 10000');
   });
+  it('never gives leftover kobo to a unit with a 0% share', () => {
+    expect(allocate(100, units, 'custom', { a: 0, b: 3333, c: 6667 })).toEqual([
+      { unitId: 'a', shareBps: 0, amountKobo: 0 }, { unitId: 'b', shareBps: 3333, amountKobo: 34 }, { unitId: 'c', shareBps: 6667, amountKobo: 66 },
+    ]);
+  });
   it('needs at least one unit', () => {
     expect(() => allocate(1000, [], 'equal')).toThrow('Choose at least one unit');
   });

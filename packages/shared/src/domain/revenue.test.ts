@@ -56,6 +56,14 @@ describe('recognise [OWN-03]', () => {
   it('cancelled with nothing retained produces no entry', () => {
     expect(recognise([stay({ status: 'cancelled', cancelledOn: '2026-10-15', retainedKobo: 0 })], [])).toEqual([]);
   });
+  it('refuses a cancelled booking with money retained but no cancellation date', () => {
+    expect(() => recognise([stay({ status: 'cancelled', cancelledOn: null, retainedKobo: 500 })], [])).toThrow('Booking R1 is cancelled without a cancellation date');
+  });
+  it('refuses amounts that are not whole kobo', () => {
+    expect(() => recognise([stay({ lines: [{ kind: 'accommodation', amountKobo: 100.5, recognition: 'per_night' }] })], [])).toThrow('kobo must be a safe integer');
+    expect(() => recognise([stay({ status: 'cancelled', cancelledOn: '2026-10-15', retainedKobo: 0.5 })], [])).toThrow('kobo must be a safe integer');
+    expect(() => recognise([], [{ bookingId: 'b', ref: 'R', unitId: 'u1', date: '2026-10-15', amountKobo: 1.5 }])).toThrow('kobo must be a safe integer');
+  });
   it('refuses a booking with no nights', () => {
     expect(() => recognise([stay({ checkOut: '2026-10-30' })], [])).toThrow('has no nights');
   });

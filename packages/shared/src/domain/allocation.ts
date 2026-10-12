@@ -2,7 +2,7 @@ import { assertKobo } from './money';
 
 export interface Allocation { unitId: string; shareBps: number; amountKobo: number }
 
-/** Splits a property-level expense across units (D-016). Remainder kobo goes to the first unit by sort order so the parts sum exactly. */
+/** Splits a property-level expense across units (D-016). Remainder kobo goes to the first unit by sort order with a share above 0 so the parts sum exactly. */
 export function allocate(amountKobo: number, units: { unitId: string; sortOrder: number }[], method: 'equal' | 'custom', customBps?: Record<string, number>): Allocation[] {
   assertKobo(amountKobo);
   if (!units.length) throw new Error('Choose at least one unit');
@@ -19,6 +19,7 @@ export function allocate(amountKobo: number, units: { unitId: string; sortOrder:
   const amounts = method === 'equal'
     ? sorted.map(() => Math.floor(amountKobo / sorted.length))
     : shares.map((bps) => Math.floor((amountKobo * bps) / 10_000));
-  amounts[0]! += amountKobo - amounts.reduce((s, x) => s + x, 0);
+  // Leftover goes to the first unit that has a share, so a 0% unit is never charged.
+  amounts[shares.findIndex((bps) => bps > 0)]! += amountKobo - amounts.reduce((s, x) => s + x, 0);
   return sorted.map((u, i) => ({ unitId: u.unitId, shareBps: shares[i]!, amountKobo: amounts[i]! }));
 }

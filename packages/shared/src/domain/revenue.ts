@@ -1,5 +1,6 @@
 import type { BookingStatus } from '../contracts/calendar';
 import { eachNight, type IsoDate } from './dates';
+import { assertKobo } from './money';
 import type { LineKind, Recognition } from './pricing';
 
 export interface RevenueLine { kind: LineKind; amountKobo: number; recognition: Recognition }
@@ -15,6 +16,8 @@ export function recognise(bookings: RevenueBooking[], withheld: WithheldDeposit[
   const out: RevenueEntry[] = [];
   for (const b of bookings) {
     if (b.status === 'cancelled') {
+      assertKobo(b.retainedKobo);
+      if (b.retainedKobo !== 0 && !b.cancelledOn) throw new Error(`Booking ${b.ref} is cancelled without a cancellation date`);
       if (b.cancelledOn && b.retainedKobo !== 0) out.push({ unitId: b.unitId, date: b.cancelledOn, amountKobo: b.retainedKobo, bookingId: b.id, ref: b.ref, source: 'cancellation' });
       continue;
     }
@@ -24,6 +27,7 @@ export function recognise(bookings: RevenueBooking[], withheld: WithheldDeposit[
     const perNight = new Array<number>(nights.length).fill(0);
     for (const l of b.lines) {
       if (l.kind === 'deposit') continue;
+      assertKobo(l.amountKobo);
       if (l.recognition === 'on_check_in') { perNight[0]! += l.amountKobo; continue; }
       const each = Math.trunc(l.amountKobo / nights.length);
       perNight[0]! += l.amountKobo - each * nights.length;
@@ -31,6 +35,7 @@ export function recognise(bookings: RevenueBooking[], withheld: WithheldDeposit[
     }
     nights.forEach((d, i) => { if (perNight[i] !== 0) out.push({ unitId: b.unitId, date: d, amountKobo: perNight[i]!, bookingId: b.id, ref: b.ref, source: 'stay' }); });
   }
+  for (const w of withheld) assertKobo(w.amountKobo);
   for (const w of withheld) out.push({ unitId: w.unitId, date: w.date, amountKobo: w.amountKobo, bookingId: w.bookingId, ref: w.ref, source: 'damage' });
   return out.sort((a, b) => a.date.localeCompare(b.date) || a.bookingId.localeCompare(b.bookingId));
 }
