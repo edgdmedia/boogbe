@@ -31,5 +31,6 @@ test('E2E-01 platform admin creates operator, invites admin, admin lands on cale
   await p2.getByLabel('Password').fill('correct-horse-battery');
   await p2.getByRole('button', { name: 'Accept invitation' }).click();
   await expect(p2).toHaveURL(/\/calendar$/);
-  await expect(p2.getByText('Welcome to Tanuhomes')).toBeVisible();
+  // M1: /calendar is the real grid now; a brand-new operator has no properties yet.
+  await expect(p2.getByText('No units yet')).toBeVisible();
 });

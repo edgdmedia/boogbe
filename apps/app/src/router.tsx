@@ -9,11 +9,11 @@ import { SignIn } from './routes/auth/SignIn';
 import { AcceptInvite } from './routes/auth/AcceptInvite';
 import { ForgotPassword } from './routes/auth/ForgotPassword';
 import { ResetPassword } from './routes/auth/ResetPassword';
-import { Home } from './routes/Home';
 import { PropertiesPage } from './features/inventory/PropertiesPage';
 import { PropertyDetail } from './features/inventory/PropertyDetail';
 import { OwnersPage } from './features/inventory/OwnersPage';
 import { NotFound } from './routes/NotFound';
+import { CalendarPage } from './features/calendar/CalendarPage';
 import { OperatorsList } from './routes/platform/OperatorsList';
 import { CreateOperator } from './routes/platform/CreateOperator';
 import { OperatorDetail } from './routes/platform/OperatorDetail';
@@ -52,7 +52,7 @@ export const router = createBrowserRouter([
           </main>
         ),
       },
-      { path: '/calendar', element: operator(<Home />) },
+      { path: '/calendar', element: operator(<CalendarPage />) },
       { path: '/settings', element: operator(<OrgProfile />) },
       { path: '/settings/team', element: operator(<Team />) },
       { path: '/settings/sessions', element: operator(<Sessions />) },
