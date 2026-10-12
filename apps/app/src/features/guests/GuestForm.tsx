@@ -5,6 +5,8 @@ import { Button, Field, Input } from '@boogbe/ui';
 import { PhoneInput } from '../../components/PhoneInput';
 import { api } from '../../lib/api';
 
+// Deliberately NOT a <form>: GuestPicker embeds this inside the booking <form>, and nested
+// forms trigger a native GET submission that reloads the page with the query stripped.
 export function GuestForm({
   initial,
   onSaved,
@@ -33,33 +35,30 @@ export function GuestForm({
       setMatch(null); // half-typed emails or API hiccups must never surface as an uncaught error
     }
   };
+  const save = async () => {
+    setErr({});
+    const parsed = GuestInput.safeParse({
+      fullName: v.fullName,
+      phoneE164: v.phoneE164 ?? '',
+      email: v.email || null,
+      notes: v.notes || null,
+    });
+    if (!parsed.success) return setErr(Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])));
+    setBusy(true);
+    try {
+      onSaved(
+        await api(initial ? `/v1/guests/${initial.id}` : '/v1/guests', {
+          method: initial ? 'PATCH' : 'POST',
+          body: parsed.data,
+          schema: Guest,
+        }),
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
-    <form
-      noValidate
-      className="flex flex-col gap-3"
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const parsed = GuestInput.safeParse({
-          fullName: v.fullName,
-          phoneE164: v.phoneE164 ?? '',
-          email: v.email || null,
-          notes: v.notes || null,
-        });
-        if (!parsed.success) return setErr(Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])));
-        setBusy(true);
-        try {
-          onSaved(
-            await api(initial ? `/v1/guests/${initial.id}` : '/v1/guests', {
-              method: initial ? 'PATCH' : 'POST',
-              body: parsed.data,
-              schema: Guest,
-            }),
-          );
-        } finally {
-          setBusy(false);
-        }
-      }}
-    >
+    <div className="flex flex-col gap-3">
       <Field label="Full name" error={err.fullName}>
         <Input value={v.fullName} onChange={(e) => setV({ ...v, fullName: e.target.value })} />
       </Field>
@@ -80,9 +79,9 @@ export function GuestForm({
       <Field label="Notes">
         <Input value={v.notes} onChange={(e) => setV({ ...v, notes: e.target.value })} />
       </Field>
-      <Button type="submit" loading={busy}>
+      <Button type="button" loading={busy} onClick={save}>
         {initial ? 'Save guest' : 'Add guest'}
       </Button>
-    </form>
+    </div>
   );
 }
