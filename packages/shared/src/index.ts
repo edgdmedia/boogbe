@@ -30,3 +30,6 @@ export * from './domain/allocation';
 export * from './domain/statement';
 export * from './domain/turnover';
 export * from './contracts/tasks';
+export * from './contracts/expenses';
+export * from './contracts/statements';
+export * from './contracts/portal';
