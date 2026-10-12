@@ -76,9 +76,9 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M3-06 | Payments panel and refund-on-cancel UI | ui | T-M3-01 (stub); merge after T-M3-04 | | todo | | suggested: opencode |
 | T-M3-07 | Money dashboard UI + E2E-04 | ui, e2e | T-M3-05, T-M3-06 | | todo | | suggested: opencode |
 | T-M4-01 | iCal contracts | domain | M2 | claude | review | [#42](https://github.com/edgdmedia/boogbe/pull/42) | From dev; independent of M3 |
-| T-M4-02 | Schema: feeds, exports, conflicts, token lookup function | schema | T-M4-01 | claude | in_progress |  | Stacked on #42 |
+| T-M4-02 | Schema: feeds, exports, conflicts, token lookup function | schema | T-M4-01 | claude | review | [#47](https://github.com/edgdmedia/boogbe/pull/47) | Stacked on #42 |
 | T-M4-03 | SSRF-safe fetcher, node-ical parser and fixtures | api | T-M4-01 | claude | review | [#43](https://github.com/edgdmedia/boogbe/pull/43) | From dev; independent of M3 and #42 |
-| T-M4-04 | Feeds API, sync service, import job, health alerts, AlertMailer | api | T-M4-02, T-M4-03 |  | todo |  | suggested: claude |
+| T-M4-04 | Feeds API, sync service, import job, health alerts, AlertMailer | api | T-M4-02, T-M4-03 | claude | in_progress |  | Stacked on #47 → #42, with #43 merged in |
 | T-M4-05 | Conflicts: detection, resolution, calendar flag | api | T-M4-04; M3 (cancelWithRefund) |  | todo |  | suggested: claude |
 | T-M4-06 | Export links and public .ics | api | T-M4-02 |  | todo |  | suggested: claude |
 | T-M4-07 | Calendar-sync UI, conflicts page, calendar markers | ui | T-M4-01 (stub); merge after T-M4-05/06 |  | todo |  | suggested: opencode |
