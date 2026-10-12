@@ -19,6 +19,7 @@
 - Cancelled bookings: `retained = paid − refunded` is recognised on the cancellation date (operator tz). Withheld deposits are recognised on their `received_on` date as damage recovery.
 - Each revenue night/expense date is attributed to the owner **effective on that date** (`ownerOn`).
 - Fee: computed per unit, rounded half-up per unit; `pct_gross` = bps × unit gross; `pct_net` = bps × max(0, unit gross − unit expenses); fixed monthly fee prorated by days owned in the month, parts summing to the full fee (D-024). Fee config used is the unit's **current** effective config (historic fee changes are out of scope for v1 — documented).
+- **Fixed-fee display (owner, 2026-10-12):** statements (figures, PDF, UI and portal) show the prorated fixed fee with the days owned, e.g. "Fixed fee, 10 of 31 days: ₦3,225.81", never "₦X/month". `computeStatement` must therefore carry the owner's days and the days in the month per unit (from `fixedFeeShares`), and `StatementFiguresSchema` must include them. Applies to T-M7-05, T-M7-06 (PDF) and T-M7-08/09 (UI). The sample code below still shows the old `feeLabel` text; follow this rule instead.
 - Opening balance: the previous finalised statement's `net_payout_kobo` if negative, else 0.
 - Statement number: `<statementPrefix>-S-<YYYY>-<MM>-<seq 3>`; seq from `org_counter('statement')`.
 - Months locked: once any statement for month M is finalised, expenses dated in M for units in that statement cannot be edited or deleted (422) — corrections are entered in a later month.
@@ -671,6 +672,8 @@ Controller: `GET /v1/expenses` (`expenses.read`, `ExpenseListQuery`), `POST` (`e
 
 ### Task 5 (T-M7-05) [api]: Statement generation and reconciliation
 
+> **Fixed-fee display:** show the prorated fixed fee with days owned ("Fixed fee, 10 of 31 days"), not "₦X/month". See Global Constraints (D-024).
+
 **Files:** Create `apps/api/src/modules/owners/{statement-inputs.ts,statements.service.ts,statements.controller.ts}`; Test `apps/api/test/statements.int.ts`, `apps/api/test/statement-reconciliation.int.ts`.
 
 **Interfaces:**
@@ -961,6 +964,8 @@ Controller (`@Controller('statements')`): `GET /` (`statements.read`), `POST gen
 ---
 
 ### Task 6 (T-M7-06) [api]: Finalise with PDF, mark paid, monthly job, month locks
+
+> **Fixed-fee display:** show the prorated fixed fee with days owned ("Fixed fee, 10 of 31 days"), not "₦X/month". See Global Constraints (D-024).
 
 **Files:** Create `apps/api/src/common/pdf/statement.ts`, `apps/api/src/modules/owners/{statements-monthly.job.ts,owners.crons.ts}`; modify `statements.service.ts`, `statements.controller.ts`; Test `apps/api/test/statements-lifecycle.int.ts`, `apps/api/src/common/pdf/statement.spec.ts`.
 
@@ -1315,6 +1320,8 @@ Controller `@Controller('portal')`: `GET summary` (`portal.read`, optional `mont
 
 ### Task 8 (T-M7-08) [ui]: Expenses and statements
 
+> **Fixed-fee display:** show the prorated fixed fee with days owned ("Fixed fee, 10 of 31 days"), not "₦X/month". See Global Constraints (D-024).
+
 **Files:** Create `apps/app/src/features/owners-money/{ExpensesPage.tsx,ExpenseForm.tsx,StatementsPage.tsx,StatementDetail.tsx,FiguresView.tsx,hooks.ts}`; router `/expenses` (nav "Expenses" `expenses.read`, icon `Receipt`), `/statements`, `/statements/:id` (nav "Statements" `statements.read`, icon `FileText`); Test `apps/app/src/features/owners-money/ExpenseForm.test.tsx`, `FiguresView.test.tsx`.
 
 **Interfaces:**
@@ -1580,6 +1587,8 @@ export function StatementDetail() {
 ---
 
 ### Task 9 (T-M7-09) [ui][e2e]: Owner portal and E2E-06
+
+> **Fixed-fee display:** show the prorated fixed fee with days owned ("Fixed fee, 10 of 31 days"), not "₦X/month". See Global Constraints (D-024).
 
 **Files:** Create `apps/app/src/features/portal/{OwnerPortal.tsx,PortalStatement.tsx}`; router replaces `/owner` placeholder with lazy `OwnerPortal` (`/owner`, `/owner/statements/:id`); Create `e2e/e06-owner-statement.spec.ts`; Test `apps/app/src/features/portal/OwnerPortal.test.tsx`.
 
