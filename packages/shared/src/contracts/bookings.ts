@@ -91,7 +91,15 @@ export const TransitionInput = z.object({
   reason: z.string().max(300).optional(),
 });
 export type TransitionInput = z.infer<typeof TransitionInput>;
-export const CancelBookingInput = z.object({ reason: z.string().trim().min(3).max(300) });
+// The refund (BKG-11) is recorded as a ledger entry in the same transaction as the cancellation.
+export const CancelBookingInput = z
+  .object({
+    reason: z.string().trim().min(3).max(300),
+    refundKobo: Kobo.optional(),
+    refundMethod: z.enum(['bank_transfer', 'cash', 'pos', 'card', 'paystack', 'other']).optional(),
+    refundReference: z.string().max(120).optional(),
+  })
+  .refine((c) => !c.refundKobo || !!c.refundMethod, { path: ['refundMethod'], message: 'How was the refund paid?' });
 export type CancelBookingInput = z.infer<typeof CancelBookingInput>;
 
 export const Booking = z.object({
