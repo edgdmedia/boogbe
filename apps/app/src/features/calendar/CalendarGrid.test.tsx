@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { CalendarResponse } from '@boogbe/shared';
 import { CalendarGrid } from './CalendarGrid';
+import { layoutBars } from './layout';
 
 const data: CalendarResponse = {
   from: '2026-11-01',
@@ -33,5 +34,17 @@ describe('CalendarGrid', () => {
     fireEvent.mouseEnter(screen.getByTestId('cell-u1-2026-11-08'));
     fireEvent.mouseUp(screen.getByTestId('cell-u1-2026-11-08'));
     expect(onEmptySelect).toHaveBeenCalledWith('u1', '2026-11-06', '2026-11-09');
+  });
+});
+
+describe('narrow (mobile) window', () => {
+  it('includes a stay departing today when the window starts the day before', () => {
+    // CalendarPage fetches [day-1, day+2) in narrow mode; the checkout-today item must survive
+    // the API overlap filter (start < to && end > from), which layoutBars mirrors.
+    const departing = { kind: 'block' as const, id: 'st', unitId: 'u1', start: '2026-10-30', end: '2026-11-01', source: 'manual' as const, reason: 'maintenance', label: 'Stay' };
+    const bars = layoutBars([departing], '2026-10-31', 3);
+    expect(bars).toHaveLength(1);
+    expect(bars[0]!.col).toBe(0);
+    expect(bars[0]!.span).toBe(1);
   });
 });

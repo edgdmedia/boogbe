@@ -26,7 +26,8 @@ export function CalendarPage() {
   const [from, setFrom] = useState(addDays(today, -1));
   const [day, setDay] = useState(today);
   const days = narrow ? 1 : 14;
-  const { data, mutate } = useCalendar(narrow ? day : from, narrow ? 2 : days);
+  // narrow window starts the day before so stays ending today appear under 'Leaving'
+  const { data, mutate } = useCalendar(narrow ? addDays(day, -1) : from, narrow ? 3 : days);
   const [sel, setSel] = useState<{ unitId: string; start: string; end: string } | null>(null);
   const [item, setItem] = useState<CalendarItem | null>(null);
   if (!data) return <Spinner />;
