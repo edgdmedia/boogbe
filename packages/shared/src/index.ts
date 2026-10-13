@@ -25,3 +25,6 @@ export * from './contracts/money';
 export * from './contracts/ical';
 export * from './domain/templates';
 export * from './contracts/messages';
+export * from './domain/revenue';
+export * from './domain/allocation';
+export * from './domain/statement';
