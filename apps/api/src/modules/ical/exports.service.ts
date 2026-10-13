@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { ACTIVE_STATUSES, addDays, todayIn, type ExportChannel, type IcalExport } from '@boogbe/shared';
-import type { IcalExport as Row } from '@prisma/client';
+import type { Prisma, IcalExport as Row } from '@prisma/client';
 import { OrgDb, type OrgTx } from '../../common/db/org-db.service';
 import { PrismaService } from '../../common/db/prisma.service';
 import { newId } from '../../common/db/ids';
@@ -14,6 +14,18 @@ import { renderIcs } from './ics';
 const newToken = () => randomBytes(32).toString('base64url');
 const day = (s: string) => new Date(`${s}T00:00:00Z`);
 const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+/**
+ * Blocks a channel sent us must never go back to it (echo loop). For a named channel that is every block from any
+ * feed of that channel — a second listing or a paused feed included. "other" covers unrelated sites, so there only
+ * the linked feed is left out, never hiding real busy dates from elsewhere.
+ */
+const notOwnBlocks = (channel: ExportChannel, excludeFeedId: string | null): Prisma.BlockWhereInput => {
+  if (channel === 'all') return {};
+  if (channel === 'other')
+    return excludeFeedId ? { OR: [{ feedId: null }, { feedId: { not: excludeFeedId } }] } : {};
+  return { OR: [{ feedId: null }, { feed: { channel: { not: channel } } }] };
+};
 
 const toExport = (r: Row): IcalExport => ({
   id: r.id,
@@ -86,18 +98,18 @@ export class ExportsService {
    * Events carry no guest details: bookings are "Reserved", blocks "Blocked".
    */
   async render(token: string): Promise<string | null> {
-    const [hit] = await this.prisma.$queryRaw<{ org_id: string; unit_id: string; exclude_feed_id: string | null }[]>`
-      SELECT org_id, unit_id, exclude_feed_id FROM ical_export_lookup(${token})`;
+    const [hit] = await this.prisma.$queryRaw<
+      { org_id: string; unit_id: string; channel: ExportChannel; exclude_feed_id: string | null }[]
+    >`SELECT org_id, unit_id, channel, exclude_feed_id FROM ical_export_lookup(${token})`;
     if (!hit) return null;
-    const org = await this.prisma.organization.findUniqueOrThrow({
-      where: { id: hit.org_id },
-      select: { name: true, timezone: true },
-    });
+    const org = await this.prisma.organization.findUnique({ where: { id: hit.org_id }, select: { name: true, timezone: true } });
+    if (!org) return null;
     const today = todayIn(org.timezone);
     const from = day(addDays(today, -30));
     const to = day(addDays(today, 730));
     return this.orgDb.run(hit.org_id, async (tx) => {
-      const unit = await tx.unit.findFirstOrThrow({ where: { id: hit.unit_id } });
+      const unit = await tx.unit.findFirst({ where: { id: hit.unit_id } });
+      if (!unit) return null;
       const bookings = await tx.booking.findMany({
         where: { unitId: unit.id, status: { in: [...ACTIVE_STATUSES] }, checkOut: { gt: from }, checkIn: { lt: to } },
         orderBy: { checkIn: 'asc' },
@@ -107,7 +119,7 @@ export class ExportsService {
           unitId: unit.id,
           end: { gt: from },
           start: { lt: to },
-          ...(hit.exclude_feed_id && { OR: [{ feedId: null }, { feedId: { not: hit.exclude_feed_id } }] }),
+          ...notOwnBlocks(hit.channel, hit.exclude_feed_id),
         },
         orderBy: { start: 'asc' },
       });

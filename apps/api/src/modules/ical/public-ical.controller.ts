@@ -17,7 +17,7 @@ export class PublicIcalController {
     const body = file.endsWith('.ics') ? await this.svc.render(file.slice(0, -4)) : null;
     if (!body) throw notFound('Calendar');
     res.setHeader('content-type', 'text/calendar; charset=utf-8');
-    res.setHeader('cache-control', 'public, max-age=300');
+    res.setHeader('cache-control', 'private, max-age=300'); // the token is the credential: no shared caches
     res.send(body);
   }
 }
