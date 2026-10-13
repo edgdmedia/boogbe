@@ -115,6 +115,9 @@ model Organization {
   bookingStatusEvents BookingStatusEvent[]
   notifications       Notification[]
   payments            Payment[]
+  icalFeeds           IcalFeed[]
+  icalExports         IcalExport[]
+  syncConflicts       SyncConflict[]
 
   @@map("organization")
 }
@@ -300,6 +303,8 @@ model Unit {
   fees                    UnitFee[]
   blocks                  Block[]
   bookings                Booking[]
+  icalFeeds               IcalFeed[]
+  icalExports             IcalExport[]
 
   @@unique([orgId, propertyId, name])
   @@map("unit")
@@ -342,22 +347,24 @@ model UnitFee {
 }
 
 model Block {
-  id                String       @id
-  orgId             String       @map("org_id")
-  unitId            String       @map("unit_id")
-  unit              Unit         @relation(fields: [unitId], references: [id])
-  start             DateTime     @db.Date
-  end               DateTime     @db.Date
+  id                String         @id
+  orgId             String         @map("org_id")
+  unitId            String         @map("unit_id")
+  unit              Unit           @relation(fields: [unitId], references: [id])
+  start             DateTime       @db.Date
+  end               DateTime       @db.Date
   source            String
   reason            String
   note              String?
-  feedId            String?      @map("feed_id")
-  externalUid       String?      @map("external_uid")
-  externalSummary   String?      @map("external_summary")
-  createdByMemberId String?      @map("created_by_member_id")
-  createdAt         DateTime     @default(now()) @map("created_at")
-  updatedAt         DateTime     @updatedAt @map("updated_at")
-  org               Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "block_org_fk")
+  feedId            String?        @map("feed_id")
+  feed              IcalFeed?      @relation(fields: [feedId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "block_feed_fk")
+  externalUid       String?        @map("external_uid")
+  externalSummary   String?        @map("external_summary")
+  createdByMemberId String?        @map("created_by_member_id")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  org               Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "block_org_fk")
+  syncConflicts     SyncConflict[]
 
   @@index([orgId, unitId, start])
   @@map("block")
@@ -433,6 +440,7 @@ model Booking {
   lines                  BookingLine[]
   events                 BookingStatusEvent[]
   payments               Payment[]
+  syncConflicts          SyncConflict[]
 
   @@unique([orgId, ref])
   @@index([orgId, unitId, checkIn])
@@ -520,4 +528,73 @@ model Payment {
   @@index([orgId, bookingId, createdAt])
   @@index([orgId, receivedOn])
   @@map("payment")
+}
+
+// ───────────── iCal channel sync (tenant, RLS) — M4 ─────────────
+
+model IcalFeed {
+  id                  String       @id
+  orgId               String       @map("org_id")
+  unitId              String       @map("unit_id")
+  label               String
+  channel             String
+  url                 String
+  etag                String?
+  lastModified        String?      @map("last_modified")
+  lastSyncedAt        DateTime?    @map("last_synced_at")
+  lastAttemptAt       DateTime?    @map("last_attempt_at")
+  lastStatus          String       @default("never") @map("last_status")
+  lastError           String?      @map("last_error")
+  consecutiveFailures Int          @default(0) @map("consecutive_failures")
+  active              Boolean      @default(true)
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+  org                 Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ical_feed_org_fk")
+  unit                Unit         @relation(fields: [unitId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "ical_feed_unit_fk")
+  blocks              Block[]
+  excludedBy          IcalExport[]
+
+  @@index([orgId, unitId])
+  @@map("ical_feed")
+}
+
+model IcalExport {
+  id            String       @id
+  orgId         String       @map("org_id")
+  unitId        String       @map("unit_id")
+  channel       String
+  token         String       @unique
+  excludeFeedId String?      @map("exclude_feed_id")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  rotatedAt     DateTime?    @map("rotated_at")
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ical_export_org_fk")
+  unit          Unit         @relation(fields: [unitId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "ical_export_unit_fk")
+  excludeFeed   IcalFeed?    @relation(fields: [excludeFeedId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "ical_export_feed_fk")
+
+  @@unique([orgId, unitId, channel])
+  @@map("ical_export")
+}
+
+/// `block_*` snapshot the channel event so a conflict stays readable after its block is deleted (block_id → NULL).
+model SyncConflict {
+  id                 String       @id
+  orgId              String       @map("org_id")
+  unitId             String       @map("unit_id")
+  bookingId          String       @map("booking_id")
+  blockId            String?      @map("block_id")
+  blockStart         DateTime     @map("block_start") @db.Date
+  blockEnd           DateTime     @map("block_end") @db.Date
+  blockSummary       String       @map("block_summary")
+  channel            String?
+  status             String       @default("open")
+  resolution         String?
+  resolvedByMemberId String?      @map("resolved_by_member_id")
+  resolvedAt         DateTime?    @map("resolved_at")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  org                Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "sync_conflict_org_fk")
+  booking            Booking      @relation(fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "sync_conflict_booking_fk")
+  block              Block?       @relation(fields: [blockId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "sync_conflict_block_fk")
+
+  @@index([orgId, status])
+  @@map("sync_conflict")
 }

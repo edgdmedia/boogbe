@@ -120,6 +120,10 @@ describe('bookings [BKG-01..06 BKG-12 BKG-13]', () => {
   it('iCal overlap needs acknowledgement [BKG-03]', async () => {
     const m = await migratorClient();
     await m.query(
+      `insert into ical_feed(id, org_id, unit_id, label, channel, url, updated_at) values ('f1',$1,$2,'Airbnb','airbnb','https://x.test/a.ics',now())`,
+      [orgId, unitId],
+    );
+    await m.query(
       `insert into block(id, org_id, unit_id, start, "end", source, reason, external_summary, feed_id, external_uid, updated_at)
        values ($1,$2,$3,'2026-11-02','2026-11-03','ical','external','Airbnb (Not available)','f1','u1',now())`,
       [newId(), orgId, unitId],
