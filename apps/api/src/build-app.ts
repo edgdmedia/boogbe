@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
+import { Test } from '@nestjs/testing';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import cors from 'cors';
 import express from 'express';
@@ -12,12 +13,26 @@ import { requestId } from './common/http/request-id.middleware';
 import { AUTH } from './common/auth/auth.tokens';
 import type { Auth } from './common/auth/auth';
 
-export async function buildApp(): Promise<NestExpressApplication> {
+/** `overrides` swap providers (tests only), e.g. a fake iCal fetcher. */
+export async function buildApp(
+  opts: { overrides?: Array<[string | symbol, unknown]> } = {},
+): Promise<NestExpressApplication> {
   const env = loadEnv();
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    bodyParser: false,
-    logger: env.NODE_ENV === 'test' ? ['error'] : undefined,
-  });
+  const options = { bodyParser: false, logger: env.NODE_ENV === 'test' ? (['error'] as const) : undefined };
+  let app: NestExpressApplication;
+  if (opts.overrides?.length) {
+    let builder = Test.createTestingModule({ imports: [AppModule] });
+    for (const [token, value] of opts.overrides) builder = builder.overrideProvider(token).useValue(value);
+    app = (await builder.compile()).createNestApplication<NestExpressApplication>({
+      ...options,
+      logger: ['error'],
+    });
+  } else {
+    app = await NestFactory.create<NestExpressApplication>(AppModule, {
+      ...options,
+      logger: options.logger && [...options.logger],
+    });
+  }
   const http = app.getHttpAdapter().getInstance() as express.Express;
   http.set('trust proxy', 1);
   http.use(requestId);

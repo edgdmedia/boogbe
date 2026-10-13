@@ -78,6 +78,18 @@ ISOLATION_FIXTURES.payment = async (orgId) => {
   return id;
 };
 ROUTE_FIXTURE.push({ match: /^\/v1\/payments\//, fixture: 'payment' });
+ISOLATION_FIXTURES.feed = async (orgId) => {
+  const unitId = await ISOLATION_FIXTURES.unit!(orgId);
+  const id = newId();
+  const c = await migratorClient();
+  await c.query(
+    `insert into ical_feed(id, org_id, unit_id, label, channel, url, updated_at) values ($1,$2,$3,'Airbnb','airbnb','https://x.test/a.ics',now())`,
+    [id, orgId, unitId],
+  );
+  await c.end();
+  return id;
+};
+ROUTE_FIXTURE.push({ match: /^\/v1\/ical\/feeds\//, fixture: 'feed' });
 ISOLATION_FIXTURES.notification = async (orgId) => {
   const m = await migratorClient();
   const userId = newId();

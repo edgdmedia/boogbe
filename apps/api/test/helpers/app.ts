@@ -9,13 +9,15 @@ export interface TestApp {
   close: () => Promise<void>;
 }
 
-export async function createTestApp(): Promise<TestApp> {
+export async function createTestApp(
+  opts: { overrides?: Array<[string | symbol, unknown]> } = {},
+): Promise<TestApp> {
   process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
   process.env.NODE_ENV = 'test';
   process.env.BETTER_AUTH_URL ??= 'http://localhost:5173';
   process.env.APP_ORIGIN ??= 'http://localhost:5173';
   process.env.BETTER_AUTH_SECRET ??= 'test-secret-test-secret-test-secret-1234';
-  const app = await buildApp();
+  const app = await buildApp(opts);
   await app.init();
   const server = app.getHttpServer();
   return {

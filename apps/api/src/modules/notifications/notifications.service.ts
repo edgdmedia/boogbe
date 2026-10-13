@@ -4,6 +4,7 @@ import { OrgDb, type OrgTx } from '../../common/db/org-db.service';
 import { newId } from '../../common/db/ids';
 import { notFound } from '../../common/http/app-error';
 import type { OrgCtx } from '../../common/auth/request-ctx';
+import { AlertMailer } from './alert-mailer';
 
 export interface NewNotification {
   kind: Notification['kind'];
@@ -15,12 +16,16 @@ export interface NewNotification {
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly orgDb: OrgDb) {}
+  constructor(
+    private readonly orgDb: OrgDb,
+    private readonly alertMailer: AlertMailer,
+  ) {}
 
-  private async insert(tx: OrgTx, userIds: string[], n: NewNotification) {
-    if (!userIds.length) return;
+  /** Returns how many rows were created; 0 when every recipient already had this dedupeKey. */
+  private async insert(tx: OrgTx, userIds: string[], n: NewNotification): Promise<number> {
+    if (!userIds.length) return 0;
     // (org, user, dedupeKey) is unique, so a job that runs twice never notifies twice.
-    await tx.notification.createMany({
+    const r = await tx.notification.createMany({
       data: userIds.map((userId) => ({
         id: newId(),
         userId,
@@ -32,19 +37,36 @@ export class NotificationsService {
       })) as never,
       skipDuplicates: true,
     });
+    return r.count;
   }
 
-  // Members are a global table; read through the caller's transaction so no second pooled connection is taken.
-  async notifyRoles(tx: OrgTx, orgId: string, roles: OrgRole[], n: NewNotification) {
+  /**
+   * Members are a global table; read through the caller's transaction so no second pooled connection is taken.
+   * `email` also mails the recipients, but only when the alert is new (the dedupeKey stops repeats).
+   */
+  async notifyRoles(
+    tx: OrgTx,
+    orgId: string,
+    roles: OrgRole[],
+    n: NewNotification,
+    opts: { email?: boolean } = {},
+  ) {
     const members = await tx.member.findMany({
       where: { organizationId: orgId, role: { in: roles } },
-      select: { userId: true },
+      select: { userId: true, user: { select: { email: true } } },
     });
-    await this.insert(
+    const created = await this.insert(
       tx,
       members.map((m) => m.userId),
       n,
     );
+    if (opts.email && created > 0)
+      await this.alertMailer.send(
+        members.map((m) => m.user.email),
+        n.title,
+        n.body ?? n.title,
+        n.link,
+      );
   }
 
   async notifyMember(tx: OrgTx, orgId: string, memberId: string, n: NewNotification) {

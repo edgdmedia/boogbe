@@ -7,9 +7,10 @@ export interface OrgBrandInfo {
   address: string | null;
   phone: string | null;
   email: string | null;
+  timezone: string;
 }
 
-/** Letterhead facts from the global organization table. Pass the caller's transaction when there is one (see MemberNames). */
+/** Letterhead facts and timezone from the global organization table. Pass the caller's transaction when there is one (see MemberNames). */
 @Injectable()
 export class OrgInfo {
   constructor(private readonly prisma: PrismaService) {}
@@ -24,6 +25,7 @@ export class OrgInfo {
       address: o.address,
       phone: o.whatsappPhone ?? o.contactPhone,
       email: o.contactEmail,
+      timezone: o.timezone,
     };
   }
 }

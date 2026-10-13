@@ -12,6 +12,8 @@ import { BookingsModule } from './modules/bookings/bookings.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { BookingHoldsJob } from './modules/bookings/booking-holds.job';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { IcalModule } from './modules/ical/ical.module';
+import { IcalImportJob } from './modules/ical/ical-import.job';
 
 /** Cron jobs only. Later milestones add their *.jobs.ts providers here. */
 @Module({
@@ -28,8 +30,9 @@ import { PaymentsModule } from './modules/payments/payments.module';
     NotificationsModule,
     BookingsModule,
     PaymentsModule,
+    IcalModule,
   ],
   // Crons live only here (D-019): the API process never runs jobs.
-  providers: [BookingHoldsJob],
+  providers: [BookingHoldsJob, IcalImportJob],
 })
 export class WorkerModule {}

@@ -1,0 +1,1 @@
+export const ICAL_FETCHER = 'BOOGBE_ICAL_FETCHER';
