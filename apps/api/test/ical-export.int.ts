@@ -58,7 +58,7 @@ describe('iCal export [ICS-04]', () => {
 
     const r = await t.http.get(`/v1/ical/${tokenOf(ex.url)}`).expect(200);
     expect(r.headers['content-type']).toBe('text/calendar; charset=utf-8');
-    expect(r.headers['cache-control']).toBe('public, max-age=300');
+    expect(r.headers['cache-control']).toBe('private, max-age=300');
     const body = r.text;
     expect(body).toContain(`UID:booking-${bookingId}@boogbe`);
     expect(body).toContain(`DTSTART;VALUE=DATE:${ymd(soon(5))}`);
@@ -72,6 +72,38 @@ describe('iCal export [ICS-04]', () => {
     const all = (await admin.post('/v1/ical/exports').send({ unitId, channel: 'all' }).expect(201)).body;
     expect(all.excludeFeedId).toBeNull();
     expect((await t.http.get(`/v1/ical/${tokenOf(all.url)}`).expect(200)).text).toContain(ymd(soon(10)));
+  });
+
+  it("never echoes a channel's own blocks, even from a second or paused feed of that channel", async () => {
+    const { airbnbFeed } = await seedFeedsAndBlocks();
+    const m = await migratorClient();
+    const second = newId();
+    const other1 = newId();
+    const other2 = newId();
+    await m.query(
+      `insert into ical_feed(id, org_id, unit_id, label, channel, url, active, updated_at) values
+       ($1,$4,$5,'Airbnb 2','airbnb','https://a/y.ics',true,now()), ($2,$4,$5,'Site A','other','https://c/a.ics',true,now()), ($3,$4,$5,'Site B','other','https://c/b.ics',true,now())`,
+      [second, other1, other2, orgId, unitId],
+    );
+    await m.query(
+      `insert into block(id, org_id, unit_id, start, "end", source, reason, feed_id, external_uid, updated_at) values
+       ($1,$4,$5,$6,$7,'ical','external',$8,'a2',now()), ($2,$4,$5,$9,$10,'ical','external',$11,'o1',now()), ($3,$4,$5,$12,$13,'ical','external',$14,'o2',now())`,
+      [newId(), newId(), newId(), orgId, unitId, soon(40), soon(41), second, soon(50), soon(51), other1, soon(60), soon(61), other2],
+    );
+    await m.query(`update ical_feed set active = false where id = $1`, [airbnbFeed]);
+    await m.end();
+    const airbnb = (await admin.post('/v1/ical/exports').send({ unitId, channel: 'airbnb' }).expect(201)).body;
+    const toAirbnb = (await t.http.get(`/v1/ical/${tokenOf(airbnb.url)}`).expect(200)).text;
+    expect(toAirbnb).not.toContain(ymd(soon(10))); // paused Airbnb feed's block
+    expect(toAirbnb).not.toContain(ymd(soon(40))); // second Airbnb feed's block
+    expect(toAirbnb).toContain(ymd(soon(20))); // Booking.com
+    // "other" is many unrelated sites: only the linked feed is left out, so no real busy dates are hidden.
+    const other = (await admin.post('/v1/ical/exports').send({ unitId, channel: 'other' }).expect(201)).body;
+    expect(other.excludeFeedId).toBe(other1);
+    const toOther = (await t.http.get(`/v1/ical/${tokenOf(other.url)}`).expect(200)).text;
+    expect(toOther).not.toContain(ymd(soon(50)));
+    expect(toOther).toContain(ymd(soon(60)));
+    expect(toOther).toContain(ymd(soon(10)));
   });
 
   it('leaves out stays that ended more than 30 days ago', async () => {
