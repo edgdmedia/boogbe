@@ -13,7 +13,8 @@ export function RequireAuth({ platform = false }: { platform?: boolean }) {
     );
   }
   if (error?.status === 401 || !me) {
-    return <Navigate to={`/auth/sign-in?next=${encodeURIComponent(loc.pathname)}`} replace />;
+    // keep the query in `next` so deep links like /bookings/new?unitId=… survive the round-trip
+    return <Navigate to={`/auth/sign-in?next=${encodeURIComponent(loc.pathname + loc.search)}`} replace />;
   }
   if (platform && !me.user.isPlatformAdmin) return <Navigate to="/" replace />;
   return <Outlet />;
