@@ -62,27 +62,32 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M2-03 | Guests API | api | T-M2-02 | claude | done | [#31](https://github.com/edgdmedia/boogbe/pull/31) | Approved T-M2-03 by opencode; 88/88 verified; T-M2-07 unblocked |
 | T-M2-04 | Quote, create, get, list bookings; BookingSource | api | T-M2-03 | claude | done | [#32](https://github.com/edgdmedia/boogbe/pull/32) | Approved T-M2-04 by opencode; 101/101 verified incl. 20-way race; pool-starvation fix noted |
 | T-M2-05 | Edit/move/reprice, status transitions, cancel, holds job, notifications | api | T-M2-04 | claude | done | [#33](https://github.com/edgdmedia/boogbe/pull/33) | Approved T-M2-05 by opencode; 107/107 verified; T-M2-08 unblocked |
-| T-M2-06 | Audit viewer API | api | T-M2-02 | claude | review | [#35](https://github.com/edgdmedia/boogbe/pull/35) | Includes booking_no_overlap ↔ ACTIVE_STATUSES guard |
+| T-M2-06 | Audit viewer API | api | T-M2-02 | claude | done | [#35](https://github.com/edgdmedia/boogbe/pull/35) | Includes booking_no_overlap ↔ ACTIVE_STATUSES guard; merged |
 | T-M2-07 | Guests pages and guest picker | ui | T-M2-01 (stub); merge after T-M2-03 | opencode | done | [#34](https://github.com/edgdmedia/boogbe/pull/34) | Approved by claude; merged with the silent duplicate-check fix (app 24/24) |
-| T-M2-08 | Booking form, booking detail, bookings list | ui | T-M1-01 (stub); merge after T-M2-05 | opencode | review | [#37](https://github.com/edgdmedia/boogbe/pull/37) | rebased onto dev (booking commit only); app 33/33, int 115/115; awaiting 'Approved T-M2-08' |
-| T-M2-10 | Guests list paging: 'Load more' via cursor (currently only the first 30) | ui | T-M2-07 | opencode | review | [#45](https://github.com/edgdmedia/boogbe/pull/45) | Owner follow-up after #34; claude reviews |
+| T-M2-08 | Booking form, booking detail, bookings list | ui | T-M1-01 (stub); merge after T-M2-05 | opencode | done | [#37](https://github.com/edgdmedia/boogbe/pull/37) | Approved T-M2-08 by claude; merged |
+| T-M2-10 | Guests list paging: 'Load more' via cursor (currently only the first 30) | ui | T-M2-07 | opencode | done | [#45](https://github.com/edgdmedia/boogbe/pull/45) | Approved T-M2-10 by claude; merged |
 | T-M2-11 | Booking edit dialog: move to another unit + require reason client-side when total changes | ui | T-M2-08 | opencode | in_progress | | Owner follow-up after #37; claude reviews |
-| T-M2-09 | Notifications bell, audit page, E2E-02 and E2E-03 | ui, e2e | T-M2-05, T-M2-06, T-M2-08 | | todo | | suggested: opencode |
+| T-M2-09 | Notifications bell, audit page, E2E-02 and E2E-03 | ui, e2e | T-M2-05, T-M2-06, T-M2-08 | opencode | done | [#52](https://github.com/edgdmedia/boogbe/pull/52) | Approved T-M2-09 by claude; merged. E2E-02/03 re-run by claude on dev (own DB): 3 pass, 1 intentional skip (E2E-02 mobile). **M2 done** — T-M2-11/12 are polish follow-ups |
+| T-M2-12 | Booking-edit unit select polish (from #46 review): 'name — property' display and keep the booking's own archived unit visible | ui | T-M2-11 | opencode | todo | | Claude's non-blocking follow-ups; owner informed |
 | T-M3-01 | Ledger maths and payment contracts | domain | M2 | claude | done | [#36](https://github.com/edgdmedia/boogbe/pull/36) | On merge: T-M3-06 can build against the contracts |
 | T-M3-02 | Schema 0005: payment table, booking_money view, append-only grants | schema | T-M3-01 | claude | done | [#38](https://github.com/edgdmedia/boogbe/pull/38) | Rebased on dev after #36 merged |
 | T-M3-03 | Payments API, booking decoration, auto-confirm, balance filter, calendar balances | api | T-M3-02 | claude | done | [#39](https://github.com/edgdmedia/boogbe/pull/39) | Stacked on #38 |
 | T-M3-04 | Cancel with refund; receipt PDF | api | T-M3-03 | claude | done | [#40](https://github.com/edgdmedia/boogbe/pull/40) | Stacked on #39 (rebased) |
 | T-M3-05 | Money summary API | api | T-M3-03 | claude | review | [#44](https://github.com/edgdmedia/boogbe/pull/44) | From dev |
-| T-M3-06 | Payments panel and refund-on-cancel UI | ui | T-M3-01 (stub); merge after T-M3-04 | | todo | | suggested: opencode |
+| T-M3-06 | Payments panel and refund-on-cancel UI | ui | T-M3-01 (stub); merge after T-M3-04 | opencode | review | [#54](https://github.com/edgdmedia/boogbe/pull/54) | deps merged; app 36/36, int 137/137 — Approved T-M3-06 by claude (non-blocking follow-ups in PR) |
 | T-M3-07 | Money dashboard UI + E2E-04 | ui, e2e | T-M3-05, T-M3-06 | | todo | | suggested: opencode |
-| T-M4-01 | iCal contracts | domain | M2 | claude | review | [#42](https://github.com/edgdmedia/boogbe/pull/42) | From dev; independent of M3 |
-| T-M4-02 | Schema: feeds, exports, conflicts, token lookup function | schema | T-M4-01 | claude | review | [#47](https://github.com/edgdmedia/boogbe/pull/47) | Stacked on #42 |
-| T-M4-03 | SSRF-safe fetcher, node-ical parser and fixtures | api | T-M4-01 | claude | review | [#43](https://github.com/edgdmedia/boogbe/pull/43) | From dev; independent of M3 and #42 |
-| T-M4-04 | Feeds API, sync service, import job, health alerts, AlertMailer | api | T-M4-02, T-M4-03 | claude | in_progress |  | Stacked on #47 → #42, with #43 merged in |
+| T-M4-01 | iCal contracts | domain | M2 | claude | done | [#42](https://github.com/edgdmedia/boogbe/pull/42) | From dev; independent of M3; merged |
+| T-M4-02 | Schema: feeds, exports, conflicts, token lookup function | schema | T-M4-01 | claude | done | [#47](https://github.com/edgdmedia/boogbe/pull/47) | Stacked on #42; merged |
+| T-M4-03 | SSRF-safe fetcher, node-ical parser and fixtures | api | T-M4-01 | claude | done | [#43](https://github.com/edgdmedia/boogbe/pull/43) | From dev; independent of M3 and #42; merged |
+| T-M4-04 | Feeds API, sync service, import job, health alerts, AlertMailer | api | T-M4-02, T-M4-03 | claude | review | [#48](https://github.com/edgdmedia/boogbe/pull/48) | Stacked on #47 → #42, with #43 merged in |
 | T-M4-05 | Conflicts: detection, resolution, calendar flag | api | T-M4-04; M3 (cancelWithRefund) |  | todo |  | suggested: claude |
-| T-M4-06 | Export links and public .ics | api | T-M4-02 |  | todo |  | suggested: claude |
+| T-M4-06 | Export links and public .ics | api | T-M4-02 | claude | in_progress |  | From dev after #47 merged |
 | T-M4-07 | Calendar-sync UI, conflicts page, calendar markers | ui | T-M4-01 (stub); merge after T-M4-05/06 |  | todo |  | suggested: opencode |
 | T-M4-08 | Production go-live for Tanuhomes | infra | all above |  | todo |  | claude + owner; blocked until owner allows VPS work |
+| T-M7-01 | Revenue recognition, allocation, statement maths | domain | M3 (T-M3-01) | claude | review | [#49](https://github.com/edgdmedia/boogbe/pull/49) | From dev; pure domain, not stacked; opencode reviews |
+| T-M5-01 | Template renderer, safe Markdown, wa.me links, defaults, message contracts | domain | M3 (T-M3-01) | claude | review | [#50](https://github.com/edgdmedia/boogbe/pull/50) | From dev; pure domain, not stacked; opencode reviews |
+| T-M6-01 | Turnover due-time rule and task contracts | domain | M2 | claude | review | [#51](https://github.com/edgdmedia/boogbe/pull/51) | From dev; pure domain, not stacked; opencode reviews |
+| T-M7-02 | Expense, statement and owner portal contracts | domain | T-M7-01 (plan order only; no code dependency) | claude | review | [#53](https://github.com/edgdmedia/boogbe/pull/53) | From dev; not stacked; opencode reviews; one-line index.ts conflict with #49 for whichever merges second |
 
 ## Parallelism map (by milestone)
 

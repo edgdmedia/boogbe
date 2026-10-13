@@ -7,6 +7,7 @@ import { can, OrgSettingsResponse, type Permission } from '@boogbe/shared';
 import { authClient } from '../../lib/auth-client';
 import { useMe } from '../../lib/use-me';
 import { useApi } from '../../lib/api';
+import { NotificationBell } from './NotificationBell';
 import { OrgSwitcher } from './OrgSwitcher';
 
 export interface NavItem {
@@ -31,9 +32,12 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[220px_1fr]">
       <aside className="hidden border-r border-line bg-surface p-3 md:flex md:flex-col md:gap-1">
-        <div className="mb-4 flex items-center gap-2 px-2">
-          {logo && <img src={logo} alt="" className="h-8 w-8 shrink-0 rounded-md border border-line object-contain" />}
-          <OrgSwitcher />
+        <div className="mb-4 flex items-center justify-between gap-2 px-2">
+          <span className="flex min-w-0 items-center gap-2">
+            {logo && <img src={logo} alt="" className="h-8 w-8 shrink-0 rounded-md border border-line object-contain" />}
+            <OrgSwitcher />
+          </span>
+          <NotificationBell />
         </div>
         {items.map((n) => (
           <NavLink key={n.to} to={n.to} className={link}>
@@ -57,6 +61,7 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
           {logo && <img src={logo} alt="" className="h-7 w-7 shrink-0 rounded-md border border-line object-contain" />}
           <OrgSwitcher />
         </div>
+        <NotificationBell />
       </header>
       <main className="p-4 pb-24 md:p-6">{children}</main>
       <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t border-line bg-surface md:hidden" aria-label="Main">
