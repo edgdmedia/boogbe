@@ -12,6 +12,8 @@ const schema = z
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.string().url(),
     APP_ORIGIN: z.string().url(),
+    // Public origin of this API, used in iCal export links handed to Airbnb/Booking.com (ICS-04).
+    API_PUBLIC_ORIGIN: blankIsUnset(z.string().url().default('http://localhost:3060')),
     COOKIE_DOMAIN: z
       .string()
       .optional()
@@ -48,6 +50,13 @@ const schema = z
       !(env.R2_ENDPOINT && env.R2_BUCKET && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY)
     ) {
       ctx.addIssue({ code: 'custom', path: ['R2_ENDPOINT'], message: 'R2_* required in production' });
+    }
+    // Channels poll export links for years; a localhost or non-https link would silently break every calendar.
+    if (
+      env.NODE_ENV === 'production' &&
+      (!env.API_PUBLIC_ORIGIN.startsWith('https://') || new URL(env.API_PUBLIC_ORIGIN).origin !== env.API_PUBLIC_ORIGIN)
+    ) {
+      ctx.addIssue({ code: 'custom', path: ['API_PUBLIC_ORIGIN'], message: 'https origin required in production' });
     }
     if (env.NODE_ENV === 'production' && /change-me/i.test(env.BETTER_AUTH_SECRET)) {
       ctx.addIssue({ code: 'custom', path: ['BETTER_AUTH_SECRET'], message: 'placeholder secret' });

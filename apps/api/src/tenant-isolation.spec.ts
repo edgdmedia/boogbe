@@ -18,6 +18,7 @@ const PRISMA_ALLOWED = [
   'modules/platform/',
   'modules/invitations/',
   'modules/org/', // organization table is global (Better Auth); tenant reads go through OrgDb
+  'modules/ical/exports.service.ts', // public token lookup (SECURITY DEFINER) before any org context exists
   'modules/inventory/owners.service.ts', // reads the global invitation table for portal status
 ];
 

@@ -20,6 +20,22 @@ describe('loadEnv', () => {
     expect(() => loadEnv({ ...prod, R2_ENDPOINT: '' })).toThrow('R2_ENDPOINT');
     expect(loadEnv({ ...base, NODE_ENV: 'development', R2_ENDPOINT: '' }).R2_ENDPOINT).toBeUndefined();
   });
+  it('API_PUBLIC_ORIGIN defaults to the local API but must be a public https origin in production [ICS-04]', () => {
+    expect(loadEnv({ ...base, NODE_ENV: 'development' }).API_PUBLIC_ORIGIN).toBe('http://localhost:3060');
+    const prod = {
+      ...base,
+      NODE_ENV: 'production',
+      BETTER_AUTH_SECRET: 'x'.repeat(40),
+      R2_ENDPOINT: 'https://r2.example.com',
+      R2_BUCKET: 'b',
+      R2_ACCESS_KEY_ID: 'k',
+      R2_SECRET_ACCESS_KEY: 's',
+    };
+    expect(() => loadEnv(prod)).toThrow('API_PUBLIC_ORIGIN');
+    expect(() => loadEnv({ ...prod, API_PUBLIC_ORIGIN: 'http://api.boogbe.com' })).toThrow('API_PUBLIC_ORIGIN');
+    expect(() => loadEnv({ ...prod, API_PUBLIC_ORIGIN: 'https://api.boogbe.com/' })).toThrow('API_PUBLIC_ORIGIN');
+    expect(loadEnv({ ...prod, API_PUBLIC_ORIGIN: 'https://api.boogbe.com' }).API_PUBLIC_ORIGIN).toBe('https://api.boogbe.com');
+  });
   it('allows the placeholder secret in development', () => {
     expect(loadEnv({ ...base, NODE_ENV: 'development' }).BETTER_AUTH_SECRET).toBe(base.BETTER_AUTH_SECRET);
   });
