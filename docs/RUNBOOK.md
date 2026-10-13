@@ -22,6 +22,7 @@
    - `BETTER_AUTH_SECRET` = `openssl rand -base64 48` (the `.env.example` placeholder is refused in production)
    - `BETTER_AUTH_URL=https://api.boogbe.com` / `https://staging-api.boogbe.com` — the **API** origin: password-reset and other auth links are built from it, and Cloudflare Pages cannot serve `/v1/auth/*`
    - `APP_ORIGIN=https://app.boogbe.com` / `https://staging-app.boogbe.com`, `COOKIE_DOMAIN=.boogbe.com`
+   - `API_PUBLIC_ORIGIN=https://api.boogbe.com` / `https://staging-api.boogbe.com` — origin of the iCal export links given to Airbnb/Booking.com; must be `https` with no path (refused otherwise in production). Changing it later breaks every link already pasted into a channel.
    - `RESEND_API_KEY`, `MAIL_FROM`, `SENTRY_DSN`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`
 4. nginx:
    - Cloudflare Origin Certificate for `*.boogbe.com` at `/etc/ssl/cloudflare/boogbe-origin.{pem,key}`.
