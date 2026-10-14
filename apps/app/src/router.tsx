@@ -1,0 +1,119 @@
+import type { ReactNode } from 'react';
+import { BookOpen, Building2, CalendarDays, Contact, ScrollText, Settings, ShieldCheck, TriangleAlert, UserRound, Users, Wallet } from 'lucide-react';
+import { createBrowserRouter, Outlet } from 'react-router-dom';
+import { EmptyState } from '@boogbe/ui';
+import { AppShell, type NavItem } from './components/shell/AppShell';
+import { RequireAuth } from './components/shell/RequireAuth';
+import { RoleLanding } from './components/shell/RoleLanding';
+import { SignIn } from './routes/auth/SignIn';
+import { AcceptInvite } from './routes/auth/AcceptInvite';
+import { ForgotPassword } from './routes/auth/ForgotPassword';
+import { ResetPassword } from './routes/auth/ResetPassword';
+import { PropertiesPage } from './features/inventory/PropertiesPage';
+import { PropertyDetail } from './features/inventory/PropertyDetail';
+import { OwnersPage } from './features/inventory/OwnersPage';
+import { BookingsPage } from './features/bookings/BookingsPage';
+import { BookingDetail } from './features/bookings/BookingDetail';
+import { NewBookingPage } from './features/bookings/NewBookingPage';
+import { GuestsPage } from './features/guests/GuestsPage';
+import { ConflictsPage } from './features/ical/ConflictsPage';
+import { GuestDetail } from './features/guests/GuestDetail';
+import { NotFound } from './routes/NotFound';
+import { CalendarPage } from './features/calendar/CalendarPage';
+import { OperatorsList } from './routes/platform/OperatorsList';
+import { CreateOperator } from './routes/platform/CreateOperator';
+import { OperatorDetail } from './routes/platform/OperatorDetail';
+import { Team } from './routes/settings/Team';
+import { Sessions } from './routes/settings/Sessions';
+import { AuditLog } from './routes/settings/AuditLog';
+import { OrgProfile } from './routes/settings/OrgProfile';
+import { MoneyPage } from './features/payments/MoneyPage';
+import { ChooseOperator } from './routes/ChooseOperator';
+
+/** Later milestones append to these arrays; keep one source of truth for nav. */
+export const OPERATOR_NAV: NavItem[] = [
+  { to: '/calendar', label: 'Calendar', icon: CalendarDays, permission: 'calendar.read' },
+  { to: '/settings/properties', label: 'Properties', icon: Building2, permission: 'inventory.read' },
+  { to: '/settings/owners', label: 'Owners', icon: UserRound, permission: 'owners.read' },
+  { to: '/money', label: 'Money', icon: Wallet, permission: 'payments.read' },
+  { to: '/bookings', label: 'Bookings', icon: BookOpen, permission: 'bookings.read' },
+  { to: '/guests', label: 'Guests', icon: Contact, permission: 'guests.read' },
+  { to: '/conflicts', label: 'Conflicts', icon: TriangleAlert, permission: 'bookings.read' },
+  { to: '/settings/team', label: 'Team', icon: Users, permission: 'members.write' },
+  { to: '/settings', label: 'Settings', icon: Settings, permission: 'org.settings.read' },
+  { to: '/settings/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.read' },
+];
+const PLATFORM_NAV: NavItem[] = [{ to: '/platform', label: 'Operators', icon: ShieldCheck }];
+
+const operator = (children: ReactNode) => <AppShell nav={OPERATOR_NAV}>{children}</AppShell>;
+
+export const router = createBrowserRouter([
+  { path: '/auth/sign-in', element: <SignIn /> },
+  { path: '/auth/accept-invite/:id', element: <AcceptInvite /> },
+  { path: '/auth/forgot', element: <ForgotPassword /> },
+  { path: '/auth/reset', element: <ResetPassword /> },
+  {
+    element: <RequireAuth />,
+    children: [
+      { path: '/', element: <RoleLanding /> },
+      { path: '/choose-operator', element: <ChooseOperator /> },
+      {
+        path: '/no-access',
+        element: (
+          <main className="p-8">
+            <EmptyState title="No operator yet" body="Ask your operator to invite you." />
+          </main>
+        ),
+      },
+      { path: '/calendar', element: operator(<CalendarPage />) },
+      { path: '/settings', element: operator(<OrgProfile />) },
+      { path: '/settings/team', element: operator(<Team />) },
+      { path: '/settings/sessions', element: operator(<Sessions />) },
+      { path: '/settings/audit', element: operator(<AuditLog />) },
+      { path: '/settings/properties', element: operator(<PropertiesPage />) },
+      { path: '/settings/properties/:id', element: operator(<PropertyDetail />) },
+      { path: '/settings/owners', element: operator(<OwnersPage />) },
+      { path: '/money', element: operator(<MoneyPage />) },
+      { path: '/bookings', element: operator(<BookingsPage />) },
+      { path: '/bookings/new', element: operator(<NewBookingPage />) },
+      { path: '/bookings/:id', element: operator(<BookingDetail />) },
+      { path: '/guests', element: operator(<GuestsPage />) },
+      { path: '/conflicts', element: operator(<ConflictsPage />) },
+      { path: '/guests/:id', element: operator(<GuestDetail />) },
+      {
+        path: '/hk',
+        element: (
+          <main className="p-4">
+            <EmptyState title="Your tasks will appear here" />
+          </main>
+        ),
+      },
+      {
+        path: '/owner',
+        element: (
+          <main className="p-4">
+            <EmptyState title="Your statements will appear here" />
+          </main>
+        ),
+      },
+    ],
+  },
+  {
+    element: <RequireAuth platform />,
+    children: [
+      {
+        element: (
+          <AppShell nav={PLATFORM_NAV}>
+            <Outlet />
+          </AppShell>
+        ),
+        children: [
+          { path: '/platform', element: <OperatorsList /> },
+          { path: '/platform/new', element: <CreateOperator /> },
+          { path: '/platform/operators/:id', element: <OperatorDetail /> },
+        ],
+      },
+    ],
+  },
+  { path: '*', element: <NotFound /> },
+]);

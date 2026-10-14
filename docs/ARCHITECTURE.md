@@ -104,7 +104,7 @@ boogbe/
 2. **Database layer.** Every tenant table: `ALTER TABLE … ENABLE ROW LEVEL SECURITY; ALTER TABLE … FORCE ROW LEVEL SECURITY;` with policy
    `USING (org_id = current_setting('app.org_id', true)) WITH CHECK (org_id = current_setting('app.org_id', true))`.
    If `app.org_id` is unset, `current_setting(…, true)` returns NULL and **no rows match**.
-   - Roles: `boogbe_migrator` (owns schema; runs migrations; used only by deploy), `boogbe_app` (runtime; `NOBYPASSRLS`; not table owner; DML grants only; no UPDATE/DELETE on `payment`, `audit_log`, `statement` snapshots).
+   - Roles: `boogbe_migrator` (owns schema; `BYPASSRLS` because FORCE RLS binds owners; runs migrations, backups and test setup; never used at runtime), `boogbe_app` (runtime; `NOBYPASSRLS`; not table owner; DML grants only; no UPDATE/DELETE on `payment`, `audit_log`, `statement` snapshots).
    - Better Auth tables (`user`, `session`, `account`, `verification`, `organization`, `member`, `invitation`) are global (no RLS); access to them goes only through Better Auth or the `members`/`platform` modules.
 - **Workers/crons** iterate active organizations (global table) and call `orgDb.forOrg(orgId)` per operator — they never run unscoped queries on tenant tables.
 - **Guards in CI:** `tenant-isolation.spec.ts` (static: service methods taking `orgId` must use it; no module imports `PrismaClient`/`PrismaService` directly except `common/db`), `rls-coverage.spec.ts` (queries `pg_class`/`pg_policies`: every table with an `org_id` column has RLS enabled+forced and a policy), and per-endpoint cross-tenant integration tests.
@@ -162,7 +162,7 @@ Resend REST API (as Unclutter `modules/notifications/mail`). Platform sending do
 - **API:** GitHub Actions (`deploy-api.yml`, as Unclutter) → verify (typecheck, unit, integration with Postgres service container) → SSH → `deploy/deploy.sh`: `git pull` → `pnpm install --frozen-lockfile` → `prisma generate` → build → **pg_dump pre-deploy backup (abort on failure)** → `prisma migrate deploy` (as `boogbe_migrator`) → `pm2 reload` → health-check wait. Copy Unclutter's `deploy.sh` hardening (pipefail, env parsing without sourcing, PM2 path verification, health wait).
 - **App:** `deploy-app.yml` → build → Cloudflare Pages (`wrangler pages deploy`). `_headers` with CSP.
 - **nginx:** copy Unclutter `deploy/nginx/*` (Cloudflare real-IP, IP list updater); only Cloudflare IPs allowed to the origin.
-- **Secrets** (GitHub + server `.env`): `DATABASE_URL` (app role), `DATABASE_MIGRATE_URL` (migrator), `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `APP_ORIGIN`, `RESEND_API_KEY`, `R2_*`, `SENTRY_DSN`, `PROD_SSH_HOST/USER/KEY`, `CF_API_TOKEN`, `CF_ACCOUNT_ID`.
+- **Secrets** (GitHub + server `.env`): `DATABASE_URL` (app role), `DATABASE_MIGRATE_URL` (migrator), `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `APP_ORIGIN`, `API_PUBLIC_ORIGIN`, `RESEND_API_KEY`, `R2_*`, `SENTRY_DSN`, `PROD_SSH_HOST/USER/KEY`, `CF_API_TOKEN`, `CF_ACCOUNT_ID`.
 
 ## 6. Phase B hooks (do not build in v1, do not block)
 - Public, unauthenticated, rate-limited availability/quote endpoints will live in `modules/public/` and use `orgDb.forOrg(orgIdFromSlug)`.

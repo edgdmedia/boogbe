@@ -1,0 +1,51 @@
+import 'reflect-metadata';
+import { NestFactory } from '@nestjs/core';
+import { Test } from '@nestjs/testing';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import cors from 'cors';
+import express from 'express';
+import helmet from 'helmet';
+import { toNodeHandler } from 'better-auth/node';
+import { AppModule } from './app.module';
+import { loadEnv } from './env';
+import { jsonOnly } from './common/http/json-only.middleware';
+import { requestId } from './common/http/request-id.middleware';
+import { AUTH } from './common/auth/auth.tokens';
+import type { Auth } from './common/auth/auth';
+
+/** `overrides` swap providers (tests only), e.g. a fake iCal fetcher. */
+export async function buildApp(
+  opts: { overrides?: Array<[string | symbol, unknown]> } = {},
+): Promise<NestExpressApplication> {
+  const env = loadEnv();
+  const options = { bodyParser: false, logger: env.NODE_ENV === 'test' ? (['error'] as const) : undefined };
+  let app: NestExpressApplication;
+  if (opts.overrides?.length) {
+    let builder = Test.createTestingModule({ imports: [AppModule] });
+    for (const [token, value] of opts.overrides) builder = builder.overrideProvider(token).useValue(value);
+    app = (await builder.compile()).createNestApplication<NestExpressApplication>({
+      ...options,
+      logger: ['error'],
+    });
+  } else {
+    app = await NestFactory.create<NestExpressApplication>(AppModule, {
+      ...options,
+      logger: options.logger && [...options.logger],
+    });
+  }
+  const http = app.getHttpAdapter().getInstance() as express.Express;
+  http.set('trust proxy', 1);
+  http.use(requestId);
+  // nginx (with the Cloudflare real-IP module) sets a single trusted X-Forwarded-For;
+  // express must trust it so throttling and the auth rate limiter key off the client IP.
+  http.set('trust proxy', 'loopback');
+  http.use(helmet());
+  http.use(cors({ origin: [env.APP_ORIGIN], credentials: true }));
+  // Better Auth reads its own body, so it must be mounted before the JSON parser.
+  const auth = app.get<Auth>(AUTH);
+  http.all('/v1/auth/*', toNodeHandler(auth));
+  http.use(jsonOnly);
+  http.use(express.json({ limit: '1mb' }));
+  app.setGlobalPrefix('v1');
+  return app;
+}

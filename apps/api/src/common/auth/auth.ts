@@ -1,0 +1,190 @@
+import type { PrismaClient } from '@prisma/client';
+import { betterAuth } from 'better-auth';
+import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { APIError, createAuthMiddleware } from 'better-auth/api';
+import { admin, organization } from 'better-auth/plugins';
+import { randomUUID } from 'node:crypto';
+import { newId } from '../db/ids';
+import type { OrgRole } from '@boogbe/shared';
+import type { Env } from '../../env';
+import type { Mailer } from '../mail/mailer';
+import { inviteEmail, resetPasswordEmail } from '../mail/templates';
+import { ac, orgRoles } from './ac';
+import { assertKnownRole, assertNotLastAdmin } from './membership-rules';
+import { isLocked, LOCK_WINDOW_MS } from './lockout';
+
+export function createAuth({ prisma, mailer, env }: { prisma: PrismaClient; mailer: Mailer; env: Env }) {
+  return betterAuth({
+    appName: 'Boogbe',
+    baseURL: env.BETTER_AUTH_URL,
+    basePath: '/v1/auth',
+    secret: env.BETTER_AUTH_SECRET,
+    trustedOrigins: [env.APP_ORIGIN],
+    database: prismaAdapter(prisma, { provider: 'postgresql', transaction: true }),
+    advanced: {
+      database: { generateId: () => randomUUID() },
+      ...(env.COOKIE_DOMAIN && { crossSubDomainCookies: { enabled: true, domain: env.COOKIE_DOMAIN } }),
+      useSecureCookies: env.NODE_ENV === 'production',
+    },
+    rateLimit: {
+      enabled: env.NODE_ENV !== 'test',
+      window: 60,
+      max: 100,
+      customRules: { '/sign-in/email': { window: 60, max: 10 }, '/request-password-reset': { window: 300, max: 3 } },
+    },
+    emailAndPassword: {
+      enabled: true,
+      minPasswordLength: 10,
+      maxPasswordLength: 128,
+      revokeSessionsOnPasswordReset: true,
+      resetPasswordTokenExpiresIn: 3600,
+      sendResetPassword: async ({ user, url }) => {
+        await mailer.send({ to: user.email, ...resetPasswordEmail({ url }) });
+      },
+    },
+    databaseHooks: {
+      user: {
+        create: {
+          // Invite-only: a user may only be created for an email with a pending invitation,
+          // or one listed in PLATFORM_ADMIN_EMAILS (bootstrap).
+          before: async (user) => {
+            const email = user.email.toLowerCase();
+            if (env.PLATFORM_ADMIN_EMAILS.includes(email)) return { data: user };
+            const invite = await prisma.invitation.findFirst({
+              where: { email, status: 'pending', expiresAt: { gt: new Date() } },
+            });
+            if (!invite) {
+              throw new APIError('FORBIDDEN', { message: 'Boogbe is invite-only. Ask your operator for an invitation.' });
+            }
+            return { data: { ...user, email } };
+          },
+        },
+      },
+    },
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path === '/sign-up/email') {
+          const email = String(ctx.body?.email ?? '').toLowerCase();
+          if (!env.PLATFORM_ADMIN_EMAILS.includes(email)) {
+            const invitationId = String(ctx.body?.invitationId ?? '');
+            const invite = invitationId
+              ? await prisma.invitation.findFirst({
+                  where: { id: invitationId, email, status: 'pending', expiresAt: { gt: new Date() } },
+                  select: { id: true },
+                })
+              : null;
+            const userExists = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+            // Same response for "no valid invitation" and "account exists" — sign-up must not
+            // reveal whether an email has an account, and knowing the email alone is not enough
+            // to claim the seat: the invitation id from the emailed link is required.
+            if (!invite || userExists) {
+              throw new APIError('FORBIDDEN', { message: 'Boogbe is invite-only. Ask your operator for an invitation.' });
+            }
+          }
+        }
+        if (ctx.path !== '/sign-in/email') return;
+        const email = String(ctx.body?.email ?? '').toLowerCase();
+        const attempts = await prisma.loginAttempt.findMany({
+          where: { email, createdAt: { gt: new Date(Date.now() - LOCK_WINDOW_MS) } },
+          select: { success: true, createdAt: true },
+        });
+        if (isLocked(attempts)) {
+          throw new APIError('TOO_MANY_REQUESTS', { message: 'Too many attempts. Try again in 15 minutes.' });
+        }
+      }),
+      after: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== '/sign-in/email') return;
+        const returned = ctx.context.returned as unknown;
+        const failed = returned instanceof APIError || (returned as { name?: string } | null)?.name === 'APIError';
+        await prisma.loginAttempt.create({
+          data: {
+            id: randomUUID(),
+            email: String(ctx.body?.email ?? '').toLowerCase(),
+            ip: ctx.request?.headers.get('x-forwarded-for') ?? null,
+            success: !failed,
+          },
+        });
+      }),
+    },
+    plugins: [
+      admin({ defaultRole: 'user', adminRoles: ['admin'] }),
+      organization({
+        ac,
+        roles: orgRoles,
+        creatorRole: 'admin',
+        allowUserToCreateOrganization: false, // operators are created by the platform module
+        invitationExpiresIn: 7 * 24 * 3600,
+        cancelPendingInvitationsOnReInvite: true,
+        // better-auth 1.4+ requires a verified email to accept invitations whose id was not
+        // generated by its built-in opaque-id scheme; platform invitations are inserted with
+        // our own UUIDs (before Task 9), and M0 has no email-verification send flow.
+        requireEmailVerificationOnInvitation: false,
+        schema: {
+          organization: {
+            additionalFields: {
+              timezone: { type: 'string', required: false, input: false, defaultValue: 'Africa/Lagos' },
+              currency: { type: 'string', required: false, input: false, defaultValue: 'NGN' },
+              status: { type: 'string', required: false, input: false, defaultValue: 'active' },
+              contactEmail: { type: 'string', required: false, input: false },
+              contactPhone: { type: 'string', required: false, input: false },
+              whatsappPhone: { type: 'string', required: false, input: false },
+              address: { type: 'string', required: false, input: false },
+            },
+          },
+        },
+        sendInvitationEmail: async ({ id, email, role, organization: org }) => {
+          const url = `${env.APP_ORIGIN}/auth/accept-invite/${id}`;
+          await mailer.send({ to: email, ...inviteEmail({ orgName: org.name, role: role as OrgRole, url }) });
+        },
+        organizationHooks: {
+          beforeCreateInvitation: async ({ invitation }) => {
+            assertKnownRole(String(invitation.role));
+          },
+          beforeUpdateMemberRole: async ({ member, newRole, organization: org }) => {
+            assertKnownRole(String(newRole));
+            await assertNotLastAdmin(prisma, org.id, member.id, newRole as OrgRole);
+          },
+          afterUpdateMemberRole: async ({ member, previousRole, user, organization: org }) => {
+            await writeAudit(prisma, org.id, user.id, 'member.role_change', 'member', member.id, { role: previousRole }, { role: member.role });
+          },
+          beforeRemoveMember: async ({ member, organization: org }) => {
+            await assertNotLastAdmin(prisma, org.id, member.id, null);
+          },
+          afterRemoveMember: async ({ member, user, organization: org }) => {
+            await writeAudit(prisma, org.id, user.id, 'member.remove', 'member', member.id, { role: member.role }, null);
+          },
+          afterAcceptInvitation: async ({ member, user, organization: org }) => {
+            await writeAudit(prisma, org.id, user.id, 'member.join', 'member', member.id, null, { role: member.role });
+            // A property owner accepting a portal invite is linked to their owner record by email (INV-06).
+            if (member.role === 'landlord') {
+              await prisma.$transaction(async (tx) => {
+                await tx.$executeRaw`SELECT set_config('app.org_id', ${org.id}, true)`;
+                await tx.$executeRaw`UPDATE owner SET user_id = ${user.id}
+                  WHERE org_id = ${org.id} AND lower(email) = lower(${user.email}) AND user_id IS NULL`;
+              });
+            }
+          },
+        },
+      }),
+    ],
+  });
+}
+export type Auth = ReturnType<typeof createAuth>;
+
+/** Hooks run outside Nest DI, so the audit write uses raw SQL with the RLS org set in the same transaction. */
+async function writeAudit(
+  prisma: PrismaClient,
+  orgId: string,
+  actorUserId: string,
+  action: string,
+  entity: string,
+  entityId: string,
+  before: unknown,
+  after: unknown,
+) {
+  await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT set_config('app.org_id', ${orgId}, true)`;
+    await tx.$executeRaw`INSERT INTO audit_log (id, org_id, actor_user_id, action, entity, entity_id, before, after, at)
+      VALUES (${newId()}, ${orgId}, ${actorUserId}, ${action}, ${entity}, ${entityId}, ${JSON.stringify(before)}::jsonb, ${JSON.stringify(after)}::jsonb, now())`;
+  });
+}

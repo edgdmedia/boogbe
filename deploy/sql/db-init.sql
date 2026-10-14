@@ -1,0 +1,24 @@
+CREATE DATABASE boogbe_dev OWNER boogbe_migrator;
+CREATE DATABASE boogbe_test OWNER boogbe_migrator;
+CREATE DATABASE boogbe_test_claude OWNER boogbe_migrator;
+CREATE DATABASE boogbe_test_opencode OWNER boogbe_migrator;
+\c boogbe_dev
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS citext;
+GRANT CONNECT ON DATABASE boogbe_dev TO boogbe_app;
+\c boogbe_test
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS citext;
+GRANT CONNECT ON DATABASE boogbe_test TO boogbe_app;
+\c boogbe_test_claude
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS citext;
+GRANT CONNECT ON DATABASE boogbe_test_claude TO boogbe_app;
+\c boogbe_test_opencode
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS citext;
+GRANT CONNECT ON DATABASE boogbe_test_opencode TO boogbe_app;

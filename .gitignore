@@ -13,3 +13,16 @@ playwright-report/
 test-results/
 .wrangler/
 node-compile-cache/
+playwright-transform-cache-*/
+jiti/
+v8-compile-cache-*/
+jiti/
+v8-compile-cache-*/
+
+# tool caches (playwright/v8/jiti)
+playwright-transform-cache-*/
+jiti/
+v8-compile-cache-*/
+# Tool caches that land in the repo when TMPDIR points here
+tsx-*/
+playwright-transform-cache-*/

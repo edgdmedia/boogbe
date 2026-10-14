@@ -7,6 +7,7 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 
 - Postgres 16. IDs: `text` primary keys generated app-side as UUIDv7 (`uuidv7` package) — sortable by time; Better Auth tables use Better Auth's own string ids.
 - Every tenant table has `org_id text not null references organization(id)` as its **first** column after `id`, an index leading with `org_id`, RLS enabled + forced (see ARCHITECTURE §3.3).
+- Prisma relation to Organization allowed for FK declaration only; never written, connected or included. Tenant models declare `org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "<table>_org_fk")` so the FK lives in `schema.prisma`; code always uses the scalar `orgId` (the org-scope extension injects it). `apps/api/src/org-relation.spec.ts` fails on any `org`/`organization` key in a tenant-model call.
 - Money: `bigint` kobo, column suffix `_kobo`. Percentages: `int` basis points, suffix `_bps`.
 - Stay dates: `date` (`check_in`, `check_out`, half-open). Instants: `timestamptz` (`created_at`, `updated_at` on all tables).
 - Soft delete is **not** used for money or bookings (status fields instead). `active boolean` for catalogue items (properties, units, fees, templates).
@@ -36,7 +37,7 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 
 **`property`**: `id, org_id, name, address, area, default_owner_id (nullable → owner), fee_type (pct_gross|pct_net|none), fee_bps, fee_fixed_monthly_kobo, notes, active, sort_order`.
 
-**`unit`**: `id, org_id, property_id, name, bedrooms, max_guests, nightly_rate_kobo, default_assignee_member_id (nullable), check_in_instructions (text), fee_override (boolean), fee_type, fee_bps, fee_fixed_monthly_kobo (used only when fee_override), active, sort_order`. Unique `(org_id, property_id, name)`.
+**`unit`**: `id, org_id, property_id, name, bedrooms, max_guests, nightly_rate_kobo, default_assignee_member_id (nullable), check_in_instructions (text), owner_follows_property (bool, default true — the unit's owner tracks the property's default owner), fee_override (boolean), fee_type, fee_bps, fee_fixed_monthly_kobo (used only when fee_override), active, sort_order`. Unique `(org_id, property_id, name)`.
 
 **`unit_ownership`** (effective-dated, OWN-07): `id, org_id, unit_id, owner_id (nullable = operator-owned), effective_from date, effective_to date null`. Exclusion constraint: no overlapping ranges per unit. The "current" owner shown in UI = row covering today; when a property's default owner changes, rows for units without their own override are closed and reopened.
 
@@ -47,7 +48,7 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 ### Guests & bookings
 **`guest`**: `id, org_id, full_name, phone_e164, email null, notes, anonymised_at null`. Indexes: `(org_id, phone_e164)`, `(org_id, lower(email))`, trigram on `full_name` (`pg_trgm`).
 
-**`booking`**: `id, org_id, ref (unique per org), unit_id, guest_id, check_in date, check_out date, guest_count int, source (whatsapp|phone|walk_in|direct|airbnb|booking_com|other), status (tentative|confirmed|checked_in|checked_out|cancelled|no_show), hold_until timestamptz null, computed_total_kobo, final_total_kobo, override_reason null, ical_warning_ack bool, notes, cancelled_at, cancel_reason, checked_in_at, checked_out_at, created_by_member_id`.
+**`booking`**: `id, org_id, ref (unique per org), unit_id, guest_id, check_in date, check_out date, guest_count int, source (whatsapp|phone|walk_in|direct|airbnb|booking_com|other), status (tentative|confirmed|checked_in|checked_out|cancelled|no_show), hold_until timestamptz null, computed_total_kobo, final_total_kobo, deposit_kobo, override_reason null, capacity_override_reason null, price_stale bool (dates/unit changed without repricing), ical_warning_ack bool, notes, cancelled_at, cancel_reason, checked_in_at, checked_out_at, created_by_member_id`.
 Constraints:
 ```sql
 CHECK (check_out > check_in)
@@ -58,9 +59,9 @@ EXCLUDE USING gist (
 ```
 (`CREATE EXTENSION IF NOT EXISTS btree_gist;` in the first migration.)
 
-**`booking_line`**: `id, org_id, booking_id, kind (accommodation|fee|deposit|discount|adjustment), fee_kind null, label, quantity numeric(10,2), unit_amount_kobo, amount_kobo, refundable bool, recognition (per_night|on_check_in)`. Snapshot at create/reprice. `final_total_kobo = Σ amount where kind != deposit`.
+**`booking_line`**: `id, org_id, booking_id, position, kind (accommodation|fee|deposit|discount|adjustment), fee_kind null, label, quantity numeric(10,2), unit_amount_kobo, amount_kobo, refundable bool, recognition (per_night|on_check_in)`. Snapshot at create/reprice. `final_total_kobo = Σ amount where kind != deposit`.
 
-**`booking_status_event`**: `id, org_id, booking_id, from_status, to_status, actor_member_id, reason, at`.
+**`booking_status_event`**: `id, org_id, booking_id, from_status, to_status, actor_member_id, reason, at`. Append-only (app role has no UPDATE/DELETE).
 
 ### Money
 **`payment`** (append-only; app role has INSERT/SELECT only): `id, org_id, booking_id, kind (payment|refund|deposit_received|deposit_returned|deposit_withheld|void), amount_kobo (>0), method (bank_transfer|cash|pos|card|paystack|other), received_on date, reference, external_ref null, note, receipt_no null, voids_payment_id null, recorded_by_member_id, created_at`.
@@ -92,7 +93,7 @@ EXCLUDE USING gist (
 **`statement`**: `id, org_id, number, owner_id, period (date = first of month), status (draft|finalised|paid), figures jsonb (StatementFigures snapshot), gross_kobo, expenses_kobo, fee_kobo, fixed_fee_kobo, opening_balance_kobo, net_payout_kobo, pdf_file_key null, finalised_at, finalised_by_member_id, paid_on, payout_reference`. Unique `(owner_id, period)`. App role cannot UPDATE rows where status ≠ draft except the `paid_on`/`payout_reference`/`status='paid'` transition (enforced by trigger).
 
 ### Platform-wide utilities
-**`notification`**: `id, org_id, user_id, kind, title, body, link, read_at, created_at`.
+**`notification`**: `id, org_id, user_id, kind, title, body, link, dedupe_key null, read_at, created_at`. Unique `(org_id, user_id, dedupe_key)` so jobs can't notify twice.
 
 **`audit_log`** (append-only): `id, org_id, actor_user_id, actor_member_id, action, entity, entity_id, before jsonb, after jsonb, ip, user_agent, at`.
 
@@ -113,3 +114,4 @@ expense 1─* expense_allocation
 2. Raw SQL (RLS policies, grants, exclusion constraints, extensions, triggers) lives in the same migration directory as the Prisma-generated SQL, appended to `migration.sql`.
 3. Every new tenant table migration must include: `ENABLE` + `FORCE ROW LEVEL SECURITY`, the `org_isolation` policy, grants to `boogbe_app`. `rls-coverage.spec.ts` fails otherwise.
 4. Only the schema owner (see `docs/COORDINATION.md`) merges changes to `prisma/schema.prisma`.
+5. Generate migrations with `pnpm db:migrate` (`prisma migrate dev`). If you append raw SQL, anything Prisma can model (foreign keys, indexes, unique constraints) must also be declared in `schema.prisma` with the same name (`map:`) and actions, or the next generated migration will drop it. `apps/api/test/migrations.int.ts` fails on any drift and on migrations that can't replay into an empty shadow database.

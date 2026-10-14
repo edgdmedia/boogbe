@@ -1,0 +1,63 @@
+import { Module } from '@nestjs/common';
+import { APP_FILTER, APP_GUARD, APP_PIPE, DiscoveryModule } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ZodValidationPipe } from 'nestjs-zod';
+import { AuditModule } from './common/audit/audit.module';
+import { AuthModule } from './common/auth/auth.module';
+import { SessionGuard } from './common/auth/session.guard';
+import { DbModule } from './common/db/db.module';
+import { ErrorFilter } from './common/http/error.filter';
+import { FilesModule } from './common/files/files.module';
+import { FilesHttpModule } from './modules/files/files-http.module';
+import { MailModule } from './common/mail/mail.module';
+import { HealthController } from './modules/health/health.controller';
+import { CalendarModule } from './modules/calendar/calendar.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { GuestsModule } from './modules/guests/guests.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { IcalModule } from './modules/ical/ical.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AuditHttpModule } from './modules/audit/audit-http.module';
+import { InvitationsModule } from './modules/invitations/invitations.module';
+import { MeModule } from './modules/me/me.module';
+import { OrgModule } from './modules/org/org.module';
+import { PlatformModule } from './modules/platform/platform.module';
+import { TestSupportModule } from './modules/test-support/test-support.module';
+
+const e2e = process.env.NODE_ENV !== 'production' && (process.env.E2E === '1' || process.env.NODE_ENV === 'test');
+
+@Module({
+  imports: [
+    DiscoveryModule, // route enumeration for the isolation harness
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: process.env.NODE_ENV === 'test' ? 10_000 : 120 }]),
+    DbModule,
+    MailModule,
+    AuthModule,
+    AuditModule,
+    MeModule,
+    PlatformModule,
+    InvitationsModule,
+    OrgModule,
+    CalendarModule, // before InventoryModule: BlocksService registers itself as a calendar source
+    InventoryModule,
+    GuestsModule,
+    BookingsModule,
+    PaymentsModule,
+    IcalModule,
+    NotificationsModule,
+    AuditHttpModule,
+    FilesModule,
+    FilesHttpModule,
+    ...(e2e ? [TestSupportModule] : []),
+  ],
+  controllers: [HealthController],
+  providers: [
+    { provide: APP_PIPE, useClass: ZodValidationPipe },
+    // Order matters: rate limiting runs before session resolution.
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: SessionGuard },
+    { provide: APP_FILTER, useClass: ErrorFilter },
+  ],
+})
+export class AppModule {}

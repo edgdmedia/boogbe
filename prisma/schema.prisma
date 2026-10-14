@@ -1,0 +1,652 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["extendedWhereUnique"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────── Better Auth (global, no RLS) ─────────────
+// Field names follow Better Auth's schema (verify with `npx @better-auth/cli generate` after Task 5;
+// if the CLI output differs, the CLI output wins — update this file in the same PR).
+
+model User {
+  id            String         @id
+  name          String
+  email         String         @unique
+  emailVerified Boolean        @default(false)
+  image         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  role          String?        @default("user")
+  banned        Boolean?       @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  sessions      Session[]
+  accounts      Account[]
+  members       Member[]
+  invitations   Invitation[]
+  notifications Notification[]
+
+  @@map("user")
+}
+
+model Session {
+  id                   String   @id
+  expiresAt            DateTime
+  token                String   @unique
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  ipAddress            String?
+  userAgent            String?
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeOrganizationId String?
+  impersonatedBy       String?
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+/// The operator (tenant).
+model Organization {
+  id                  String               @id
+  name                String
+  slug                String               @unique
+  logo                String?
+  createdAt           DateTime             @default(now())
+  metadata            String?
+  timezone            String               @default("Africa/Lagos")
+  currency            String               @default("NGN")
+  status              String               @default("active")
+  contactEmail        String?
+  contactPhone        String?
+  whatsappPhone       String?
+  address             String?
+  members             Member[]
+  invitations         Invitation[]
+  orgSettings         OrgSettings?
+  orgCounters         OrgCounter[]
+  auditLogs           AuditLog[]
+  owners              Owner[]
+  properties          Property[]
+  units               Unit[]
+  unitOwnerships      UnitOwnership[]
+  unitFees            UnitFee[]
+  blocks              Block[]
+  files               File[]
+  guests              Guest[]
+  bookings            Booking[]
+  bookingLines        BookingLine[]
+  bookingStatusEvents BookingStatusEvent[]
+  notifications       Notification[]
+  payments            Payment[]
+  icalFeeds           IcalFeed[]
+  icalExports         IcalExport[]
+  syncConflicts       SyncConflict[]
+  messageTemplates    MessageTemplate[]
+  outboundMessages    OutboundMessage[]
+
+  @@map("organization")
+}
+
+model Member {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@map("member")
+}
+
+model Invitation {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  role           String?
+  status         String       @default("pending")
+  expiresAt      DateTime
+  inviterId      String
+  user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@index([email])
+  @@map("invitation")
+}
+
+// ───────────── Platform utilities (global, no RLS) ─────────────
+
+model LoginAttempt {
+  id        String   @id
+  email     String
+  ip        String?
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@map("login_attempt")
+}
+
+model JobRun {
+  id         String    @id
+  name       String
+  orgId      String?   @map("org_id")
+  startedAt  DateTime  @default(now()) @map("started_at")
+  finishedAt DateTime? @map("finished_at")
+  ok         Boolean?
+  error      String?
+  meta       Json?
+
+  @@index([name, startedAt])
+  @@map("job_run")
+}
+
+// ───────────── Tenant tables (RLS) ─────────────
+// Rule: every tenant model has `orgId String @map("org_id")` and NO Prisma relation to Organization
+// (FK is added in SQL) so creates always use scalar fields and the org-scope extension can inject orgId.
+
+model OrgSettings {
+  orgId                String       @id @map("org_id")
+  checkInTime          String       @default("14:00") @map("check_in_time")
+  checkOutTime         String       @default("12:00") @map("check_out_time")
+  holdHours            Int          @default(24) @map("hold_hours")
+  autoConfirmOnPayment Boolean      @default(true) @map("auto_confirm_on_payment")
+  ownerSeesGuestNames  Boolean      @default(false) @map("owner_sees_guest_names")
+  receiptPrefix        String       @map("receipt_prefix")
+  statementPrefix      String       @map("statement_prefix")
+  bookingPrefix        String       @map("booking_prefix")
+  logoKey              String?      @map("logo_key")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+  org                  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "org_settings_org_fk")
+
+  @@map("org_settings")
+}
+
+model OrgCounter {
+  orgId String       @map("org_id")
+  name  String
+  value BigInt       @default(0)
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "org_counter_org_fk")
+
+  @@id([orgId, name])
+  @@map("org_counter")
+}
+
+model AuditLog {
+  id            String       @id
+  orgId         String       @map("org_id")
+  actorUserId   String       @map("actor_user_id")
+  actorMemberId String?      @map("actor_member_id")
+  action        String
+  entity        String
+  entityId      String       @map("entity_id")
+  before        Json?
+  after         Json?
+  ip            String?
+  at            DateTime     @default(now())
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "audit_log_org_fk")
+
+  @@index([orgId, entity, entityId])
+  @@index([orgId, at])
+  @@map("audit_log")
+}
+
+// ───────────── Inventory (tenant, RLS) — M1 ─────────────
+// FKs to organization/owner are declared here (named via map:) so generated migrations never drop them.
+
+model Owner {
+  id                   String          @id
+  orgId                String          @map("org_id")
+  name                 String
+  phone                String?
+  email                String?
+  bankName             String?         @map("bank_name")
+  accountNumber        String?         @map("account_number")
+  accountName          String?         @map("account_name")
+  notes                String?
+  userId               String?         @map("user_id")
+  active               Boolean         @default(true)
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+  org                  Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "owner_org_fk")
+  defaultForProperties Property[]
+  ownerships           UnitOwnership[]
+
+  @@index([orgId, name])
+  @@map("owner")
+}
+
+model Property {
+  id                  String       @id
+  orgId               String       @map("org_id")
+  name                String
+  address             String
+  area                String?
+  defaultOwnerId      String?      @map("default_owner_id")
+  defaultOwner        Owner?       @relation(fields: [defaultOwnerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "property_default_owner_fk")
+  feeType             String       @default("none") @map("fee_type")
+  feeBps              Int          @default(0) @map("fee_bps")
+  feeFixedMonthlyKobo BigInt       @default(0) @map("fee_fixed_monthly_kobo")
+  notes               String?
+  active              Boolean      @default(true)
+  sortOrder           Int          @default(0) @map("sort_order")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+  org                 Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "property_org_fk")
+  units               Unit[]
+
+  @@index([orgId, sortOrder])
+  @@map("property")
+}
+
+model Unit {
+  id                      String          @id
+  orgId                   String          @map("org_id")
+  propertyId              String          @map("property_id")
+  property                Property        @relation(fields: [propertyId], references: [id])
+  name                    String
+  bedrooms                Int
+  maxGuests               Int             @map("max_guests")
+  nightlyRateKobo         BigInt          @map("nightly_rate_kobo")
+  defaultAssigneeMemberId String?         @map("default_assignee_member_id")
+  checkInInstructions     String?         @map("check_in_instructions")
+  ownerFollowsProperty    Boolean         @default(true) @map("owner_follows_property")
+  feeOverride             Boolean         @default(false) @map("fee_override")
+  feeType                 String          @default("none") @map("fee_type")
+  feeBps                  Int             @default(0) @map("fee_bps")
+  feeFixedMonthlyKobo     BigInt          @default(0) @map("fee_fixed_monthly_kobo")
+  active                  Boolean         @default(true)
+  sortOrder               Int             @default(0) @map("sort_order")
+  createdAt               DateTime        @default(now()) @map("created_at")
+  updatedAt               DateTime        @updatedAt @map("updated_at")
+  org                     Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "unit_org_fk")
+  ownerships              UnitOwnership[]
+  fees                    UnitFee[]
+  blocks                  Block[]
+  bookings                Booking[]
+  icalFeeds               IcalFeed[]
+  icalExports             IcalExport[]
+
+  @@unique([orgId, propertyId, name])
+  @@map("unit")
+}
+
+model UnitOwnership {
+  id            String       @id
+  orgId         String       @map("org_id")
+  unitId        String       @map("unit_id")
+  unit          Unit         @relation(fields: [unitId], references: [id])
+  ownerId       String?      @map("owner_id")
+  owner         Owner?       @relation(fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "unit_ownership_owner_fk")
+  effectiveFrom DateTime     @map("effective_from") @db.Date
+  effectiveTo   DateTime?    @map("effective_to") @db.Date
+  createdAt     DateTime     @default(now()) @map("created_at")
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "unit_ownership_org_fk")
+
+  @@index([orgId, unitId])
+  @@map("unit_ownership")
+}
+
+model UnitFee {
+  id             String       @id
+  orgId          String       @map("org_id")
+  unitId         String       @map("unit_id")
+  unit           Unit         @relation(fields: [unitId], references: [id])
+  kind           String
+  label          String
+  amountKobo     BigInt       @map("amount_kobo")
+  basis          String
+  includedGuests Int?         @map("included_guests")
+  refundable     Boolean      @default(false)
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "unit_fee_org_fk")
+
+  @@index([orgId, unitId])
+  @@map("unit_fee")
+}
+
+model Block {
+  id                String         @id
+  orgId             String         @map("org_id")
+  unitId            String         @map("unit_id")
+  unit              Unit           @relation(fields: [unitId], references: [id])
+  start             DateTime       @db.Date
+  end               DateTime       @db.Date
+  source            String
+  reason            String
+  note              String?
+  feedId            String?        @map("feed_id")
+  feed              IcalFeed?      @relation(fields: [feedId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "block_feed_fk")
+  externalUid       String?        @map("external_uid")
+  externalSummary   String?        @map("external_summary")
+  createdByMemberId String?        @map("created_by_member_id")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  org               Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "block_org_fk")
+  syncConflicts     SyncConflict[]
+
+  @@index([orgId, unitId, start])
+  @@map("block")
+}
+
+model File {
+  id                 String       @id
+  orgId              String       @map("org_id")
+  key                String       @unique
+  kind               String
+  contentType        String       @map("content_type")
+  sizeBytes          Int          @map("size_bytes")
+  uploadedByMemberId String?      @map("uploaded_by_member_id")
+  confirmed          Boolean      @default(false)
+  createdAt          DateTime     @default(now()) @map("created_at")
+  org                Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "file_org_fk")
+
+  @@index([orgId, kind])
+  @@map("file")
+}
+
+// ───────────── Guests & bookings (tenant, RLS) — M2 ─────────────
+
+model Guest {
+  id           String       @id
+  orgId        String       @map("org_id")
+  fullName     String       @map("full_name")
+  phoneE164    String       @map("phone_e164")
+  email        String?
+  notes        String?
+  anonymisedAt DateTime?    @map("anonymised_at")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "guest_org_fk")
+  bookings     Booking[]
+
+  @@index([orgId, phoneE164])
+  // Name search (GST-02); also created in 0004_bookings SQL with the same name.
+  @@index([fullName(ops: raw("gin_trgm_ops"))], type: Gin, map: "guest_name_trgm")
+  @@map("guest")
+}
+
+model Booking {
+  id                     String               @id
+  orgId                  String               @map("org_id")
+  ref                    String
+  unitId                 String               @map("unit_id")
+  unit                   Unit                 @relation(fields: [unitId], references: [id])
+  guestId                String               @map("guest_id")
+  guest                  Guest                @relation(fields: [guestId], references: [id])
+  checkIn                DateTime             @map("check_in") @db.Date
+  checkOut               DateTime             @map("check_out") @db.Date
+  guestCount             Int                  @map("guest_count")
+  source                 String
+  status                 String
+  holdUntil              DateTime?            @map("hold_until")
+  computedTotalKobo      BigInt               @map("computed_total_kobo")
+  finalTotalKobo         BigInt               @map("final_total_kobo")
+  depositKobo            BigInt               @default(0) @map("deposit_kobo")
+  overrideReason         String?              @map("override_reason")
+  capacityOverrideReason String?              @map("capacity_override_reason")
+  priceStale             Boolean              @default(false) @map("price_stale")
+  icalWarningAck         Boolean              @default(false) @map("ical_warning_ack")
+  notes                  String?
+  cancelledAt            DateTime?            @map("cancelled_at")
+  cancelReason           String?              @map("cancel_reason")
+  checkedInAt            DateTime?            @map("checked_in_at")
+  checkedOutAt           DateTime?            @map("checked_out_at")
+  createdByMemberId      String?              @map("created_by_member_id")
+  createdAt              DateTime             @default(now()) @map("created_at")
+  updatedAt              DateTime             @updatedAt @map("updated_at")
+  org                    Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "booking_org_fk")
+  lines                  BookingLine[]
+  events                 BookingStatusEvent[]
+  payments               Payment[]
+  syncConflicts          SyncConflict[]
+  outboundMessages       OutboundMessage[]
+
+  @@unique([orgId, ref])
+  @@index([orgId, unitId, checkIn])
+  @@index([orgId, status, holdUntil])
+  @@map("booking")
+}
+
+model BookingLine {
+  id             String       @id
+  orgId          String       @map("org_id")
+  bookingId      String       @map("booking_id")
+  booking        Booking      @relation(fields: [bookingId], references: [id])
+  position       Int
+  kind           String
+  feeKind        String?      @map("fee_kind")
+  label          String
+  quantity       Decimal      @db.Decimal(10, 2)
+  unitAmountKobo BigInt       @map("unit_amount_kobo")
+  amountKobo     BigInt       @map("amount_kobo")
+  refundable     Boolean
+  recognition    String
+  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "booking_line_org_fk")
+
+  @@index([orgId, bookingId])
+  @@map("booking_line")
+}
+
+model BookingStatusEvent {
+  id            String       @id
+  orgId         String       @map("org_id")
+  bookingId     String       @map("booking_id")
+  booking       Booking      @relation(fields: [bookingId], references: [id])
+  fromStatus    String?      @map("from_status")
+  toStatus      String       @map("to_status")
+  actorMemberId String?      @map("actor_member_id")
+  reason        String?
+  at            DateTime     @default(now())
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "booking_status_event_org_fk")
+
+  @@index([orgId, bookingId, at])
+  @@map("booking_status_event")
+}
+
+model Notification {
+  id        String       @id
+  orgId     String       @map("org_id")
+  userId    String       @map("user_id")
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notification_user_fk")
+  kind      String
+  title     String
+  body      String?
+  link      String?
+  dedupeKey String?      @map("dedupe_key")
+  readAt    DateTime?    @map("read_at")
+  createdAt DateTime     @default(now()) @map("created_at")
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notification_org_fk")
+
+  @@unique([orgId, userId, dedupeKey])
+  @@index([orgId, userId, createdAt])
+  @@map("notification")
+}
+
+// ───────────── Payments ledger (tenant, RLS, append-only) — M3 ─────────────
+
+model Payment {
+  id                 String       @id
+  orgId              String       @map("org_id")
+  bookingId          String       @map("booking_id")
+  booking            Booking      @relation(fields: [bookingId], references: [id])
+  kind               String
+  amountKobo         BigInt       @map("amount_kobo")
+  method             String
+  receivedOn         DateTime     @map("received_on") @db.Date
+  reference          String?
+  externalRef        String?      @map("external_ref")
+  note               String?
+  receiptNo          String?      @map("receipt_no")
+  voidsPaymentId     String?      @map("voids_payment_id")
+  voids              Payment?     @relation("PaymentVoids", fields: [voidsPaymentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "payment_voids_fk")
+  voidedBy           Payment[]    @relation("PaymentVoids")
+  recordedByMemberId String?      @map("recorded_by_member_id")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  org                Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payment_org_fk")
+
+  @@index([orgId, bookingId, createdAt])
+  @@index([orgId, receivedOn])
+  @@map("payment")
+}
+
+// ───────────── iCal channel sync (tenant, RLS) — M4 ─────────────
+
+model IcalFeed {
+  id                  String       @id
+  orgId               String       @map("org_id")
+  unitId              String       @map("unit_id")
+  label               String
+  channel             String
+  url                 String
+  etag                String?
+  lastModified        String?      @map("last_modified")
+  lastSyncedAt        DateTime?    @map("last_synced_at")
+  lastAttemptAt       DateTime?    @map("last_attempt_at")
+  lastStatus          String       @default("never") @map("last_status")
+  lastError           String?      @map("last_error")
+  consecutiveFailures Int          @default(0) @map("consecutive_failures")
+  active              Boolean      @default(true)
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+  org                 Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ical_feed_org_fk")
+  unit                Unit         @relation(fields: [unitId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "ical_feed_unit_fk")
+  blocks              Block[]
+  excludedBy          IcalExport[]
+
+  @@index([orgId, unitId])
+  @@map("ical_feed")
+}
+
+model IcalExport {
+  id            String       @id
+  orgId         String       @map("org_id")
+  unitId        String       @map("unit_id")
+  channel       String
+  token         String       @unique
+  excludeFeedId String?      @map("exclude_feed_id")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  rotatedAt     DateTime?    @map("rotated_at")
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ical_export_org_fk")
+  unit          Unit         @relation(fields: [unitId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "ical_export_unit_fk")
+  excludeFeed   IcalFeed?    @relation(fields: [excludeFeedId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "ical_export_feed_fk")
+
+  @@unique([orgId, unitId, channel])
+  @@map("ical_export")
+}
+
+/// `block_*` snapshot the channel event so a conflict stays readable after its block is deleted (block_id → NULL).
+model SyncConflict {
+  id                 String       @id
+  orgId              String       @map("org_id")
+  unitId             String       @map("unit_id")
+  bookingId          String       @map("booking_id")
+  blockId            String?      @map("block_id")
+  blockStart         DateTime     @map("block_start") @db.Date
+  blockEnd           DateTime     @map("block_end") @db.Date
+  blockSummary       String       @map("block_summary")
+  channel            String?
+  status             String       @default("open")
+  resolution         String?
+  resolvedByMemberId String?      @map("resolved_by_member_id")
+  resolvedAt         DateTime?    @map("resolved_at")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  org                Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "sync_conflict_org_fk")
+  booking            Booking      @relation(fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "sync_conflict_booking_fk")
+  block              Block?       @relation(fields: [blockId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "sync_conflict_block_fk")
+
+  @@index([orgId, status])
+  @@map("sync_conflict")
+}
+
+model MessageTemplate {
+  id           String       @id
+  orgId        String       @map("org_id")
+  key          String
+  emailSubject String       @map("email_subject")
+  emailBody    String       @map("email_body")
+  whatsappBody String       @map("whatsapp_body")
+  autoEmail    Boolean      @map("auto_email")
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "message_template_org_fk")
+
+  @@unique([orgId, key])
+  @@map("message_template")
+}
+
+model OutboundMessage {
+  id            String       @id
+  orgId         String       @map("org_id")
+  bookingId     String?      @map("booking_id")
+  paymentId     String?      @map("payment_id")
+  templateKey   String?      @map("template_key")
+  channel       String
+  recipient     String
+  subject       String?
+  bodyText      String       @map("body_text")
+  bodyHtml      String?      @map("body_html")
+  replyTo       String?      @map("reply_to")
+  fromName      String?      @map("from_name")
+  /// queued | sent | failed | whatsapp_opened | skipped_no_mailer (CHECK in 0007_messaging)
+  status        String
+  attempts      Int          @default(0)
+  nextAttemptAt DateTime?    @map("next_attempt_at")
+  providerId    String?      @map("provider_id")
+  error         String?
+  dedupeKey     String?      @map("dedupe_key")
+  actorMemberId String?      @map("actor_member_id")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  sentAt        DateTime?    @map("sent_at")
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "outbound_message_org_fk")
+  booking       Booking?     @relation(fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "outbound_message_booking_fk")
+
+  @@unique([orgId, dedupeKey])
+  @@index([status, nextAttemptAt])
+  @@index([orgId, bookingId, createdAt])
+  @@map("outbound_message")
+}

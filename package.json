@@ -1,0 +1,26 @@
+{
+  "name": "boogbe",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "engines": { "node": ">=22 <23" },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @boogbe/api --filter @boogbe/app run dev",
+    "build": "pnpm -r --if-present run build",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "lint": "eslint .",
+    "test": "pnpm -r --if-present run test",
+    "test:int": "pnpm --filter @boogbe/api run test:int",
+    "test:e2e": "playwright test",
+    "db:up": "docker compose -f docker-compose.dev.yml up -d",
+    "db:migrate": "pnpm --filter @boogbe/api run prisma:migrate:dev",
+    "db:reset": "pnpm --filter @boogbe/api run prisma:reset"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.12.0",
+    "@playwright/test": "^1.48.0",
+    "eslint": "^9.12.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.8.1"
+  }
+}

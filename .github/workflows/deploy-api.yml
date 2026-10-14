@@ -1,0 +1,23 @@
+name: Deploy API
+# Production only (launch, 2026-10-15): a push to main deploys api.boogbe.com; "Run workflow" re-deploys main.
+# CI runs on PRs only, so main is gated by the merge rule (AGENTS rule 6: rebase + full local gate before merging).
+# Staging comes back later with its own trigger for dev.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+jobs:
+  deploy:
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-api-prod
+      cancel-in-progress: false
+    steps:
+      - uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          command_timeout: 20m
+          script: cd /home/boogbe/app && bash deploy/deploy.sh prod
