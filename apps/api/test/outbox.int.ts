@@ -50,6 +50,7 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
   beforeEach(async () => {
     await truncateAll();
     w.mailer.sent.length = 0;
+    w.mailer.failNext(0);
     orgId = (await seedOrg('Tanuhomes')).id;
     const m = await migratorClient();
     await m.query(
@@ -123,8 +124,9 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
       `select status, extract(epoch from next_attempt_at - now()) as wait_s from outbound_message`,
     );
     expect(afterFirst[0].status).toBe('queued');
-    expect(Number(afterFirst[0].wait_s)).toBeGreaterThan(30); // 1-minute backoff, not the 10-minute lease
-    expect(Number(afterFirst[0].wait_s)).toBeLessThanOrEqual(60);
+    // 1-minute backoff, not the 10-minute lease (loose bounds: the time comes from Node, the check from Postgres).
+    expect(Number(afterFirst[0].wait_s)).toBeGreaterThan(30);
+    expect(Number(afterFirst[0].wait_s)).toBeLessThan(120);
     for (let i = 0; i < 2; i++) {
       await m.query(`update outbound_message set next_attempt_at = now() - interval '1 second'`);
       await w.job.run();
