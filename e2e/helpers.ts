@@ -1,5 +1,17 @@
 import { expect, type Browser, type Page } from '@playwright/test';
-import { inviteEmail, inviteUrl, operatorName, platformAdmin, slugFor } from './fixtures';
+import { PROD, inviteEmail, inviteUrl, operatorName, platformAdmin, slugFor } from './fixtures';
+
+/** Signs the platform admin in and opens Platform. In production the owner's account is also a Tanuhomes admin,
+ *  so it lands on /choose-operator (RoleLanding); Platform is opened explicitly there. */
+export async function signInPlatformAdmin(page: Page): Promise<void> {
+  await page.goto('/auth/sign-in');
+  await page.getByLabel('Email').fill(platformAdmin.email);
+  await page.getByLabel('Password').fill(platformAdmin.password);
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.waitForURL((u) => !u.pathname.startsWith('/auth/'));
+  if (PROD) await page.goto('/platform');
+  await expect(page.getByRole('heading', { name: 'Operators' })).toBeVisible();
+}
 
 /** E2E-01's flow as a reusable prologue: platform admin creates the operator and invites its first admin,
  *  who accepts from the invitation link in a second browser context and lands on the calendar.
@@ -8,10 +20,7 @@ export async function onboardOperator(page: Page, browser: Browser, base = 'tanu
   const slug = slugFor(base);
   const name = operatorName(base);
   const email = inviteEmail(slug);
-  await page.goto('/auth/sign-in');
-  await page.getByLabel('Email').fill(platformAdmin.email);
-  await page.getByLabel('Password').fill(platformAdmin.password);
-  await page.getByRole('button', { name: 'Sign in' }).click();
+  await signInPlatformAdmin(page);
   await page.getByRole('button', { name: 'New operator' }).click();
   await page.getByLabel('Business name').fill(name);
   await page.getByLabel('Slug').fill(slug);

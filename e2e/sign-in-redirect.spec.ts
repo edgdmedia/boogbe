@@ -1,8 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
-import { inviteEmail, operatorName, platformAdmin, resetDb, slugFor } from './fixtures';
+import { PROD, inviteEmail, operatorName, platformAdmin, resetDb, slugFor } from './fixtures';
 import { onboardOperator } from './helpers';
 
 test.beforeAll(() => resetDb());
+
+// In production the platform admin (the owner) is also a Tanuhomes admin, so signing in lands on /choose-operator.
+const adminHome = PROD ? /\/choose-operator$/ : /\/platform$/;
 
 // T-M2-13: opening the app signed out caches a 401 for /v1/me; signing in through the form must still land on the
 // right page in the same page load — no reload, no second visit to `/`.
@@ -15,6 +18,7 @@ const signInFromRoot = async (page: Page, email: string, password: string) => {
 };
 
 test('a platform admin who opens the app signed out lands on Platform after signing in', async ({ page }) => {
+  test.skip(PROD, 'the production platform admin is also an operator member');
   await signInFromRoot(page, platformAdmin.email, platformAdmin.password);
   await expect(page).toHaveURL(/\/platform$/);
 });
@@ -27,12 +31,13 @@ test('an operator admin who opens the app signed out is asked to choose the oper
   await expect(admin.getByText(operatorName('tanu-signin'))).toBeVisible();
 });
 
-test('a signed-in user who opens the sign-in page goes straight on, never off-site', async ({ page }) => {
+test('a signed-in user who opens the sign-in page goes straight on, never off-site', async ({ page, baseURL }) => {
   await signInFromRoot(page, platformAdmin.email, platformAdmin.password);
-  await expect(page).toHaveURL(/\/platform$/);
+  await expect(page).toHaveURL(adminHome);
   await page.goto('/auth/sign-in?next=%2Fplatform');
   await expect(page).toHaveURL(/\/platform$/);
   await page.goto('/auth/sign-in?next=%2F%2Fevil.example');
-  await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/platform$/);
+  await expect(page).toHaveURL(adminHome);
+  expect(new URL(page.url()).origin).toBe(new URL(baseURL!).origin);
   await expect(page.getByLabel('Password')).toHaveCount(0);
 });

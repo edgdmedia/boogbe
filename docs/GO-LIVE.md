@@ -8,7 +8,7 @@ Hosts: `api.boogbe.com` (VPS `server.edgdmedia.com`, user `boogbe`, PM2 on 127.0
 
 | Item | Used for |
 |---|---|
-| SSH to `server.edgdmedia.com` with sudo (and the deploy key for GitHub Actions) | server setup, `PROD_SSH_*` secrets |
+| SSH to `server.edgdmedia.com` with sudo, and SSH (22) reachable from GitHub Actions runners (not Cloudflare-only like 443) | server setup, `PROD_SSH_*` secrets |
 | Cloudflare: account ID, API token (Pages:Edit + DNS:Edit for boogbe.com), Origin Certificate for `*.boogbe.com` | DNS, Pages, TLS |
 | Cloudflare R2: bucket (e.g. `boogbe-prod`), S3 endpoint, access key ID and secret | uploads and nightly backups (production refuses to start without R2) |
 | Resend: API key, with domain `mail.boogbe.com` verified (SPF/DKIM/DMARC records in Cloudflare DNS) | emails (invites, password reset). Without it the API uses the in-memory mailer and sends nothing |
@@ -27,8 +27,23 @@ First check what the VPS already runs: another site may share nginx or Postgres.
 sudo nginx -v; psql --version; node -v 2>/dev/null; ls /etc/nginx/conf.d /etc/nginx/sites-enabled
 grep -rn "real_ip_header" /etc/nginx/ || true   # if another conf already sets it, merge cloudflare-realip.conf into that file instead of adding a second one (duplicate directive = nginx -t error)
 sudo adduser --disabled-password --gecos "" boogbe   # skip if it exists
-sudo apt-get update && sudo apt-get install -y postgresql-16 nginx awscli git   # skip what is installed
-sudo -iu boogbe bash -lc 'curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash && . ~/.nvm/nvm.sh && nvm install 22 && npm i -g pnpm@9 pm2'
+sudo apt-get update && sudo apt-get install -y nginx git unzip   # skip what is installed
+# PostgreSQL 16: in Ubuntu 24.04's own repo; on 22.04 add the PGDG repo first (sudo apt-get install -y postgresql-common && sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh)
+sudo apt-get install -y postgresql-16
+# AWS CLI v2 (backup.sh uploads to R2 with it; apt's "awscli" is v1 or missing on 24.04)
+cd /tmp && curl -fsSLo awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip && unzip -q awscliv2.zip && sudo ./aws/install && aws --version && cd -
+# Node 22 + pnpm + pm2 for the boogbe user only (other sites on the VPS keep their own Node)
+sudo -iu boogbe bash -c 'curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash && . ~/.nvm/nvm.sh && nvm install 22 && npm i -g pnpm@9 pm2'
+```
+
+nvm is not loaded by non-interactive shells, so every later command that needs node, pnpm or pm2 goes through this helper. Define it once in your sudo shell; it runs a command as `boogbe` in `/home/boogbe/app` with nvm loaded (`deploy.sh` loads nvm itself, so GitHub Actions needs nothing extra):
+```sh
+B() { sudo -iu boogbe bash -c '. ~/.nvm/nvm.sh >/dev/null && cd /home/boogbe/app && "$@"' _ "$@"; }
+```
+
+Deploy key for GitHub Actions (the private half becomes `PROD_SSH_KEY` in step 9):
+```sh
+sudo -iu boogbe bash -c 'mkdir -p -m 700 ~/.ssh && ssh-keygen -t ed25519 -N "" -C gh-actions-deploy -f ~/.ssh/gh_deploy && cat ~/.ssh/gh_deploy.pub >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
 ```
 
 ## 3. Postgres (prod database only)
@@ -54,7 +69,7 @@ sudo -iu boogbe bash -lc 'git clone --branch main https://github.com/edgdmedia/b
 
 ## 5. `.env` (prod), with permissions `600`
 
-In the same shell as step 3, so `$MIGRATOR_PW` and `$APP_PW` are still set. Replace each `<…>` by pasting from the provider:
+In the same shell as step 3, so `$MIGRATOR_PW` and `$APP_PW` are still set. Run the block **exactly as written**: the `<…>` placeholders stay in the command, so no provider key ever enters shell history. The editor afterwards is where you paste them.
 ```sh
 AUTH_SECRET=$(openssl rand -base64 48)
 sudo -iu boogbe tee /home/boogbe/app/.env > /dev/null <<EOF
@@ -78,6 +93,8 @@ SENTRY_DSN=
 EOF
 sudo chmod 600 /home/boogbe/app/.env && sudo chown boogbe: /home/boogbe/app/.env
 unset MIGRATOR_PW APP_PW AUTH_SECRET
+sudo -iu boogbe nano /home/boogbe/app/.env   # paste the Resend and R2 values over the <…> placeholders
+sudo grep -n '=<' /home/boogbe/app/.env      # must print nothing (no placeholder left)
 ```
 `API_PUBLIC_ORIGIN` is permanent (D-025): every iCal export link pasted into Airbnb or Booking.com is built from it. The API refuses to start in production if `API_PUBLIC_ORIGIN` isn't an https origin, if `BETTER_AUTH_SECRET` is the placeholder, or if R2 is missing.
 
@@ -88,15 +105,15 @@ sudo install -d -m 755 /etc/ssl/cloudflare
 sudo tee /etc/ssl/cloudflare/boogbe-origin.pem > /dev/null   # paste the origin certificate, Ctrl-D
 sudo tee /etc/ssl/cloudflare/boogbe-origin.key > /dev/null   # paste the private key, Ctrl-D
 sudo chmod 600 /etc/ssl/cloudflare/boogbe-origin.key
-cd /home/boogbe/app
-sudo cp deploy/nginx/cloudflare-realip.conf deploy/nginx/boogbe-logging.conf /etc/nginx/conf.d/   # see step 2 about real_ip_header
-sudo cp deploy/nginx/boogbe-api.conf /etc/nginx/sites-enabled/boogbe-api.conf
+A=/home/boogbe/app/deploy/nginx
+sudo cp $A/cloudflare-realip.conf $A/boogbe-logging.conf /etc/nginx/conf.d/   # see step 2 about real_ip_header
+sudo cp $A/boogbe-api.conf /etc/nginx/sites-enabled/boogbe-api.conf
 sudo nginx -t && sudo systemctl reload nginx
 (sudo crontab -l 2>/dev/null; echo '0 4 1 * * /home/boogbe/app/deploy/nginx/update-cloudflare-ips.sh') | sudo crontab -
 ```
 Firewall: 443 open to Cloudflare IPs only (ufw or the provider's firewall).
 
-The calendar-token masking (`boogbe-logging.conf`) was tested in an nginx 1.26 container. `nginx -t` passed, and `/v1/ical/<token>.ics` was logged as `/v1/ical/***.ics` (with any query string kept), with 0 occurrences of the token.
+The calendar-token masking (`boogbe-logging.conf`) logs everything after `/v1/ical/` as `***` (any case, any suffix, query string kept); step 11 checks it on the live server. The error log is at `crit`, because nginx's upstream errors (a 502 while PM2 reloads) write the full request line, token included.
 
 ## 7. Cloudflare
 
@@ -107,8 +124,8 @@ The calendar-token masking (`boogbe-logging.conf`) was tested in an nginx 1.26 c
 ## 8. First deploy (on the server, as `boogbe`)
 
 ```sh
-sudo -iu boogbe bash -lc 'cd /home/boogbe/app && bash deploy/deploy.sh prod && pm2 save'
-sudo -iu boogbe bash -lc 'pm2 startup systemd'   # prints one "sudo env PATH=… pm2 startup …" line: run exactly that line
+B bash deploy/deploy.sh prod && B pm2 save
+B pm2 startup systemd   # prints one "sudo env PATH=… pm2 startup …" line: run exactly that line
 ```
 `deploy.sh` does the following:
 1. pulls `main`;
@@ -125,7 +142,7 @@ Check: `pm2 ls` shows both processes online. Running `curl -s https://api.boogbe
 ```sh
 gh secret set PROD_SSH_HOST --body server.edgdmedia.com
 gh secret set PROD_SSH_USER --body boogbe
-gh secret set PROD_SSH_KEY < path/to/deploy_key        # private key whose public half is in /home/boogbe/.ssh/authorized_keys
+ssh <you>@server.edgdmedia.com sudo cat /home/boogbe/.ssh/gh_deploy | gh secret set PROD_SSH_KEY   # the key made in step 2; never written to your disk
 gh secret set CF_API_TOKEN                              # paste when prompted
 gh secret set CF_ACCOUNT_ID --body <account id>
 gh workflow run "Deploy App" --ref main && gh workflow run "Deploy API" --ref main
@@ -135,8 +152,8 @@ Check: https://app.boogbe.com loads the sign-in page, and both workflow runs are
 ## 10. Nightly backup to R2 (01:30 UTC = 02:30 Lagos)
 
 ```sh
-sudo -iu boogbe bash -lc '(crontab -l 2>/dev/null; echo "30 1 * * * /home/boogbe/app/deploy/backup.sh prod >> /home/boogbe/app/logs/backup.log 2>&1") | crontab -'
-sudo -iu boogbe bash -lc '/home/boogbe/app/deploy/backup.sh prod'    # run once now: prints "backup ok: backups/prod/…"
+sudo -iu boogbe bash -c '(crontab -l 2>/dev/null; echo "30 1 * * * /home/boogbe/app/deploy/backup.sh prod >> /home/boogbe/app/logs/backup.log 2>&1") | crontab -'
+B bash deploy/backup.sh prod    # run once now: prints "backup ok: backups/prod/…" (needs only pg_dump and aws, both on cron's PATH)
 ```
 Then within the first week, do the restore drill in `docs/RUNBOOK.md` and record it there.
 
@@ -145,21 +162,20 @@ Then within the first week, do the restore drill in `docs/RUNBOOK.md` and record
 ```sh
 curl -s -o /dev/null https://api.boogbe.com/v1/ical/NOT-A-REAL-TOKEN-123.ics
 sudo grep -c 'NOT-A-REAL-TOKEN' /var/log/nginx/boogbe-api.access.log   # must print 0
-sudo tail -1 /var/log/nginx/boogbe-api.access.log                        # shows /v1/ical/***.ics
+sudo tail -1 /var/log/nginx/boogbe-api.access.log                        # shows /v1/ical/***
 ```
 
 ## 12. Owner account, Tanuhomes, seed
 
 ```sh
-cd /home/boogbe/app
-read -rsp 'Password: ' PW && echo && pnpm --filter @boogbe/api create-platform-admin -- edgdmedia@gmail.com "<Your name>" "$PW"; unset PW   # never on the command line or in history
+read -rsp 'Password: ' PW && echo && printf '%s' "$PW" | B pnpm --filter @boogbe/api create-platform-admin -- edgdmedia@gmail.com "<Your name>" -; unset PW   # "-" reads it from stdin: never in history or ps
 ```
 1. Sign in at https://app.boogbe.com, go to **Platform**, then **New operator**: "Tanuhomes", slug `tanuhomes`.
 2. Invite `edgdmedia@gmail.com` as admin and accept the emailed link.
 3. Copy the operator id from the Platform page URL, then on the server run:
 
 ```sh
-cd /home/boogbe/app && pnpm --filter @boogbe/api exec tsx scripts/seed-tanuhomes.ts <tanuhomes org id>
+B pnpm --filter @boogbe/api exec tsx scripts/seed-tanuhomes.ts <tanuhomes org id>
 ```
 
 ## 13. Smoke test against production (E2E-01…04), then clean up

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { inviteEmail, inviteUrl, operatorName, platformAdmin, resetDb, slugFor } from './fixtures';
+import { inviteEmail, inviteUrl, operatorName, resetDb, slugFor } from './fixtures';
+import { signInPlatformAdmin } from './helpers';
 
 test.beforeAll(() => resetDb());
 
@@ -7,11 +8,7 @@ test('E2E-01 platform admin creates operator, invites admin, admin lands on cale
   const slug = slugFor('tanuhomes');
   const name = operatorName('tanuhomes');
   const email = inviteEmail(slug);
-  await page.goto('/auth/sign-in');
-  await page.getByLabel('Email').fill(platformAdmin.email);
-  await page.getByLabel('Password').fill(platformAdmin.password);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page.getByRole('heading', { name: 'Operators' })).toBeVisible();
+  await signInPlatformAdmin(page);
 
   await page.getByRole('button', { name: 'New operator' }).click();
   await page.getByLabel('Business name').fill(name);

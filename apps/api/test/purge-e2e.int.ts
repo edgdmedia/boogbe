@@ -68,6 +68,12 @@ describe('purge-e2e-operators (production E2E clean-up)', () => {
       const e3 = await operatorWithData('e2e-run3-y');
       const r3 = await purgeE2eOperators(m, 'e2e-run3-', { apply: true, protectEmails: [e3.user.email.toUpperCase()] });
       expect(r3.users).toEqual([]);
+
+      const e4 = await operatorWithData('e2e-run4-z');
+      await m.query(`update "user" set role='admin' where id=$1`, [e4.user.id]);
+      const r4 = await purgeE2eOperators(m, 'e2e-run4-', { apply: true, protectEmails: [] });
+      expect(r4.users).toEqual([]);
+      expect(await count(m, `select count(*)::int n from "user" where id=$1`, [e4.user.id])).toBe(1);
     } finally {
       await m.end();
     }
@@ -76,8 +82,9 @@ describe('purge-e2e-operators (production E2E clean-up)', () => {
   it('refuses anything that is not an e2e- prefix', async () => {
     m = await migratorClient();
     try {
-      for (const bad of ['', 'tanuhomes', '%', 'e2e', 'e2e%', 'E2E-x', 'x-e2e-1'])
+      for (const bad of ['', 'tanuhomes', '%', 'e2e', 'e2e-', 'e2e%', 'e2e-25', 'E2E-x-', 'x-e2e-1-'])
         await expect(purgeE2eOperators(m, bad, { apply: true, protectEmails: [] })).rejects.toThrow(/refusing prefix/);
+      await expect(purgeE2eOperators(m, 'e2e-25-', { apply: false, protectEmails: [] })).resolves.toMatchObject({ deleted: false });
     } finally {
       await m.end();
     }

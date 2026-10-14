@@ -62,12 +62,14 @@
 ## Production E2E (smoke test after a deploy)
 Runs E2E-01…04 and the sign-in checks against https://app.boogbe.com, desktop only. It creates throwaway operators named `e2e-<run>-…`, **never resets anything**, and the invitation emails go to `E2E_INVITE_EMAIL` with a `+<slug>` tag. Then the operators are purged.
 ```sh
-RUN=$(date +%y%m%d%H%M)
-E2E_BASE_URL=https://app.boogbe.com E2E_RUN_ID=$RUN \
-E2E_ADMIN_EMAIL=edgdmedia@gmail.com E2E_ADMIN_PASSWORD='<platform admin password>' E2E_INVITE_EMAIL=edgdmedia@gmail.com \
-  pnpm test:e2e
-# on the server, in /home/boogbe/app:
-pnpm --filter @boogbe/api exec tsx scripts/purge-e2e-operators.ts "e2e-$RUN-"         # dry run: lists operators + users
-pnpm --filter @boogbe/api exec tsx scripts/purge-e2e-operators.ts "e2e-$RUN-" --yes   # deletes them (and their own users; never a platform admin)
+# on your machine, in the repo:
+RUN=$(date +%y%m%d%H%M); echo "run id: $RUN"   # note it: the server needs it below
+read -rsp 'Platform admin password: ' E2E_ADMIN_PASSWORD && echo && export E2E_ADMIN_PASSWORD
+E2E_BASE_URL=https://app.boogbe.com E2E_RUN_ID=$RUN E2E_ADMIN_EMAIL=edgdmedia@gmail.com E2E_INVITE_EMAIL=edgdmedia@gmail.com \
+  pnpm test:e2e; unset E2E_ADMIN_PASSWORD
+# on the server (B is the helper from docs/GO-LIVE.md step 2), with the run id from above:
+RUN=<run id>
+B pnpm --filter @boogbe/api exec tsx scripts/purge-e2e-operators.ts "e2e-$RUN-"         # dry run: lists operators + users
+B pnpm --filter @boogbe/api exec tsx scripts/purge-e2e-operators.ts "e2e-$RUN-" --yes   # deletes them (and their own users; never a platform admin)
 ```
-The purge refuses any prefix that doesn't start with `e2e-`. It runs as `boogbe_migrator`, because payments and audit rows are append-only for the app role.
+The purge refuses any prefix that isn't exactly `e2e-<run>-…`, so one run's prefix can't match another run's operators. Files a test operator uploaded to R2 (receipts) stay behind; they are a few KB, under `org/<org id>/`. It runs as `boogbe_migrator`, because payments and audit rows are append-only for the app role.

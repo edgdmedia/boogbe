@@ -22,7 +22,7 @@ export async function purgeE2eOperators(
   prefix: string,
   opts: { apply: boolean; protectEmails: string[] },
 ): Promise<PurgeResult> {
-  if (!/^e2e-[a-z0-9]+(-[a-z0-9-]*)?$/.test(prefix)) throw new Error(`refusing prefix "${prefix}": must start with e2e-<run>`);
+  if (!/^e2e-[a-z0-9]+-[a-z0-9-]*$/.test(prefix)) throw new Error(`refusing prefix "${prefix}": must start with e2e-<run>-`);
   await db.query('BEGIN');
   try {
     const orgs = (
