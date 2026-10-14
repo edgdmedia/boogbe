@@ -1,7 +1,13 @@
 name: CI
+# Minutes budget: PRs are the gate (merges to dev were already checked on the PR);
+# board/docs-only changes don't run CI. Push runs only on main.
 on:
-  pull_request: { branches: [dev, main] }
-  push: { branches: [dev, main] }
+  pull_request:
+    branches: [dev, main]
+    paths-ignore: ['docs/**', '**/*.md']
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', '**/*.md']
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
