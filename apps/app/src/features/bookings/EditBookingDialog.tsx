@@ -84,7 +84,9 @@ export function EditBookingForm({ booking, onSaved }: { booking: Booking; onSave
                   {[...groups.entries()].map(([pid, list]) => (
                     <optgroup key={pid} label={props?.items.find((pp) => pp.id === pid)?.name ?? 'Property'}>
                       {list.map((u) => (
-                        <option key={u.id} value={u.id}>
+                        // only the booking's own archived unit stays selectable — the API
+                        // refuses moving onto any archived unit (T-M2-12 review)
+                        <option key={u.id} value={u.id} disabled={!u.active && u.id !== booking.unit.id}>
                           {u.name}
                           {u.active ? '' : ' (archived)'}
                         </option>

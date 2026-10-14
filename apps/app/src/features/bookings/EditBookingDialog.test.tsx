@@ -6,6 +6,7 @@ const units = {
   items: [
     { id: 'u1', name: 'Kairo', maxGuests: 4, propertyId: 'p1', active: true },
     { id: 'u2', name: 'Kairo', maxGuests: 2, propertyId: 'p2', active: false },
+    { id: 'u3', name: 'Sable', maxGuests: 2, propertyId: 'p1', active: false },
   ],
 };
 const properties = { items: [{ id: 'p1', name: 'The Rock' }, { id: 'p2', name: 'Josephine’s (Ologolo)' }] };
@@ -47,7 +48,12 @@ describe('EditBookingForm unit select [T-M2-12]', () => {
     expect(screen.getByRole('group', { name: 'Josephine’s (Ologolo)' })).toBeInTheDocument();
     const options = screen.getAllByRole('option');
     expect(options.map((o) => o.textContent)).toContain('Kairo (archived)');
-    // the booking's own (archived) unit is the selected value, not a blank
+    // a DIFFERENT archived unit is visible but disabled — the API refuses moves onto it (T-M2-12 review)
+    expect(screen.getByRole('option', { name: 'Sable (archived)' })).toBeDisabled();
+    // the booking's own archived unit is enabled, selected, and not a blank
+    const own = screen.getByRole('option', { name: 'Kairo (archived)' });
+    expect(own).toBeEnabled();
+    expect(own).toHaveAttribute('value', 'u2');
     expect(screen.getByRole('combobox', { name: 'Unit' })).toHaveValue('u2');
   });
 });
