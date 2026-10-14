@@ -49,7 +49,10 @@ export class ConflictsService implements OnModuleInit {
    * "handled on the channel" stays resolved, or every sync would raise it again.
    */
   async recompute(tx: OrgTx, orgId: string, unitId: string): Promise<void> {
-    await tx.$queryRaw`SELECT id FROM unit WHERE id = ${unitId} FOR UPDATE`; // one recompute per unit at a time
+    // One recompute per unit at a time, so two syncs/edits can't both open the same conflict. An advisory lock, not
+    // `unit … FOR UPDATE`: booking edits already lock units and bookings in their own order, and a second row lock
+    // here deadlocked two bookings swapping units. While held, this only touches sync_conflict and notification rows.
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`sync_conflict:${unitId}`}, 0))`;
     const pairs = await tx.$queryRaw<
       { booking_id: string; ref: string; block_id: string; start: Date; end: Date; summary: string | null; channel: string | null }[]
     >`
@@ -111,8 +114,9 @@ export class ConflictsService implements OnModuleInit {
       });
       const bm = new Map(bookings.map((b) => [b.id, b]));
       return {
-        items: rows.map((r) => {
-          const b = bm.get(r.bookingId)!;
+        items: rows.flatMap((r) => {
+          const b = bm.get(r.bookingId);
+          if (!b) return []; // bookings are never hard-deleted (FK NO ACTION); skip rather than crash if one is
           return {
             id: r.id,
             status: r.status as SyncConflict['status'],

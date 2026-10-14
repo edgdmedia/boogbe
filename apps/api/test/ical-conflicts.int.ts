@@ -6,6 +6,9 @@ import { seedBooking, seedGuest, seedProperty, seedUnit } from './helpers/invent
 import { ICAL_FETCHER } from '../src/modules/ical/tokens';
 import { IcalSyncService } from '../src/modules/ical/sync.service';
 import { newId } from '../src/common/db/ids';
+import { Test } from '@nestjs/testing';
+import { BookingHoldsJob } from '../src/modules/bookings/booking-holds.job';
+import { WorkerModule } from '../src/worker.module';
 
 const cal = (events: { uid: string; s: string; e: string }[]) =>
   `BEGIN:VCALENDAR\nVERSION:2.0\n${events
@@ -181,6 +184,37 @@ describe('channel conflicts [ICS-05 CAL-04]', () => {
       .send({ unitId, guestId, checkIn: '2026-11-01', checkOut: '2026-11-04', guestCount: 2, source: 'phone', acknowledgeIcalOverlap: true })
       .expect(201);
     expect(await conflicts('open')).toHaveLength(1);
+  });
+
+  it('an expired hold clears its conflict (holds job, no member context)', async () => {
+    await stay('tentative');
+    body = cal(OVERLAP);
+    await sync();
+    expect(await conflicts('open')).toHaveLength(1);
+    const m = await migratorClient();
+    await m.query(`update booking set hold_until = now() - interval '1 minute' where org_id = $1`, [orgId]);
+    await m.end();
+    const mod = await Test.createTestingModule({ imports: [WorkerModule] }).compile();
+    await mod.init();
+    await mod.get(BookingHoldsJob).run();
+    await mod.close();
+    expect(await conflicts('open')).toHaveLength(0);
+    expect((await conflicts('resolved'))[0]).toMatchObject({ resolution: 'cleared' });
+  });
+
+  it('two bookings swapping units at the same time both succeed (no lock-order deadlock)', async () => {
+    const unitB = await seedUnit(orgId, await seedProperty(orgId));
+    for (let i = 0; i < 6; i++) {
+      const day = (n: number) => `2027-0${1 + (i % 9)}-${String(10 + n).padStart(2, '0')}`;
+      // Different dates, so each unit is free for the other booking and both moves get past the overlap check.
+      const x = await seedBooking(orgId, unitId, await seedGuest(orgId), { checkIn: day(0), checkOut: day(1), status: 'confirmed' });
+      const y = await seedBooking(orgId, unitB, await seedGuest(orgId), { checkIn: day(5), checkOut: day(6), status: 'confirmed' });
+      const statuses = await Promise.all([
+        admin.patch(`/v1/bookings/${x}`).send({ unitId: unitB }).then((r) => r.status),
+        admin.patch(`/v1/bookings/${y}`).send({ unitId }).then((r) => r.status),
+      ]);
+      expect(statuses).toEqual([200, 200]);
+    }
   });
 
   it('resolving an unknown or already-resolved conflict is 404', async () => {
