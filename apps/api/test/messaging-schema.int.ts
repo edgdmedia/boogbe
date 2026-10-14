@@ -87,16 +87,20 @@ describe('messaging schema [MSG-01 MSG-05]', () => {
     const m = await migratorClient();
     const due = [newId(), newId()];
     try {
+      // Everything that must NOT be claimed is older than the due messages, so a missing condition shows up first.
+      await m.query(INSERT, msg(live.id, { next: '2999-01-01T00:00:00Z', at: '2026-10-14T07:00:00Z' })); // retry not due yet
+      for (const status of ['sent', 'failed', 'skipped_no_mailer'])
+        await m.query(INSERT, msg(live.id, { status, at: '2026-10-14T07:00:00Z' }));
+      await m.query(INSERT, msg(suspended.id, { at: '2026-10-14T07:00:00Z' }));
+      await m.query(`update organization set status='suspended' where id=$1`, [suspended.id]);
       await m.query(INSERT, msg(live.id, { id: due[1]!, at: '2026-10-14T09:05:00Z' }));
       await m.query(INSERT, msg(live.id, { id: due[0]!, at: '2026-10-14T09:00:00Z', next: '2000-01-01T00:00:00Z' }));
-      await m.query(INSERT, msg(live.id, { next: '2999-01-01T00:00:00Z' })); // retry not due yet
-      for (const status of ['sent', 'failed', 'skipped_no_mailer']) await m.query(INSERT, msg(live.id, { status }));
-      await m.query(INSERT, msg(suspended.id));
-      await m.query(`update organization set status='suspended' where id=$1`, [suspended.id]);
 
-      const claimed = (await app.query(`select * from claim_outbound(10)`)).rows;
-      expect(claimed.map((r) => r.id)).toEqual(due);
-      expect(claimed.every((r) => r.org_id === live.id)).toBe(true);
+      // RETURNING order is not guaranteed, so "oldest first" is checked through the limit: one at a time.
+      const first = (await app.query(`select * from claim_outbound(1)`)).rows;
+      expect(first).toEqual([{ id: due[0], org_id: live.id }]);
+      const rest = (await app.query(`select * from claim_outbound(10)`)).rows;
+      expect(rest).toEqual([{ id: due[1], org_id: live.id }]);
       const rows = (await m.query(`select attempts, next_attempt_at > now() as leased from outbound_message where id = any($1)`, [due])).rows;
       expect(rows).toEqual([
         { attempts: 1, leased: true },
