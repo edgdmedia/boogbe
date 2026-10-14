@@ -9,6 +9,8 @@ import { newId } from '../src/common/db/ids';
 import { Test } from '@nestjs/testing';
 import { BookingHoldsJob } from '../src/modules/bookings/booking-holds.job';
 import { WorkerModule } from '../src/worker.module';
+import { MAILER } from '../src/common/mail/mail.module';
+import type { MemoryMailer } from '../src/common/mail/mailer';
 
 const cal = (events: { uid: string; s: string; e: string }[]) =>
   `BEGIN:VCALENDAR\nVERSION:2.0\n${events
@@ -124,6 +126,23 @@ describe('channel conflicts [ICS-05 CAL-04]', () => {
     body = cal(OVERLAP);
     await sync();
     expect(await conflicts('open')).toHaveLength(1);
+  });
+
+  it('a conflict that clears and re-opens alerts again — one alert per episode', async () => {
+    const mail = t.app.get<MemoryMailer>(MAILER);
+    mail.sent.length = 0;
+    const b = await stay('confirmed');
+    body = cal(OVERLAP);
+    await sync();
+    await sync(); // same episode: no repeat
+    expect(await conflictNotes()).toHaveLength(1);
+    await admin.patch(`/v1/bookings/${b}`).send({ checkOut: '2026-11-03' }).expect(200); // same block, overlap gone
+    expect(await conflicts('open')).toHaveLength(0);
+    await admin.patch(`/v1/bookings/${b}`).send({ checkOut: '2026-11-04', acknowledgeIcalOverlap: true }).expect(200); // and back: new episode
+    await sync();
+    expect(await conflicts('open')).toHaveLength(1);
+    expect(await conflictNotes()).toHaveLength(2);
+    expect(mail.sent.filter((m) => /double booking/i.test(m.subject))).toHaveLength(2);
   });
 
   it('resolve as cancel_booking cancels with refund and records the resolution', async () => {
