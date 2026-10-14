@@ -35,9 +35,22 @@ export const SendEmailInput = z.object({ templateKey: TemplateKeyEnum, subject: 
 export type SendEmailInput = z.infer<typeof SendEmailInput>;
 export const WhatsappOpenedInput = z.object({ templateKey: TemplateKeyEnum });
 export type WhatsappOpenedInput = z.infer<typeof WhatsappOpenedInput>;
+/**
+ * `skipped_no_mailer`: the email was never handed to a provider because no real mailer is configured (no
+ * RESEND_API_KEY). It must never show as sent (owner, 2026-10-14).
+ */
+export const MessageStatus = z.enum(['queued', 'sent', 'failed', 'whatsapp_opened', 'skipped_no_mailer']);
+export type MessageStatus = z.infer<typeof MessageStatus>;
+export const MESSAGE_STATUS_LABELS: Record<MessageStatus, string> = {
+  queued: 'Sending…',
+  sent: 'Sent',
+  failed: 'Failed',
+  whatsapp_opened: 'Opened in WhatsApp',
+  skipped_no_mailer: 'Not sent (email not set up)',
+};
 export const MessageLogEntry = z.object({
   id: z.string(), templateKey: z.string().nullable(), channel: z.enum(['email', 'whatsapp']), recipient: z.string(), subject: z.string().nullable(),
-  status: z.enum(['queued', 'sent', 'failed', 'whatsapp_opened']), attempts: z.number().int(), error: z.string().nullable(),
+  status: MessageStatus, attempts: z.number().int(), error: z.string().nullable(),
   actorName: z.string().nullable(), createdAt: z.string(), sentAt: z.string().nullable(),
 });
 export type MessageLogEntry = z.infer<typeof MessageLogEntry>;
