@@ -2,8 +2,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useSWRConfig } from 'swr';
 import { z } from 'zod';
+import { MeResponse } from '@boogbe/shared';
 import { Button, Card, Field, Input } from '@boogbe/ui';
+import { api, ApiError } from '../../lib/api';
 import { authClient } from '../../lib/auth-client';
 
 const Schema = z.object({
@@ -13,6 +16,7 @@ const Schema = z.object({
 
 export function SignIn() {
   const nav = useNavigate();
+  const { mutate } = useSWRConfig();
   const [params] = useSearchParams();
   const [serverError, setServerError] = useState<string>();
   const { register, handleSubmit, formState } = useForm<z.infer<typeof Schema>>({ resolver: zodResolver(Schema) });
@@ -23,6 +27,14 @@ export function SignIn() {
       return setServerError(
         r.error.status === 429 ? 'Too many attempts. Try again in 15 minutes.' : 'Invalid email or password',
       );
+    }
+    // Everything cached so far was fetched signed out — including the 401 for /v1/me that made the app send us
+    // here. Drop it all and load the session before navigating, or RequireAuth bounces straight back (T-M2-13).
+    await mutate((key) => key !== '/v1/me', undefined, { revalidate: false });
+    try {
+      await mutate('/v1/me', api('/v1/me', { schema: MeResponse }), { revalidate: false });
+    } catch (e) {
+      return setServerError(e instanceof ApiError ? e.message : 'Something went wrong');
     }
     nav(params.get('next') ?? '/', { replace: true });
   });
