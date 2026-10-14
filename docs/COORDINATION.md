@@ -74,21 +74,21 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M3-02 | Schema 0005: payment table, booking_money view, append-only grants | schema | T-M3-01 | claude | done | [#38](https://github.com/edgdmedia/boogbe/pull/38) | Rebased on dev after #36 merged |
 | T-M3-03 | Payments API, booking decoration, auto-confirm, balance filter, calendar balances | api | T-M3-02 | claude | done | [#39](https://github.com/edgdmedia/boogbe/pull/39) | Stacked on #38 |
 | T-M3-04 | Cancel with refund; receipt PDF | api | T-M3-03 | claude | done | [#40](https://github.com/edgdmedia/boogbe/pull/40) | Stacked on #39 (rebased) |
-| T-M3-05 | Money summary API | api | T-M3-03 | claude | review | [#44](https://github.com/edgdmedia/boogbe/pull/44) | From dev |
-| T-M3-06 | Payments panel and refund-on-cancel UI | ui | T-M3-01 (stub); merge after T-M3-04 | opencode | review | [#54](https://github.com/edgdmedia/boogbe/pull/54) | deps merged; app 36/36, int 137/137 — Approved T-M3-06 by claude (non-blocking follow-ups in PR) |
-| T-M3-07 | Money dashboard UI + E2E-04 | ui, e2e | T-M3-05, T-M3-06 | | todo | | suggested: opencode |
+| T-M3-05 | Money summary API | api | T-M3-03 | claude | done | [#44](https://github.com/edgdmedia/boogbe/pull/44) | opencode approved+merged earlier (parenthesised-OR property-filter bug fixed) |
+| T-M3-06 | Payments panel and refund-on-cancel UI | ui | T-M3-01 (stub); merge after T-M3-04 | opencode | done | [#54](https://github.com/edgdmedia/boogbe/pull/54) | Approved T-M3-06 by claude; opencode merged |
+| T-M3-07 | Money dashboard UI + E2E-04 | ui, e2e | T-M3-05, T-M3-06 | opencode | in_progress | | deps merged (#44, #54) |
 | T-M4-01 | iCal contracts | domain | M2 | claude | done | [#42](https://github.com/edgdmedia/boogbe/pull/42) | From dev; independent of M3; merged |
 | T-M4-02 | Schema: feeds, exports, conflicts, token lookup function | schema | T-M4-01 | claude | done | [#47](https://github.com/edgdmedia/boogbe/pull/47) | Stacked on #42; merged |
 | T-M4-03 | SSRF-safe fetcher, node-ical parser and fixtures | api | T-M4-01 | claude | done | [#43](https://github.com/edgdmedia/boogbe/pull/43) | From dev; independent of M3 and #42; merged |
-| T-M4-04 | Feeds API, sync service, import job, health alerts, AlertMailer | api | T-M4-02, T-M4-03 | claude | review | [#48](https://github.com/edgdmedia/boogbe/pull/48) | Stacked on #47 → #42, with #43 merged in |
+| T-M4-04 | Feeds API, sync service, import job, health alerts, AlertMailer | api | T-M4-02, T-M4-03 | claude | done | [#48](https://github.com/edgdmedia/boogbe/pull/48) | Approved T-M4-04 by opencode; int 146/146 verified; merged |
 | T-M4-05 | Conflicts: detection, resolution, calendar flag | api | T-M4-04; M3 (cancelWithRefund) |  | todo |  | suggested: claude |
-| T-M4-06 | Export links and public .ics | api | T-M4-02 | claude | review | [#55](https://github.com/edgdmedia/boogbe/pull/55) | Stacked on #48 (needs FeedsService for relink); merge #48 first. New env API_PUBLIC_ORIGIN; opencode reviews |
+| T-M4-06 | Export links and public .ics | api | T-M4-02 | claude | done | [#55](https://github.com/edgdmedia/boogbe/pull/55) | Approved T-M4-06 by opencode; int 157/157 verified; merged. Owner: set API_PUBLIC_ORIGIN before any deploy (D-025) |
 | T-M4-07 | Calendar-sync UI, conflicts page, calendar markers | ui | T-M4-01 (stub); merge after T-M4-05/06 |  | todo |  | suggested: opencode |
 | T-M4-08 | Production go-live for Tanuhomes | infra | all above |  | todo |  | claude + owner; blocked until owner allows VPS work |
-| T-M7-01 | Revenue recognition, allocation, statement maths | domain | M3 (T-M3-01) | claude | review | [#49](https://github.com/edgdmedia/boogbe/pull/49) | From dev; pure domain, not stacked; opencode reviews |
-| T-M5-01 | Template renderer, safe Markdown, wa.me links, defaults, message contracts | domain | M3 (T-M3-01) | claude | review | [#50](https://github.com/edgdmedia/boogbe/pull/50) | From dev; pure domain, not stacked; opencode reviews |
-| T-M6-01 | Turnover due-time rule and task contracts | domain | M2 | claude | review | [#51](https://github.com/edgdmedia/boogbe/pull/51) | From dev; pure domain, not stacked; opencode reviews |
-| T-M7-02 | Expense, statement and owner portal contracts | domain | T-M7-01 (plan order only; no code dependency) | claude | review | [#53](https://github.com/edgdmedia/boogbe/pull/53) | From dev; not stacked; opencode reviews; one-line index.ts conflict with #49 for whichever merges second |
+| T-M7-01 | Revenue recognition, allocation, statement maths | domain | M3 (T-M3-01) | claude | done | [#49](https://github.com/edgdmedia/boogbe/pull/49) | Approved T-M7-01 by opencode (D-024 arithmetic checked by hand); rebased twice over index.ts, merged; shared 131 |
+| T-M5-01 | Template renderer, safe Markdown, wa.me links, defaults, message contracts | domain | M3 (T-M3-01) | claude | done | [#50](https://github.com/edgdmedia/boogbe/pull/50) | Approved T-M5-01 by opencode (https-only hrefs, encoded values in links); merged |
+| T-M6-01 | Turnover due-time rule and task contracts | domain | M2 | claude | done | [#51](https://github.com/edgdmedia/boogbe/pull/51) | Approved T-M6-01 by opencode; rebased over index.ts, merged |
+| T-M7-02 | Expense, statement and owner portal contracts | domain | T-M7-01 (plan order only; no code dependency) | claude | done | [#53](https://github.com/edgdmedia/boogbe/pull/53) | Approved T-M7-02 by opencode; index conflict with #49/#51 resolved keeping both; shared 188; merged |
 
 ## Parallelism map (by milestone)
 
