@@ -16,13 +16,16 @@ export function StatusActions({ booking, onChanged }: { booking: Booking; onChan
   const [refundMethod, setRefundMethod] = useState<PaymentMethod>('bank_transfer');
   const [refundReference, setRefundReference] = useState('');
   // same SWR key as PaymentsPanel — no extra request when both are on screen
-  const { data: ledger } = useLedger(booking.id);
+  const { data: ledger, mutate: mutateLedger } = useLedger(booking.id);
   const netPaid = ledger?.totals.netPaidKobo ?? 0;
   const depositHeld = ledger?.totals.depositHeldKobo ?? 0;
   const run = async (p: Promise<unknown>) => {
     setErr(undefined);
     try {
       await p;
+      // transitions and cancels (with refund) move money — revalidate the ledger so the
+      // Payments panel stops showing pre-action entries (bug bash: refund row missing until reload)
+      await mutateLedger();
       onChanged();
     } catch (x) {
       setErr(x instanceof ApiError ? bookingErrorMessage(x) : String(x));
