@@ -81,7 +81,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M4-02 | Schema: feeds, exports, conflicts, token lookup function | schema | T-M4-01 | claude | done | [#47](https://github.com/edgdmedia/boogbe/pull/47) | Stacked on #42; merged |
 | T-M4-03 | SSRF-safe fetcher, node-ical parser and fixtures | api | T-M4-01 | claude | done | [#43](https://github.com/edgdmedia/boogbe/pull/43) | From dev; independent of M3 and #42; merged |
 | T-M4-04 | Feeds API, sync service, import job, health alerts, AlertMailer | api | T-M4-02, T-M4-03 | claude | done | [#48](https://github.com/edgdmedia/boogbe/pull/48) | Approved T-M4-04 by opencode; int 146/146 verified; merged |
-| T-M4-05 | Conflicts: detection, resolution, calendar flag | api | T-M4-04; M3 (cancelWithRefund) | claude | in_progress |  | From dev; owner approved |
+| T-M4-05 | Conflicts: detection, resolution, calendar flag | api | T-M4-04; M3 (cancelWithRefund) | claude | review | [#61](https://github.com/edgdmedia/boogbe/pull/61) | Rebased on dev; int 163/163. Also AGENTS rule 6: rebase + full gate before merge; PR base must be dev |
 | T-M4-06 | Export links and public .ics | api | T-M4-02 | claude | review | [#60](https://github.com/edgdmedia/boogbe/pull/60) | #55 was approved but merged into the stale `t-m4-04-ical-sync` branch, not dev; #60 re-lands it unchanged (int 157/157). Owner: set API_PUBLIC_ORIGIN before any deploy (D-025) |
 | T-M4-07 | Calendar-sync UI, conflicts page, calendar markers | ui | T-M4-01 (stub); merge after T-M4-05/06 |  | todo |  | suggested: opencode |
 | T-M4-08 | Production go-live for Tanuhomes | infra | all above |  | todo |  | claude + owner; blocked until owner allows VPS work |
