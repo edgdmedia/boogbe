@@ -87,6 +87,12 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-M4-08 | Production go-live for Tanuhomes | infra | all above |  | todo |  | claude + owner; blocked until owner allows VPS work |
 | T-M7-01 | Revenue recognition, allocation, statement maths | domain | M3 (T-M3-01) | claude | done | [#49](https://github.com/edgdmedia/boogbe/pull/49) | Approved T-M7-01 by opencode (D-024 arithmetic checked by hand); rebased twice over index.ts, merged; shared 131 |
 | T-M5-01 | Template renderer, safe Markdown, wa.me links, defaults, message contracts | domain | M3 (T-M3-01) | claude | done | [#50](https://github.com/edgdmedia/boogbe/pull/50) | Approved T-M5-01 by opencode (https-only hrefs, encoded values in links); merged |
+| T-M5-02 | Schema 0007: message templates, outbox, `claim_outbound()` | schema | T-M5-01 | claude | in_progress |  | From dev. Owner: status `skipped_no_mailer` ("Not sent (email not set up)") while no real mailer; `claim_outbound` moved here from T-M5-04 (schema only in schema tasks) |
+| T-M5-03 | Templates API + VarsService | api | T-M5-02 | claude | todo |  | Stacked on T-M5-02 |
+| T-M5-04 | Outbox, dispatcher, attachments, failure alerts | api | T-M5-02 | claude | todo |  | Never marks an email `sent` without a real mailer → `skipped_no_mailer` |
+| T-M5-05 | Triggers, pre-arrival job, manual send, WhatsApp log, message log | api | T-M5-03, T-M5-04 | claude | todo |  | |
+| T-M5-06 | Template editor UI | ui | T-M5-01 (stub); merge after T-M5-03 |  | todo |  | suggested: opencode |
+| T-M5-07 | Booking messages panel + E2E-07 | ui, e2e | T-M5-05 |  | todo |  | suggested: opencode. Show `skipped_no_mailer` as "Not sent (email not set up)" |
 | T-M6-01 | Turnover due-time rule and task contracts | domain | M2 | claude | done | [#51](https://github.com/edgdmedia/boogbe/pull/51) | Approved T-M6-01 by opencode; rebased over index.ts, merged |
 | T-M7-02 | Expense, statement and owner portal contracts | domain | T-M7-01 (plan order only; no code dependency) | claude | done | [#53](https://github.com/edgdmedia/boogbe/pull/53) | Approved T-M7-02 by opencode; index conflict with #49/#51 resolved keeping both; shared 188; merged |
 
