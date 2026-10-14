@@ -8,12 +8,16 @@ export interface MailMessage {
   text: string;
   replyTo?: string;
   fromName?: string;
+  attachments?: { filename: string; content: Buffer }[];
 }
 export interface Mailer {
-  send(msg: MailMessage): Promise<void>;
+  /** False for the in-memory mailer: nothing leaves the process, so the outbox must not record mail as sent. */
+  readonly delivers: boolean;
+  send(msg: MailMessage): Promise<{ id: string | null }>;
 }
 
 export class ResendMailer implements Mailer {
+  readonly delivers = true;
   private readonly client: Resend;
   constructor(
     apiKey: string,
@@ -23,25 +27,39 @@ export class ResendMailer implements Mailer {
   }
   async send(m: MailMessage) {
     const from = m.fromName ? `${m.fromName} via Boogbe <${this.from.match(/<(.+)>/)?.[1] ?? this.from}>` : this.from;
-    const { error } = await this.client.emails.send({
+    const { data, error } = await this.client.emails.send({
       from,
       to: m.to,
       subject: m.subject,
       html: m.html,
       text: m.text,
       replyTo: m.replyTo,
+      attachments: m.attachments?.map((a) => ({ filename: a.filename, content: a.content })),
     });
     if (error) throw new Error(`resend: ${error.message}`);
+    return { id: data?.id ?? null };
   }
 }
 
 /** Dev/test mailer: keeps messages in memory and logs them. */
 export class MemoryMailer implements Mailer {
+  readonly delivers: boolean = false;
   readonly sent: MailMessage[] = [];
   private readonly log = new Logger('MemoryMailer');
+  private failures = 0;
+  private n = 0;
+  /** Tests: the next `n` sends throw, as a provider outage would. */
+  failNext(n: number) {
+    this.failures = n;
+  }
   async send(m: MailMessage) {
+    if (this.failures > 0) {
+      this.failures--;
+      throw new Error('simulated outage');
+    }
     this.sent.push(m);
     if (process.env.NODE_ENV === 'development') this.log.log(`to=${m.to} subject="${m.subject}"\n${m.text}`);
+    return { id: `mem-${++this.n}` };
   }
   lastTo(email: string) {
     return [...this.sent].reverse().find((m) => m.to === email);

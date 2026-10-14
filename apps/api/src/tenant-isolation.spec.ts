@@ -20,6 +20,7 @@ const PRISMA_ALLOWED = [
   'modules/org/', // organization table is global (Better Auth); tenant reads go through OrgDb
   'modules/ical/exports.service.ts', // public token lookup (SECURITY DEFINER) before any org context exists
   'modules/inventory/owners.service.ts', // reads the global invitation table for portal status
+  'modules/messaging/message-dispatch.job.ts', // cross-org claim via claim_outbound (SECURITY DEFINER); sends run in OrgDb
 ];
 
 function files(dir: string, pred: (f: string) => boolean): string[] {
