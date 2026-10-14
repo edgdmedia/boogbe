@@ -13,5 +13,13 @@ playwright-report/
 test-results/
 .wrangler/
 node-compile-cache/
+playwright-transform-cache-*/
+jiti/
+v8-compile-cache-*/
+jiti/
+v8-compile-cache-*/
+
+# tool caches (playwright/v8/jiti)
+playwright-transform-cache-*/
 jiti/
 v8-compile-cache-*/

@@ -46,6 +46,9 @@ Defined in M0; see `README.md`. Before every PR: `pnpm typecheck && pnpm lint &&
 `docker exec boogbe-db-1 psql -U postgres -c "CREATE DATABASE boogbe_test_<agent> OWNER boogbe_migrator" && docker exec boogbe-db-1 psql -U postgres -d boogbe_test_<agent> -c "CREATE EXTENSION IF NOT EXISTS btree_gist; CREATE EXTENSION IF NOT EXISTS pg_trgm; CREATE EXTENSION IF NOT EXISTS citext; GRANT CONNECT ON DATABASE boogbe_test_<agent> TO boogbe_app;"`.
 Don't reset the shared `boogbe_dev` while the other builder may be using it; generate migrations with `prisma migrate diff` against a throwaway shadow database if `migrate dev` wants to reset.
 
+**DB container.** Start/stop `boogbe-db-1` only via the compose file in the **main checkout** (`cd ~/Projects/boogbe && docker compose -f docker-compose.dev.yml up -d db`) — never from a worktree's copy, because the init-SQL bind mounts then point into that worktree and removing it later breaks the container.
+**Owner preview is off-limits.** The owner runs a local preview on ports **3070/5180** with database **`boogbe_owner`** (see README → Owner preview). Never touch those. E2E must set `E2E_APP_PORT` away from 5173 **and** 5180 (e.g. 5182).
+
 ## Style
 - Match surrounding code. Small focused files (< ~300 lines). Services hold logic; controllers are thin.
 - Comments explain *why*, not *what*.

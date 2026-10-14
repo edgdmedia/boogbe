@@ -2,7 +2,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', 'playwright-report/**', '.worktrees/**', '.superpowers/**'] },
+  { ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', 'playwright-report/**', '.worktrees/**', '.superpowers/**', 'playwright-transform-cache-*/', 'jiti/', 'v8-compile-cache-*/'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
