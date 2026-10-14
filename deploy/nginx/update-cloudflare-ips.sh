@@ -1,10 +1,12 @@
 #!/bin/bash
-# Rewrites /etc/nginx/conf.d/cloudflare-realip.conf from Cloudflare's published
-# ranges, then reloads nginx — but only if the new file passes `nginx -t`.
-# Safe to run from cron monthly:  0 4 1 * * /path/to/update-cloudflare-ips.sh
+# Rewrites the Cloudflare real-IP file (default /etc/nginx/conf.d/cloudflare-realip.conf, or the
+# path given as $1) from Cloudflare's published ranges, then reloads nginx — but only if the new
+# file passes `nginx -t`. On a shared server pass the file the site already includes, so this
+# never adds a second http-level real_ip_header for every other site.
+# Safe to run from cron monthly:  0 4 1 * * /path/to/update-cloudflare-ips.sh [target]
 set -euo pipefail
 
-TARGET=/etc/nginx/conf.d/cloudflare-realip.conf
+TARGET="${1:-/etc/nginx/conf.d/cloudflare-realip.conf}"
 TMP="$(mktemp)"
 trap 'rm -f "$TMP"' EXIT
 
@@ -27,13 +29,14 @@ if cmp -s "$TMP" "$TARGET" 2>/dev/null; then
     exit 0
 fi
 
-cp "$TARGET" "$TARGET.bak" 2>/dev/null || true
+HAD_TARGET=0
+if [ -e "$TARGET" ]; then cp "$TARGET" "$TARGET.bak"; HAD_TARGET=1; fi
 cp "$TMP" "$TARGET"
 if nginx -t 2>/dev/null; then
     systemctl reload nginx
     echo "Updated $TARGET and reloaded nginx."
 else
     echo "nginx -t failed with the new list; restoring the previous one." >&2
-    cp "$TARGET.bak" "$TARGET"
+    if [ "$HAD_TARGET" = 1 ]; then cp "$TARGET.bak" "$TARGET"; else rm -f "$TARGET"; fi
     exit 1
 fi

@@ -1,7 +1,7 @@
 # Boogbe Runbook
 
 ## One-time VPS setup (edgdmedia VPS)
-1. `sudo adduser boogbe`; install Node 22 (nvm), pnpm 9, PM2 (`npm i -g pm2`), PostgreSQL 16, nginx, awscli v2.
+1. `sudo adduser boogbe`; install Node 22 (nvm), pnpm 9, PM2 (`npm i -g pm2`), PostgreSQL 16, nginx, and the AWS CLI from apt (`sudo apt-get install -y awscli`; `backup.sh` needs only `s3 cp`, `s3 rm` and `s3api list-objects-v2`).
 2. Postgres: `sudo -u postgres psql` →
    ```sql
    CREATE ROLE boogbe_migrator LOGIN PASSWORD '<strong>' CREATEDB BYPASSRLS;
@@ -24,17 +24,27 @@
    - `APP_ORIGIN=https://app.boogbe.com` / `https://staging-app.boogbe.com`, `COOKIE_DOMAIN=.boogbe.com`
    - `API_PUBLIC_ORIGIN=https://api.boogbe.com` / `https://staging-api.boogbe.com` — origin of the iCal export links given to Airbnb/Booking.com; must be `https` with no path (refused otherwise in production). Changing it later breaks every link already pasted into a channel (D-025: never change after go-live; if it must change, keep the old host serving `/v1/ical/*` too).
    - `RESEND_API_KEY`, `MAIL_FROM`, `SENTRY_DSN`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`
-4. nginx:
+4. nginx. The edgdmedia VPS is a **shared Webmin/Virtualmin server**: other sites share this nginx, so boogbe's settings stay inside its own server block.
    - Cloudflare Origin Certificate for `*.boogbe.com` at `/etc/ssl/cloudflare/boogbe-origin.{pem,key}`.
-   - `sudo cp deploy/nginx/cloudflare-realip.conf /etc/nginx/conf.d/` (http level; makes `$remote_addr` the visitor so rate limits work).
-   - `sudo cp deploy/nginx/boogbe-api.conf /etc/nginx/sites-enabled/` → `sudo nginx -t && sudo systemctl reload nginx`.
-   - Firewall: 443 open to Cloudflare IPs only. Refresh the real-IP list monthly (root crontab): `0 4 1 * * /home/boogbe/app/deploy/nginx/update-cloudflare-ips.sh`.
+   - Site file: `/etc/nginx/sites-available/api.boogbe.com.conf` (based on `deploy/nginx/boogbe-api.conf`), symlinked into `sites-enabled/`. It listens on the server's addresses, `169.58.2.239:443` and the IPv6 address, like the Virtualmin sites. A bare `listen 443` loses to their address-specific listeners.
+   - Real IP: `/etc/nginx/snippets/boogbe-cf-realip.conf` (`set_real_ip_from` Cloudflare ranges + `real_ip_header CF-Connecting-IP`), `include`d in the `api.boogbe.com` server block. It makes `$remote_addr` the visitor, so rate limits work. Never install `cloudflare-realip.conf` in `conf.d/` here: that applies it to every site.
+   - `deploy/nginx/boogbe-logging.conf` in `/etc/nginx/conf.d/` (iCal token masking). Then `sudo nginx -t && sudo systemctl reload nginx`.
+   - Firewall: 443 open to Cloudflare IPs only. Refresh the real-IP list monthly (root crontab): `0 4 1 * * /home/boogbe/app/deploy/nginx/update-cloudflare-ips.sh /etc/nginx/snippets/boogbe-cf-realip.conf`. Always pass the path: without it the script writes `conf.d/cloudflare-realip.conf`.
 5. First deploy: `bash deploy/deploy.sh staging` (in `/home/boogbe/staging`) then `bash deploy/deploy.sh prod` (in `/home/boogbe/app`). Then `pm2 startup` + `pm2 save`.
-6. Platform admin: add your email to `PLATFORM_ADMIN_EMAILS` in `.env`, then `pnpm --filter @boogbe/api create-platform-admin -- you@edgdmedia.com "Your Name" '<password>'`.
+6. Platform admin: add your email to `PLATFORM_ADMIN_EMAILS` in `.env`, then `pnpm --filter @boogbe/api create-platform-admin you@edgdmedia.com "Your Name" -` (reads the password from stdin; see `docs/GO-LIVE.md` step 12).
 7. Backups (crontab -e as boogbe): `30 1 * * * /home/boogbe/app/deploy/backup.sh prod >> /home/boogbe/app/logs/backup.log 2>&1` (01:30 UTC = 02:30 Lagos).
 
 ## Deploys
-- **Production only (launch, 2026-10-15).** A push to `main` runs `Deploy API` (SSH → `deploy.sh prod`) and `Deploy App` (Pages, `VITE_API_ORIGIN=https://api.boogbe.com`). "Run workflow" re-deploys `main`; any other branch is refused. CI runs on PRs only, so `main` is gated by AGENTS rule 6 (rebase + full local gate before merging). First-time setup: `docs/GO-LIVE.md`.
+- **Production only, and manual.** The GitHub `Deploy API` and `Deploy App` workflows are **disabled** (owner decision, after Release 1 went live on 2026-10-14). A push to `main` deploys nothing. CI runs on PRs only, so `main` is gated by AGENTS rule 6 (rebase + full local gate before merging). First-time setup: `docs/GO-LIVE.md`.
+- Deploy in this order, after the release is merged into `main`:
+  1. **API, on the server** (as `boogbe`, in `/home/boogbe/app`; `B` is the helper from `docs/GO-LIVE.md` step 2): `B bash deploy/deploy.sh prod`. It pulls `origin/main`, builds, takes a pg_dump, migrates, reloads PM2 and waits for `/v1/health`. Then check `https://api.boogbe.com/v1/health`.
+  2. **App, on your machine**, from a clean `main` checkout:
+     ```sh
+     git checkout main && git pull --ff-only && pnpm install --frozen-lockfile
+     VITE_API_ORIGIN=https://api.boogbe.com pnpm --filter "@boogbe/app..." build
+     CLOUDFLARE_ACCOUNT_ID=af273e5d58efe45fa36724c5a3e61052 npx wrangler@3 pages deploy apps/app/dist --project-name boogbe-app --branch main
+     ```
+     That's the EDGD Media Cloudflare account, project `boogbe-app`. Run `npx wrangler@3 login` once per machine. The API goes first because a new app build may call routes or migrations that only the new API has.
 - Staging (`dev` → `staging-api`/`staging-app`) is not set up yet; it comes back with its own trigger and nginx server block.
 - `deploy/deploy.sh` builds the API **with its workspace dependencies** (`pnpm --filter "@boogbe/api..." build`): the compiled API requires `packages/shared/dist`.
 - Every deploy takes a `pg_dump` first (`~/backups/boogbe-<instance>/pre-deploy-*.dump`, 14 days) and aborts if it fails.
@@ -43,8 +53,8 @@
 - DNS: `app` → Pages project `boogbe-app` (production branch `main`); `staging-app` → Pages branch alias `dev`; `api`, `staging-api` → VPS IP, proxied.
 - SSL mode: Full (strict).
 
-## GitHub secrets
-`PROD_SSH_HOST`, `PROD_SSH_USER`, `PROD_SSH_KEY`, `CF_API_TOKEN` (Pages:Edit), `CF_ACCOUNT_ID`.
+## Turning GitHub deploys back on
+Only when the owner decides to. The workflows need these secrets: `PROD_SSH_HOST`, `PROD_SSH_USER`, `PROD_SSH_KEY` (a deploy key for `boogbe`, with SSH reachable from GitHub runners), `CF_API_TOKEN` (Pages:Edit), and `CF_ACCOUNT_ID` (`af273e5d58efe45fa36724c5a3e61052`). Then run `gh workflow enable "Deploy API"` and `gh workflow enable "Deploy App"`. Once enabled, every push to `main` deploys.
 
 ## Restore drill (monthly; record date + duration in this file)
 1. `aws s3 ls s3://$R2_BUCKET/backups/prod/ --recursive --endpoint-url $R2_ENDPOINT | tail -1`
