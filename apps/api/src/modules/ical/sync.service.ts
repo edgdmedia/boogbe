@@ -55,6 +55,7 @@ export class IcalSyncService {
         });
         if (failures >= FAILING_AFTER) {
           // Once per feed per day (dedupeKey), with an email copy (NTF-02).
+          const unit = await tx.unit.findFirst({ where: { id: feed.unitId } });
           await this.notifications.notifyRoles(
             tx,
             orgId,
@@ -63,7 +64,8 @@ export class IcalSyncService {
               kind: 'ical_feed_failing',
               title: `Calendar sync failing: ${feed.label}`,
               body: `${message}. Bookings from this channel may be missing. Check the link in the channel and paste it again.`,
-              link: `/settings/properties?unit=${feed.unitId}#calendar-sync`,
+              // Deep link opens PropertyDetail (the list ignores ?unit=), which auto-opens the panel (T-M4-07).
+              link: unit ? `/settings/properties/${unit.propertyId}?unit=${feed.unitId}#calendar-sync` : '/calendar',
               dedupeKey: `feed-failing-${feedId}-${today}`,
             },
             { email: true },

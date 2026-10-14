@@ -35,6 +35,7 @@ describe('iCal import [ICS-01..03 ICS-06 NTF-02]', () => {
   let t: TestApp;
   let admin: Agent;
   let orgId: string;
+  let propertyId: string;
   let unitId: string;
   let fake: FakeFetcher;
   beforeAll(async () => {
@@ -51,7 +52,8 @@ describe('iCal import [ICS-01..03 ICS-06 NTF-02]', () => {
     fake.calls = [];
     t.app.get<MemoryMailer>(MAILER).sent.length = 0;
     orgId = (await seedOrg()).id;
-    unitId = await seedUnit(orgId, await seedProperty(orgId));
+    propertyId = await seedProperty(orgId);
+    unitId = await seedUnit(orgId, propertyId);
     admin = (await signInAs(t, 'admin', orgId)).agent;
   });
   afterEach(() => {
@@ -138,7 +140,10 @@ describe('iCal import [ICS-01..03 ICS-06 NTF-02]', () => {
       lastError: 'Calendar link not found (404)',
     });
     const n = (await admin.get('/v1/notifications').expect(200)).body;
-    expect(n.items.filter((x: { kind: string }) => x.kind === 'ical_feed_failing')).toHaveLength(1);
+    const failing = n.items.filter((x: { kind: string }) => x.kind === 'ical_feed_failing');
+    expect(failing).toHaveLength(1);
+    // The link must open PropertyDetail (which reads ?unit= and hashes to the panel), not the properties list.
+    expect(failing[0].link).toBe(`/settings/properties/${propertyId}?unit=${unitId}#calendar-sync`);
     expect(
       t.app.get<MemoryMailer>(MAILER).sent.filter((mm) => mm.subject.includes('Calendar sync')),
     ).toHaveLength(1);
