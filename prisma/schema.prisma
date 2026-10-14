@@ -118,6 +118,8 @@ model Organization {
   icalFeeds           IcalFeed[]
   icalExports         IcalExport[]
   syncConflicts       SyncConflict[]
+  messageTemplates    MessageTemplate[]
+  outboundMessages    OutboundMessage[]
 
   @@map("organization")
 }
@@ -441,6 +443,7 @@ model Booking {
   events                 BookingStatusEvent[]
   payments               Payment[]
   syncConflicts          SyncConflict[]
+  outboundMessages       OutboundMessage[]
 
   @@unique([orgId, ref])
   @@index([orgId, unitId, checkIn])
@@ -597,4 +600,53 @@ model SyncConflict {
 
   @@index([orgId, status])
   @@map("sync_conflict")
+}
+
+model MessageTemplate {
+  id           String       @id
+  orgId        String       @map("org_id")
+  key          String
+  emailSubject String       @map("email_subject")
+  emailBody    String       @map("email_body")
+  whatsappBody String       @map("whatsapp_body")
+  autoEmail    Boolean      @map("auto_email")
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "message_template_org_fk")
+
+  @@unique([orgId, key])
+  @@map("message_template")
+}
+
+model OutboundMessage {
+  id            String       @id
+  orgId         String       @map("org_id")
+  bookingId     String?      @map("booking_id")
+  paymentId     String?      @map("payment_id")
+  templateKey   String?      @map("template_key")
+  channel       String
+  recipient     String
+  subject       String?
+  bodyText      String       @map("body_text")
+  bodyHtml      String?      @map("body_html")
+  replyTo       String?      @map("reply_to")
+  fromName      String?      @map("from_name")
+  /// queued | sent | failed | whatsapp_opened | skipped_no_mailer (CHECK in 0007_messaging)
+  status        String
+  attempts      Int          @default(0)
+  nextAttemptAt DateTime?    @map("next_attempt_at")
+  providerId    String?      @map("provider_id")
+  error         String?
+  dedupeKey     String?      @map("dedupe_key")
+  actorMemberId String?      @map("actor_member_id")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  sentAt        DateTime?    @map("sent_at")
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "outbound_message_org_fk")
+  booking       Booking?     @relation(fields: [bookingId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "outbound_message_booking_fk")
+
+  @@unique([orgId, dedupeKey])
+  @@index([status, nextAttemptAt])
+  @@index([orgId, bookingId, createdAt])
+  @@map("outbound_message")
 }
