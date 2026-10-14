@@ -101,8 +101,11 @@ export function CalendarSyncPanel({ unitId, canWrite }: { unitId: string; canWri
                     variant="secondary"
                     aria-label={`Copy ${CHANNEL_LABELS[c]} link`}
                     onClick={() => {
-                      void navigator.clipboard.writeText(ex.url);
-                      setMsg('Link copied');
+                      // writeText rejects (permissions policy, insecure context) — never claim a copy we didn't make.
+                      navigator.clipboard.writeText(ex.url).then(
+                        () => setMsg('Link copied'),
+                        () => setMsg('Copy failed. Select the link and copy it'),
+                      );
                     }}
                   >
                     Copy
