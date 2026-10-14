@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
-import { CHANNEL_LABELS, type IcalExport, type IcalFeed } from '@boogbe/shared';
+import { CHANNEL_LABELS, SyncResult, type IcalExport, type IcalFeed } from '@boogbe/shared';
 import { Badge, Button, Spinner } from '@boogbe/ui';
 import { api, ApiError } from '../../lib/api';
 import { AddFeedForm } from './AddFeedForm';
@@ -21,11 +21,11 @@ export function CalendarSyncPanel({ unitId, canWrite }: { unitId: string; canWri
   const [adding, setAdding] = useState(false);
   const [msg, setMsg] = useState<string>();
   if (!data) return <Spinner />;
-  const act = async (p: Promise<unknown>, ok?: string) => {
+  const act = async (p: Promise<unknown>, ok?: string | ((r: unknown) => string)) => {
     setMsg(undefined);
     try {
-      await p;
-      if (ok) setMsg(ok);
+      const res = await p;
+      if (ok) setMsg(typeof ok === 'function' ? ok(res) : ok);
       await mutate();
     } catch (x) {
       setMsg(x instanceof ApiError ? x.message : String(x));
@@ -45,7 +45,20 @@ export function CalendarSyncPanel({ unitId, canWrite }: { unitId: string; canWri
             </span>
             {canWrite && (
               <span className="flex gap-1">
-                <Button variant="ghost" onClick={() => act(api(`/v1/ical/feeds/${f.id}/sync`, { method: 'POST' }), 'Synced')}>
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    // The endpoint answers 200 with status:'error' when the channel fetch failed — say so, not "Synced".
+                    act(api(`/v1/ical/feeds/${f.id}/sync`, { method: 'POST', schema: SyncResult }), (r) => {
+                      const res = r as SyncResult;
+                      return res.status === 'error'
+                        ? `Sync failed: ${res.error}`
+                        : res.status === 'not_modified'
+                          ? 'No changes'
+                          : 'Synced';
+                    })
+                  }
+                >
                   Sync now
                 </Button>
                 <Button

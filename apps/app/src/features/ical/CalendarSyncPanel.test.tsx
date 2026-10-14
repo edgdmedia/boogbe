@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { SWRConfig } from 'swr';
 import { describe, expect, it, vi } from 'vitest';
 import { CalendarSyncPanel } from './CalendarSyncPanel';
+import { api } from '../../lib/api';
 
 const payload = {
   feeds: [
@@ -52,5 +53,27 @@ describe('CalendarSyncPanel', () => {
     expect(await screen.findByText(/Failing: Calendar link not found \(404\)/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Copy Airbnb link' }));
     expect(write).toHaveBeenCalledWith('https://api.boogbe.com/v1/ical/tok.ics');
+  });
+
+  it('Sync now reports what the sync actually did, not a blanket "Synced"', async () => {
+    const result = (status: string, error: string | null = null) =>
+      vi.mocked(api).mockResolvedValueOnce({ status, added: 0, updated: 0, removed: 0, error });
+    render(
+      <SWRConfig value={{ provider: () => new Map() }}>
+        <CalendarSyncPanel unitId="u1" canWrite />
+      </SWRConfig>,
+    );
+    await screen.findByText(/Failing: Calendar link not found \(404\)/);
+    const sync = screen.getByRole('button', { name: 'Sync now' });
+    // The sync endpoint answers 200 even when the fetch failed — the panel must read the result.
+    result('error', 'Calendar link not found (404)');
+    await userEvent.click(sync);
+    expect(await screen.findByText('Sync failed: Calendar link not found (404)')).toBeInTheDocument();
+    result('not_modified');
+    await userEvent.click(sync);
+    expect(await screen.findByText('No changes')).toBeInTheDocument();
+    result('ok');
+    await userEvent.click(sync);
+    expect(await screen.findByText('Synced')).toBeInTheDocument();
   });
 });
