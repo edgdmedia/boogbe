@@ -1,16 +1,18 @@
 /**
- * Usage: pnpm --filter @boogbe/api create-platform-admin -- you@x.com "Your Name" 'password'
+ * Usage: pnpm --filter @boogbe/api create-platform-admin you@x.com "Your Name" 'password'
+ * (A leading `--`, which pnpm forwards as a literal argument, is ignored.)
  * Pass `-` as the password to read it from stdin instead, so it never shows in `ps` or shell history:
- *   read -rsp 'Password: ' PW; printf '%s' "$PW" | pnpm … create-platform-admin -- you@x.com "Your Name" -; unset PW
+ *   read -rsp 'Password: ' PW; printf '%s' "$PW" | pnpm … create-platform-admin you@x.com "Your Name" -; unset PW
  */
 import { PrismaClient } from '@prisma/client';
 import { createAuth } from '../src/common/auth/auth';
 import { MemoryMailer } from '../src/common/mail/mailer';
 import { resolve } from 'node:path';
 import { loadDotEnv, loadEnv } from '../src/env';
+import { scriptArgs } from '../src/common/cli/script-args';
 
 async function main() {
-  const [email, name, arg] = process.argv.slice(2);
+  const [email, name, arg] = scriptArgs(process.argv);
   const password = arg === '-' ? await readStdin() : arg;
   if (!email || !name || !password) throw new Error('usage: <email> <name> <password>');
   loadDotEnv(resolve(__dirname, '../../../.env'));
