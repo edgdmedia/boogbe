@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { can, type Unit } from '@boogbe/shared';
 import { Badge, Button, Card, Dialog, EmptyState, Spinner } from '@boogbe/ui';
 import { api } from '../../lib/api';
@@ -10,6 +10,7 @@ import { feeSummary } from './money-input';
 import { PropertyForm } from './PropertyForm';
 import { PropertyOwnerForm } from './PropertyOwnerDialog';
 import { UnitFees } from './UnitFees';
+import { CalendarSyncPanel } from '../ical/CalendarSyncPanel';
 import { UnitForm } from './UnitForm';
 import { UnitOwnerForm } from './UnitOwnerDialog';
 
@@ -17,15 +18,21 @@ const SOURCE = { unit: '', property: ' (from property)', operator: '' } as const
 
 export function PropertyDetail() {
   const { id = '' } = useParams();
+  const [q] = useSearchParams();
   const { me } = useMe();
   const { data: p, mutate: mutateP } = useProperty(id);
   const { data: units, mutate: mutateU } = useUnits(id);
   const [dialog, setDialog] = useState<
-    null | { kind: 'edit' } | { kind: 'unit'; unit?: Unit } | { kind: 'owner'; unit: Unit } | { kind: 'fees'; unit: Unit } | { kind: 'propowner' }
+    null | { kind: 'edit' } | { kind: 'unit'; unit?: Unit } | { kind: 'owner'; unit: Unit } | { kind: 'fees'; unit: Unit } | { kind: 'propowner' } | { kind: 'sync'; unit: Unit }
   >(null);
   const role = me?.activeOrg?.role;
   const canWrite = !!role && can(role, 'inventory.write');
   const canOwners = !!role && can(role, 'owners.write');
+  const canSync = !!role && can(role, 'ical.read');
+  useEffect(() => {
+    const u = q.get('unit');
+    if (u && units && canSync && units.items.some((x) => x.id === u)) setDialog({ kind: 'sync', unit: units.items.find((x) => x.id === u)! });
+  }, [units]);
   if (!p || !units) return <Spinner />;
   const close = () => setDialog(null);
   return (
@@ -74,6 +81,11 @@ export function PropertyDetail() {
               <Button variant="ghost" onClick={() => setDialog({ kind: 'fees', unit: u })}>
                 Fees
               </Button>
+              {canSync && (
+                <Button variant="ghost" onClick={() => setDialog({ kind: 'sync', unit: u })}>
+                  Calendar sync
+                </Button>
+              )}
               {canOwners && (
                 <Button variant="ghost" onClick={() => setDialog({ kind: 'owner', unit: u })}>
                   Owner
@@ -139,6 +151,9 @@ export function PropertyDetail() {
             }}
           />
         )}
+      </Dialog>
+      <Dialog open={dialog?.kind === 'sync'} onClose={close} title="Calendar sync">
+        {dialog?.kind === 'sync' && <CalendarSyncPanel unitId={dialog.unit.id} canWrite={!!role && can(role, 'ical.write')} />}
       </Dialog>
       <Dialog open={dialog?.kind === 'fees'} onClose={close} title="Fees">
         {dialog?.kind === 'fees' && <UnitFees unitId={dialog.unit.id} canWrite={canWrite} />}
