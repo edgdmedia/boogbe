@@ -7,6 +7,7 @@ import { AuditService } from '../../common/audit/audit.service';
 import { AppError, notFound } from '../../common/http/app-error';
 import type { OrgCtx } from '../../common/auth/request-ctx';
 import { FetchError, type IcalFetcher } from './fetcher';
+import { ExportsService } from './exports.service';
 import { parseFeed } from './parse';
 import { IcalSyncService } from './sync.service';
 import { ICAL_FETCHER } from './tokens';
@@ -35,10 +36,10 @@ export class FeedsService {
     private readonly orgDb: OrgDb,
     private readonly audit: AuditService,
     private readonly sync: IcalSyncService,
+    private readonly exports: ExportsService,
     @Inject(ICAL_FETCHER) private readonly fetcher: Pick<IcalFetcher, 'fetch'>,
   ) {}
 
-  // Export links arrive with T-M4-06 (ExportsService.listIn); until then the list is empty.
   forUnit(ctx: OrgCtx, unitId: string): Promise<{ feeds: IcalFeed[]; exports: IcalExport[] }> {
     return this.orgDb.run(ctx.orgId, async (tx) => {
       if (!(await tx.unit.findFirst({ where: { id: unitId } }))) throw notFound('Unit');
@@ -49,7 +50,7 @@ export class FeedsService {
         _count: true,
       });
       const c = new Map(counts.map((x) => [x.feedId, x._count]));
-      return { feeds: feeds.map((f) => toFeed(f, c.get(f.id) ?? 0)), exports: [] };
+      return { feeds: feeds.map((f) => toFeed(f, c.get(f.id) ?? 0)), exports: await this.exports.listIn(tx, unitId) };
     });
   }
 
@@ -83,6 +84,7 @@ export class FeedsService {
         // The link carries the channel's secret, so only its host is audited.
         after: { label: input.label, channel: input.channel, host: new URL(input.url).host },
       });
+      await this.exports.relink(tx, input.unitId);
     });
     await this.sync.syncFeed(ctx.orgId, id);
     return (await this.forUnit(ctx, input.unitId)).feeds.find((f) => f.id === id)!;
@@ -90,8 +92,10 @@ export class FeedsService {
 
   update(ctx: OrgCtx, id: string, input: { label?: string; active?: boolean }) {
     return this.orgDb.run(ctx.orgId, async (tx) => {
-      const r = await tx.icalFeed.updateMany({ where: { id }, data: input });
-      if (!r.count) throw notFound('Feed');
+      const f = await tx.icalFeed.findFirst({ where: { id } });
+      if (!f) throw notFound('Feed');
+      await tx.icalFeed.updateMany({ where: { id }, data: input });
+      await this.exports.relink(tx, f.unitId);
       await this.audit.record(tx, {
         actor: ctx,
         action: 'ical_feed.update',
@@ -108,6 +112,7 @@ export class FeedsService {
       const f = await tx.icalFeed.findFirst({ where: { id } });
       if (!f) throw notFound('Feed');
       await tx.icalFeed.deleteMany({ where: { id } }); // its blocks go with it (block_feed_fk cascade)
+      await this.exports.relink(tx, f.unitId); // another feed of the same channel may take over the exclusion
       await this.audit.record(tx, {
         actor: ctx,
         action: 'ical_feed.delete',

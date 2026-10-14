@@ -90,6 +90,15 @@ ISOLATION_FIXTURES.feed = async (orgId) => {
   return id;
 };
 ROUTE_FIXTURE.push({ match: /^\/v1\/ical\/feeds\//, fixture: 'feed' });
+ISOLATION_FIXTURES.icalExport = async (orgId) => {
+  const unitId = await ISOLATION_FIXTURES.unit!(orgId);
+  const id = newId();
+  const c = await migratorClient();
+  await c.query(`insert into ical_export(id, org_id, unit_id, channel, token) values ($1,$2,$3,'all',$4)`, [id, orgId, unitId, newId()]);
+  await c.end();
+  return id;
+};
+ROUTE_FIXTURE.push({ match: /^\/v1\/ical\/exports\//, fixture: 'icalExport' });
 ISOLATION_FIXTURES.notification = async (orgId) => {
   const m = await migratorClient();
   const userId = newId();
