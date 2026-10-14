@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { platformAdmin, resetDb } from './fixtures';
+import { inviteEmail, operatorName, platformAdmin, resetDb, slugFor } from './fixtures';
 import { onboardOperator } from './helpers';
 
 test.beforeAll(() => resetDb());
@@ -22,9 +22,9 @@ test('a platform admin who opens the app signed out lands on Platform after sign
 test('an operator admin who opens the app signed out is asked to choose the operator after signing in', async ({ page, browser }) => {
   const admin = await onboardOperator(page, browser, 'tanu-signin');
   await admin.context().clearCookies(); // signed out (the Sign out button sits in a menu on mobile)
-  await signInFromRoot(admin, 'admin@tanu-signin.test', 'correct-horse-battery');
+  await signInFromRoot(admin, inviteEmail(slugFor('tanu-signin')), 'correct-horse-battery');
   await expect(admin).toHaveURL(/\/choose-operator$/);
-  await expect(admin.getByText('Tanuhomes')).toBeVisible();
+  await expect(admin.getByText(operatorName('tanu-signin'))).toBeVisible();
 });
 
 test('a signed-in user who opens the sign-in page goes straight on, never off-site', async ({ page }) => {

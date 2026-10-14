@@ -3,7 +3,10 @@ import { defineConfig, devices } from '@playwright/test';
 // E2E_APP_PORT / E2E_API_PORT let a dev machine run E2E while something else holds 5173 / 3060.
 const appPort = Number(process.env.E2E_APP_PORT ?? 5173);
 const apiPort = Number(process.env.E2E_API_PORT ?? 3060);
-const appOrigin = `http://localhost:${appPort}`;
+// E2E_BASE_URL (e.g. https://app.boogbe.com): production smoke — no local servers, desktop only, nothing reset
+// (see e2e/fixtures.ts and docs/RUNBOOK.md → Production E2E).
+const prodBase = process.env.E2E_BASE_URL;
+const appOrigin = prodBase ?? `http://localhost:${appPort}`;
 
 export default defineConfig({
   testDir: 'e2e',
@@ -12,9 +15,9 @@ export default defineConfig({
   use: { baseURL: appOrigin, trace: 'retain-on-failure' },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile', use: { ...devices['Pixel 7'], viewport: { width: 360, height: 740 } } },
+    ...(prodBase ? [] : [{ name: 'mobile', use: { ...devices['Pixel 7'], viewport: { width: 360, height: 740 } } }]),
   ],
-  webServer: [
+  webServer: prodBase ? undefined : [
     {
       command: `PORT=${apiPort} E2E=1 NODE_ENV=test APP_ORIGIN=${appOrigin} BETTER_AUTH_URL=${appOrigin} pnpm --filter @boogbe/api dev`,
       url: `http://localhost:${apiPort}/v1/health`,
