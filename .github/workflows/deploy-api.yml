@@ -1,13 +1,17 @@
 name: Deploy API
-# Auto-deploy is disabled until the owner completes VPS setup (docs/RUNBOOK.md → Deploys).
-# Re-enable by restoring: workflow_run: { workflows: [CI], types: [completed], branches: [dev, main] }
+# Production only (launch, 2026-10-15): a push to main deploys api.boogbe.com; "Run workflow" re-deploys main.
+# CI runs on PRs only, so main is gated by the merge rule (AGENTS rule 6: rebase + full local gate before merging).
+# Staging comes back later with its own trigger for dev.
 on:
+  push:
+    branches: [main]
   workflow_dispatch: {}
 jobs:
   deploy:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     concurrency:
-      group: deploy-api-${{ github.ref_name }}
+      group: deploy-api-prod
       cancel-in-progress: false
     steps:
       - uses: appleboy/ssh-action@v1.2.0
@@ -16,6 +20,4 @@ jobs:
           username: ${{ secrets.PROD_SSH_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
           command_timeout: 20m
-          script: |
-            BRANCH="${{ github.ref_name }}"
-            if [ "$BRANCH" = main ]; then cd /home/boogbe/app && bash deploy/deploy.sh prod; else cd /home/boogbe/staging && bash deploy/deploy.sh staging; fi
+          script: cd /home/boogbe/app && bash deploy/deploy.sh prod
