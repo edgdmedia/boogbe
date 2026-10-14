@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { BookOpen, Building2, CalendarDays, Contact, ScrollText, Settings, ShieldCheck, UserRound, Users, Wallet } from 'lucide-react';
+import { BookOpen, Building2, CalendarDays, Contact, ScrollText, Settings, ShieldCheck, TriangleAlert, UserRound, Users, Wallet } from 'lucide-react';
 import { createBrowserRouter, Outlet } from 'react-router-dom';
 import { EmptyState } from '@boogbe/ui';
 import { AppShell, type NavItem } from './components/shell/AppShell';
@@ -16,6 +16,7 @@ import { BookingsPage } from './features/bookings/BookingsPage';
 import { BookingDetail } from './features/bookings/BookingDetail';
 import { NewBookingPage } from './features/bookings/NewBookingPage';
 import { GuestsPage } from './features/guests/GuestsPage';
+import { ConflictsPage } from './features/ical/ConflictsPage';
 import { GuestDetail } from './features/guests/GuestDetail';
 import { NotFound } from './routes/NotFound';
 import { CalendarPage } from './features/calendar/CalendarPage';
@@ -37,6 +38,7 @@ export const OPERATOR_NAV: NavItem[] = [
   { to: '/money', label: 'Money', icon: Wallet, permission: 'payments.read' },
   { to: '/bookings', label: 'Bookings', icon: BookOpen, permission: 'bookings.read' },
   { to: '/guests', label: 'Guests', icon: Contact, permission: 'guests.read' },
+  { to: '/conflicts', label: 'Conflicts', icon: TriangleAlert, permission: 'bookings.read' },
   { to: '/settings/team', label: 'Team', icon: Users, permission: 'members.write' },
   { to: '/settings', label: 'Settings', icon: Settings, permission: 'org.settings.read' },
   { to: '/settings/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.read' },
@@ -76,6 +78,7 @@ export const router = createBrowserRouter([
       { path: '/bookings/new', element: operator(<NewBookingPage />) },
       { path: '/bookings/:id', element: operator(<BookingDetail />) },
       { path: '/guests', element: operator(<GuestsPage />) },
+      { path: '/conflicts', element: operator(<ConflictsPage />) },
       { path: '/guests/:id', element: operator(<GuestDetail />) },
       {
         path: '/hk',

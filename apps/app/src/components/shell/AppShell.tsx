@@ -8,6 +8,7 @@ import { authClient } from '../../lib/auth-client';
 import { useMe } from '../../lib/use-me';
 import { useApi } from '../../lib/api';
 import { NotificationBell } from './NotificationBell';
+import { useConflicts } from '../../features/ical/hooks';
 import { OrgSwitcher } from './OrgSwitcher';
 
 export interface NavItem {
@@ -24,6 +25,11 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
   // Logo only where the viewer can read org settings; the API already refuses everyone else.
   const { data: orgSettings } = useApi(role && can(role, 'org.settings.read') ? '/v1/org/settings' : null, OrgSettingsResponse);
   const logo = orgSettings?.settings.logoUrl;
+  // same SWR key as the conflicts page — one request serves both. Only fetched when the
+  // member can read bookings (platform-only admins have no org context to ask about).
+  const canSeeConflicts = !!role && can(role, 'bookings.read');
+  const { data: conflicts } = useConflicts(canSeeConflicts ? 'open' : null);
+  const openConflicts = canSeeConflicts ? (conflicts?.items.length ?? 0) : 0;
   const link = ({ isActive }: { isActive: boolean }) =>
     clsx(
       'flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm',
@@ -43,6 +49,9 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
           <NavLink key={n.to} to={n.to} className={link}>
             <n.icon size={18} aria-hidden />
             {n.label}
+            {n.to === '/conflicts' && openConflicts > 0 && (
+              <span className="ml-auto rounded-full bg-danger px-1.5 text-[10px] font-semibold text-white">{openConflicts}</span>
+            )}
           </NavLink>
         ))}
         <button

@@ -16,7 +16,10 @@ const TONE: Record<string, string> = {
   ical: 'bg-surface-2 text-ink-muted border-line',
 };
 const tone = (i: CalendarItem) => (i.kind === 'booking' ? TONE[i.status] : TONE[i.source]) ?? '';
-const label = (i: CalendarItem) => (i.kind === 'booking' ? `${i.guestName ?? 'Guest'} · ${i.ref}` : i.label);
+const label = (i: CalendarItem) =>
+  i.kind === 'booking'
+    ? `${i.hasConflict ? '⚠ ' : ''}${i.guestName ?? 'Guest'} · ${i.ref}`
+    : i.label;
 
 export function CalendarGrid({
   data,
@@ -97,9 +100,9 @@ export function CalendarGrid({
                       key={`${item.kind}-${item.id}`}
                       type="button"
                       onClick={() => onItemClick(item)}
-                      aria-label={`${label(item)}, ${short(item.start)} – ${short(item.end)}`}
+                      aria-label={`${label(item)}, ${short(item.start)} – ${short(item.end)}${item.kind === 'booking' && item.hasConflict ? ', possible double booking' : ''}`}
                       className={clsx(
-                        'absolute top-1.5 z-[4] h-9 truncate border px-2 text-left text-xs font-medium',
+                        'absolute top-1.5 z-[4] h-9 truncate border px-2 text-left text-xs font-medium', item.kind === 'booking' && item.hasConflict ? 'ring-2 ring-danger' : '',
                         tone(item),
                         clippedStart ? 'rounded-l-none' : 'rounded-l-md',
                         clippedEnd ? 'rounded-r-none' : 'rounded-r-md',
