@@ -125,6 +125,11 @@ ISOLATION_FIXTURES.notification = async (orgId) => {
   return id;
 };
 ROUTE_FIXTURE.push({ match: /^\/v1\/notifications\//, fixture: 'notification' });
+// Template keys are the same in every org (`booking_confirmation`, …): the key never names another org's row, RLS
+// scopes it to the caller's own. Cross-org isolation for templates is asserted directly in templates.int.ts
+// ("an edit in one org doesn't change another org's templates"); here the route is just registered.
+ISOLATION_FIXTURES.templateKey = async () => 'booking_confirmation';
+ROUTE_FIXTURE.push({ match: /^\/v1\/templates\//, fixture: 'templateKey' });
 ISOLATION_FIXTURES.fee = async (orgId) => {
   const unitId = await seedUnit(orgId, await seedProperty(orgId));
   const m = await migratorClient();
