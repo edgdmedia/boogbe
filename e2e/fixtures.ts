@@ -7,7 +7,7 @@ export function resetDb() {
 }
 
 export async function lastEmailTo(email: string): Promise<{ text: string } | null> {
-  const r = await fetch(`http://localhost:3060/v1/__test/mail?to=${encodeURIComponent(email)}`);
+  const r = await fetch(`http://localhost:${process.env.E2E_API_PORT ?? 3060}/v1/__test/mail?to=${encodeURIComponent(email)}`);
   const t = await r.text(); // Nest sends an empty body for a null result
   return t ? JSON.parse(t) : null;
 }
