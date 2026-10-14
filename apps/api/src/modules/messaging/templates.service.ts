@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {
   DEFAULT_TEMPLATES,
-  markdownToHtml,
   render,
+  renderHtml,
   SAMPLE_VARS,
   TEMPLATE_KEYS,
   TEMPLATE_LABELS,
@@ -91,7 +91,9 @@ export class TemplatesService {
     };
     return {
       emailSubject: render(input.emailSubject, vars),
-      emailHtml: markdownToHtml(render(input.emailBody, vars)),
+      // renderHtml, not markdownToHtml(render(…)): values go in as escaped plain text after the Markdown is parsed,
+      // so a name like "**x** [a](https://…)" can never add formatting or a link — the same path sends must use.
+      emailHtml: renderHtml(input.emailBody, vars),
       whatsappText: render(input.whatsappBody, vars),
     };
   }

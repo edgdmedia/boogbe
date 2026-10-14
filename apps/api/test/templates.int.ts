@@ -69,6 +69,31 @@ describe('templates [MSG-01 MSG-02]', () => {
     expect(r).toEqual({ emailSubject: 'Tanuhomes', emailHtml: '<p>Hi <strong>Adaeze</strong></p>', whatsappText: 'TAN-2610-0042' });
   });
 
+  it('placeholder values are plain text in the email preview — they never add formatting or links', async () => {
+    const m = await migratorClient();
+    await m.query(`update organization set name=$2 where id=$1`, [orgId, '**Sun** & [Book](https://x.co) <b>']);
+    await m.end();
+    const r = (
+      await admin.post('/v1/templates/preview').send({ emailSubject: 'x', emailBody: 'From {{operator.name}}', whatsappBody: 'x' }).expect(200)
+    ).body;
+    expect(r.emailHtml).toBe('<p>From **Sun** &amp; [Book](https://x.co) &lt;b&gt;</p>');
+  });
+
+  it('unknown placeholders are refused in the subject and WhatsApp text too', async () => {
+    const base = { emailSubject: 'Hi', emailBody: 'Hi', whatsappBody: 'Hi', autoEmail: true, active: true };
+    const sub = await admin.put('/v1/templates/booking_confirmation').send({ ...base, emailSubject: '{{guest.age}}' });
+    expect(sub.status).toBe(400);
+    expect(JSON.stringify(sub.body)).toContain('{{guest.age}}');
+    await admin.put('/v1/templates/booking_confirmation').send({ ...base, whatsappBody: '{{guest.age}}' }).expect(400);
+  });
+
+  it('landlords and housekeepers cannot see templates', async () => {
+    for (const role of ['landlord', 'housekeeper'] as const) {
+      const a = (await signInAs(t, role, orgId)).agent;
+      await a.get('/v1/templates').expect(403);
+    }
+  });
+
   it('frontdesk can read but not edit', async () => {
     const fd = (await signInAs(t, 'frontdesk', orgId)).agent;
     await fd.get('/v1/templates').expect(200);
