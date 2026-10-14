@@ -11,7 +11,7 @@ test.skip(test.info().project.name === 'mobile', 'desktop-only: calendar grid dr
 });
 
 test('E2E-02 admin adds a unit and books it from the calendar', async ({ page, browser }) => {
-  const admin = await onboardOperator(page, browser);
+  const admin = await onboardOperator(page, browser, 'tanu-book');
   await createUnit(admin, { property: 'The Rock', unit: 'Kairo', rateNaira: '200000' });
   await admin.goto('/calendar');
   const cells = admin.locator('[data-testid^="cell-"]');

@@ -34,8 +34,8 @@
 7. Backups (crontab -e as boogbe): `30 1 * * * /home/boogbe/app/deploy/backup.sh prod >> /home/boogbe/app/logs/backup.log 2>&1` (01:30 UTC = 02:30 Lagos).
 
 ## Deploys
-- **Auto-deploy disabled until the owner completes VPS setup; re-enable by restoring the triggers.** `Deploy API` and `Deploy App` run only via `workflow_dispatch` (Actions → Run workflow, pick `dev` or `main`). To re-enable, restore `workflow_run: { workflows: [CI], types: [completed], branches: [dev, main] }` in both files (and the CI-success `if:` guard). CI still runs on every push and PR.
-- When re-enabled: merging to `dev` deploys staging; merging to `main` deploys production (GitHub Actions `Deploy API` / `Deploy App`, after `CI` passes on the push).
+- **Production only (launch, 2026-10-15).** A push to `main` runs `Deploy API` (SSH → `deploy.sh prod`) and `Deploy App` (Pages, `VITE_API_ORIGIN=https://api.boogbe.com`). "Run workflow" re-deploys `main`; any other branch is refused. CI runs on PRs only, so `main` is gated by AGENTS rule 6 (rebase + full local gate before merging). First-time setup: `docs/GO-LIVE.md`.
+- Staging (`dev` → `staging-api`/`staging-app`) is not set up yet; it comes back with its own trigger and nginx server block.
 - `deploy/deploy.sh` builds the API **with its workspace dependencies** (`pnpm --filter "@boogbe/api..." build`): the compiled API requires `packages/shared/dist`.
 - Every deploy takes a `pg_dump` first (`~/backups/boogbe-<instance>/pre-deploy-*.dump`, 14 days) and aborts if it fails.
 
@@ -58,3 +58,18 @@
 ## Rollback
 - Code: `git -C /home/boogbe/app reset --hard <previous sha> && bash deploy/deploy.sh prod` — note `deploy.sh` resets to `origin/<branch>`, so for a pinned rollback revert the commit on `main` instead. Migrations are forward-only; never roll back a migration — write a new one.
 - Data: restore the latest `pre-deploy-*.dump` with `pg_restore --clean --if-exists --no-owner -d boogbe`.
+
+## Production E2E (smoke test after a deploy)
+Runs E2E-01…04 and the sign-in checks against https://app.boogbe.com, desktop only. It creates throwaway operators named `e2e-<run>-…`, **never resets anything**, and the invitation emails go to `E2E_INVITE_EMAIL` with a `+<slug>` tag. Then the operators are purged.
+```sh
+# on your machine, in the repo:
+RUN=$(date +%y%m%d%H%M); echo "run id: $RUN"   # note it: the server needs it below
+read -rsp 'Platform admin password: ' E2E_ADMIN_PASSWORD && echo && export E2E_ADMIN_PASSWORD
+E2E_BASE_URL=https://app.boogbe.com E2E_RUN_ID=$RUN E2E_ADMIN_EMAIL=edgdmedia@gmail.com E2E_INVITE_EMAIL=edgdmedia@gmail.com \
+  pnpm test:e2e; unset E2E_ADMIN_PASSWORD
+# on the server (B is the helper from docs/GO-LIVE.md step 2), with the run id from above:
+RUN=<run id>
+B pnpm --filter @boogbe/api exec tsx scripts/purge-e2e-operators.ts "e2e-$RUN-"         # dry run: lists operators + users
+B pnpm --filter @boogbe/api exec tsx scripts/purge-e2e-operators.ts "e2e-$RUN-" --yes   # deletes them (and their own users; never a platform admin)
+```
+The purge refuses any prefix that isn't exactly `e2e-<run>-…`, so one run's prefix can't match another run's operators. Files a test operator uploaded to R2 (receipts) stay behind; they are a few KB, under `org/<org id>/`. It runs as `boogbe_migrator`, because payments and audit rows are append-only for the app role.

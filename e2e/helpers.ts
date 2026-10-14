@@ -1,23 +1,37 @@
 import { expect, type Browser, type Page } from '@playwright/test';
-import { lastEmailTo, platformAdmin } from './fixtures';
+import { PROD, inviteEmail, inviteUrl, operatorName, platformAdmin, slugFor } from './fixtures';
 
-/** E2E-01's flow as a reusable prologue: platform admin creates the operator and invites its first admin,
- *  who accepts from the emailed link in a second browser context and lands on the calendar. */
-export async function onboardOperator(page: Page, browser: Browser, slug = 'tanuhomes'): Promise<Page> {
+/** Signs the platform admin in and opens Platform. In production the owner's account is also a Tanuhomes admin,
+ *  so it lands on /choose-operator (RoleLanding); Platform is opened explicitly there. */
+export async function signInPlatformAdmin(page: Page): Promise<void> {
   await page.goto('/auth/sign-in');
   await page.getByLabel('Email').fill(platformAdmin.email);
   await page.getByLabel('Password').fill(platformAdmin.password);
   await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.waitForURL((u) => !u.pathname.startsWith('/auth/'));
+  if (PROD) await page.goto('/platform');
+  await expect(page.getByRole('heading', { name: 'Operators' })).toBeVisible();
+}
+
+/** E2E-01's flow as a reusable prologue: platform admin creates the operator and invites its first admin,
+ *  who accepts from the invitation link in a second browser context and lands on the calendar.
+ *  In production mode the slug becomes `e2e-<run>-<base>` (see fixtures.ts). */
+export async function onboardOperator(page: Page, browser: Browser, base = 'tanuhomes'): Promise<Page> {
+  const slug = slugFor(base);
+  const name = operatorName(base);
+  const email = inviteEmail(slug);
+  await signInPlatformAdmin(page);
   await page.getByRole('button', { name: 'New operator' }).click();
-  await page.getByLabel('Business name').fill('Tanuhomes');
+  await page.getByLabel('Business name').fill(name);
   await page.getByLabel('Slug').fill(slug);
   await page.getByRole('button', { name: 'Create operator' }).click();
-  await expect(page.getByRole('heading', { name: 'Tanuhomes' })).toBeVisible(); // the detail page (and its Email field) is the invite form's own — wait for the swap
-  await page.getByLabel('Email').fill(`admin@${slug}.test`);
-  await expect(page.getByLabel('Email')).toHaveValue(`admin@${slug}.test`);
-  await page.getByRole('button', { name: 'Send' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'Invitation sent' })).toBeVisible();
-  const url = /(http\S+\/auth\/accept-invite\/\S+)/.exec((await lastEmailTo(`admin@${slug}.test`))!.text)![1]!;
+  await expect(page.getByRole('heading', { name })).toBeVisible(); // the detail page (and its Email field) is the invite form's own — wait for the swap
+  await page.getByLabel('Email').fill(email);
+  await expect(page.getByLabel('Email')).toHaveValue(email);
+  const url = await inviteUrl(page, email, async () => {
+    await page.getByRole('button', { name: 'Send' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Invitation sent' })).toBeVisible();
+  });
   const ctx = await browser.newContext();
   const admin = await ctx.newPage();
   await admin.goto(url);

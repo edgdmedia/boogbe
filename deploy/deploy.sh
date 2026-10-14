@@ -1,5 +1,9 @@
 #!/bin/bash
 # Usage: deploy.sh prod|staging — pull, build, back up, migrate, reload, health-check. Idempotent.
+# Node, pnpm and pm2 come from the boogbe user's nvm; non-interactive SSH shells (GitHub Actions) don't load it.
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+# shellcheck disable=SC1091
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 set -euo pipefail
 INSTANCE="${1:?usage: deploy.sh prod|staging}"
 DIR="$(cd "$(dirname "$0")/.." && pwd)"

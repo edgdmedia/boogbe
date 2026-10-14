@@ -1,11 +1,16 @@
 name: Deploy App
-# Auto-deploy is disabled until the owner completes VPS setup (docs/RUNBOOK.md → Deploys).
-# Re-enable by restoring: workflow_run: { workflows: [CI], types: [completed], branches: [dev, main] }
+# Production only (launch, 2026-10-15): a push to main publishes app.boogbe.com (Cloudflare Pages, branch main).
 on:
+  push:
+    branches: [main]
   workflow_dispatch: {}
 jobs:
   deploy:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-app-prod
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -14,8 +19,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter "@boogbe/app..." build
         env:
-          VITE_API_ORIGIN: ${{ github.ref_name == 'main' && 'https://api.boogbe.com' || 'https://staging-api.boogbe.com' }}
-      - run: npx wrangler@3 pages deploy apps/app/dist --project-name boogbe-app --branch ${{ github.ref_name }}
+          VITE_API_ORIGIN: https://api.boogbe.com
+      - run: npx wrangler@3 pages deploy apps/app/dist --project-name boogbe-app --branch main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
