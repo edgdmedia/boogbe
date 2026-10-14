@@ -26,3 +26,13 @@ test('an operator admin who opens the app signed out is asked to choose the oper
   await expect(admin).toHaveURL(/\/choose-operator$/);
   await expect(admin.getByText('Tanuhomes')).toBeVisible();
 });
+
+test('a signed-in user who opens the sign-in page goes straight on, never off-site', async ({ page }) => {
+  await signInFromRoot(page, platformAdmin.email, platformAdmin.password);
+  await expect(page).toHaveURL(/\/platform$/);
+  await page.goto('/auth/sign-in?next=%2Fplatform');
+  await expect(page).toHaveURL(/\/platform$/);
+  await page.goto('/auth/sign-in?next=%2F%2Fevil.example');
+  await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/platform$/);
+  await expect(page.getByLabel('Password')).toHaveCount(0);
+});

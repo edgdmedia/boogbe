@@ -1,13 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useSWRConfig } from 'swr';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
-import { MeResponse } from '@boogbe/shared';
-import { Button, Card, Field, Input } from '@boogbe/ui';
-import { api, ApiError } from '../../lib/api';
+import { Button, Card, Field, Input, Spinner } from '@boogbe/ui';
+import { ApiError } from '../../lib/api';
 import { authClient } from '../../lib/auth-client';
+import { safeNext } from '../../lib/safe-next';
+import { useMe } from '../../lib/use-me';
+import { useRefreshSession } from '../../lib/use-refresh-session';
 
 const Schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -16,8 +17,10 @@ const Schema = z.object({
 
 export function SignIn() {
   const nav = useNavigate();
-  const { mutate } = useSWRConfig();
+  const { me, isLoading } = useMe();
+  const refreshSession = useRefreshSession();
   const [params] = useSearchParams();
+  const next = safeNext(params.get('next'));
   const [serverError, setServerError] = useState<string>();
   const { register, handleSubmit, formState } = useForm<z.infer<typeof Schema>>({ resolver: zodResolver(Schema) });
   const onSubmit = handleSubmit(async (v) => {
@@ -28,16 +31,22 @@ export function SignIn() {
         r.error.status === 429 ? 'Too many attempts. Try again in 15 minutes.' : 'Invalid email or password',
       );
     }
-    // Everything cached so far was fetched signed out — including the 401 for /v1/me that made the app send us
-    // here. Drop it all and load the session before navigating, or RequireAuth bounces straight back (T-M2-13).
-    await mutate((key) => key !== '/v1/me', undefined, { revalidate: false });
     try {
-      await mutate('/v1/me', api('/v1/me', { schema: MeResponse }), { revalidate: false });
+      await refreshSession();
     } catch (e) {
       return setServerError(e instanceof ApiError ? e.message : 'Something went wrong');
     }
-    nav(params.get('next') ?? '/', { replace: true });
+    nav(next, { replace: true });
   });
+  // Already signed in: no form, straight on (T-M2-13).
+  if (me) return <Navigate to={next} replace />;
+  if (isLoading) {
+    return (
+      <div className="grid min-h-dvh place-items-center">
+        <Spinner />
+      </div>
+    );
+  }
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center p-4">
       <h1 className="mb-6 text-2xl font-semibold">Sign in to Boogbe</h1>
