@@ -93,8 +93,10 @@ describe('messaging schema [MSG-01 MSG-05]', () => {
         await m.query(INSERT, msg(live.id, { status, at: '2026-10-14T07:00:00Z' }));
       await m.query(INSERT, msg(suspended.id, { at: '2026-10-14T07:00:00Z' }));
       await m.query(`update organization set status='suspended' where id=$1`, [suspended.id]);
-      await m.query(INSERT, msg(live.id, { id: due[1]!, at: '2026-10-14T09:05:00Z' }));
-      await m.query(INSERT, msg(live.id, { id: due[0]!, at: '2026-10-14T09:00:00Z', next: '2000-01-01T00:00:00Z' }));
+      // The newer message is inserted first and carries the earlier retry time, so neither table order nor the
+      // (status, next_attempt_at) index order is oldest-first: only ORDER BY created_at picks due[0].
+      await m.query(INSERT, msg(live.id, { id: due[1]!, at: '2026-10-14T09:05:00Z', next: '2000-01-01T00:00:00Z' }));
+      await m.query(INSERT, msg(live.id, { id: due[0]!, at: '2026-10-14T09:00:00Z' }));
 
       // RETURNING order is not guaranteed, so "oldest first" is checked through the limit: one at a time.
       const first = (await app.query(`select * from claim_outbound(1)`)).rows;
