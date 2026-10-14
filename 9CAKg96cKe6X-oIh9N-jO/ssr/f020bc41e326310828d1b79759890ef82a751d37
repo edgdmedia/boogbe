@@ -1,5 +1,0 @@
-const AUTH = 'BOOGBE_AUTH';
-Object.defineProperty(__vite_ssr_exports__, "AUTH", { enumerable: true, configurable: true, get(){ return AUTH }});
-
-//# sourceMappingSource=vite-node
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQU8sTUFBTUEsT0FBTzttSEFBYyIsIm5hbWVzIjpbIkFVVEgiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiYXV0aC50b2tlbnMudHMiXSwic291cmNlc0NvbnRlbnQiOlsiZXhwb3J0IGNvbnN0IEFVVEggPSAnQk9PR0JFX0FVVEgnO1xuIl0sImZpbGUiOiIvc3JjL2NvbW1vbi9hdXRoL2F1dGgudG9rZW5zLnRzIn0=
