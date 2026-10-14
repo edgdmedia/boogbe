@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { BookOpen, Building2, CalendarDays, Contact, ScrollText, Settings, ShieldCheck, UserRound, Users } from 'lucide-react';
+import { BookOpen, Building2, CalendarDays, Contact, ScrollText, Settings, ShieldCheck, UserRound, Users, Wallet } from 'lucide-react';
 import { createBrowserRouter, Outlet } from 'react-router-dom';
 import { EmptyState } from '@boogbe/ui';
 import { AppShell, type NavItem } from './components/shell/AppShell';
@@ -26,6 +26,7 @@ import { Team } from './routes/settings/Team';
 import { Sessions } from './routes/settings/Sessions';
 import { AuditLog } from './routes/settings/AuditLog';
 import { OrgProfile } from './routes/settings/OrgProfile';
+import { MoneyPage } from './features/payments/MoneyPage';
 import { ChooseOperator } from './routes/ChooseOperator';
 
 /** Later milestones append to these arrays; keep one source of truth for nav. */
@@ -33,6 +34,7 @@ export const OPERATOR_NAV: NavItem[] = [
   { to: '/calendar', label: 'Calendar', icon: CalendarDays, permission: 'calendar.read' },
   { to: '/settings/properties', label: 'Properties', icon: Building2, permission: 'inventory.read' },
   { to: '/settings/owners', label: 'Owners', icon: UserRound, permission: 'owners.read' },
+  { to: '/money', label: 'Money', icon: Wallet, permission: 'payments.read' },
   { to: '/bookings', label: 'Bookings', icon: BookOpen, permission: 'bookings.read' },
   { to: '/guests', label: 'Guests', icon: Contact, permission: 'guests.read' },
   { to: '/settings/team', label: 'Team', icon: Users, permission: 'members.write' },
@@ -69,6 +71,7 @@ export const router = createBrowserRouter([
       { path: '/settings/properties', element: operator(<PropertiesPage />) },
       { path: '/settings/properties/:id', element: operator(<PropertyDetail />) },
       { path: '/settings/owners', element: operator(<OwnersPage />) },
+      { path: '/money', element: operator(<MoneyPage />) },
       { path: '/bookings', element: operator(<BookingsPage />) },
       { path: '/bookings/new', element: operator(<NewBookingPage />) },
       { path: '/bookings/:id', element: operator(<BookingDetail />) },
