@@ -15,3 +15,6 @@ test-results/
 node-compile-cache/
 jiti/
 v8-compile-cache-*/
+# Tool caches that land in the repo when TMPDIR points here
+tsx-*/
+playwright-transform-cache-*/
