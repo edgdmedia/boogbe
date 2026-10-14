@@ -1,0 +1,16 @@
+class AppError extends Error {
+    code;
+    status;
+    details;
+    constructor(code, status, message, details){
+        super(message), this.code = code, this.status = status, this.details = details;
+    }
+}
+Object.defineProperty(__vite_ssr_exports__, "AppError", { enumerable: true, configurable: true, get(){ return AppError }});
+const notFound = (what = 'Resource')=>new AppError('NOT_FOUND', 404, `${what} not found`);
+Object.defineProperty(__vite_ssr_exports__, "notFound", { enumerable: true, configurable: true, get(){ return notFound }});
+const forbidden = (msg = 'You do not have permission to do that')=>new AppError('FORBIDDEN', 403, msg);
+Object.defineProperty(__vite_ssr_exports__, "forbidden", { enumerable: true, configurable: true, get(){ return forbidden }});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBRU8sTUFBTUEsaUJBQWlCQzs7OztJQUM1QixZQUNFLElBQStCLEVBQy9CLE1BQThCLEVBQzlCQyxPQUFlLEVBQ2YsT0FBaUMsQ0FDakM7UUFDQSxLQUFLLENBQUNBLGVBTFVDLGtCQUNBQyxzQkFFQUM7SUFHbEI7QUFDRjsySEFBQTtBQUNPLE1BQU1DLFdBQVcsQ0FBQ0MsT0FBTyxVQUFVLEdBQUssSUFBSVAsU0FBUyxhQUFhLEtBQUssR0FBR08sS0FBSyxVQUFVLENBQUM7MkhBQUU7QUFDNUYsTUFBTUMsWUFBWSxDQUFDQyxNQUFNLHVDQUF1QyxHQUFLLElBQUlULFNBQVMsYUFBYSxLQUFLUzs2SEFBSyIsIm5hbWVzIjpbIkFwcEVycm9yIiwiRXJyb3IiLCJtZXNzYWdlIiwiY29kZSIsInN0YXR1cyIsImRldGFpbHMiLCJub3RGb3VuZCIsIndoYXQiLCJmb3JiaWRkZW4iLCJtc2ciXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiYXBwLWVycm9yLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB0eXBlIHsgRXJyb3JDb2RlIH0gZnJvbSAnQGJvb2diZS9zaGFyZWQnO1xuXG5leHBvcnQgY2xhc3MgQXBwRXJyb3IgZXh0ZW5kcyBFcnJvciB7XG4gIGNvbnN0cnVjdG9yKFxuICAgIHB1YmxpYyByZWFkb25seSBjb2RlOiBFcnJvckNvZGUsXG4gICAgcHVibGljIHJlYWRvbmx5IHN0YXR1czogbnVtYmVyLFxuICAgIG1lc3NhZ2U6IHN0cmluZyxcbiAgICBwdWJsaWMgcmVhZG9ubHkgZGV0YWlscz86IHVua25vd24sXG4gICkge1xuICAgIHN1cGVyKG1lc3NhZ2UpO1xuICB9XG59XG5leHBvcnQgY29uc3Qgbm90Rm91bmQgPSAod2hhdCA9ICdSZXNvdXJjZScpID0+IG5ldyBBcHBFcnJvcignTk9UX0ZPVU5EJywgNDA0LCBgJHt3aGF0fSBub3QgZm91bmRgKTtcbmV4cG9ydCBjb25zdCBmb3JiaWRkZW4gPSAobXNnID0gJ1lvdSBkbyBub3QgaGF2ZSBwZXJtaXNzaW9uIHRvIGRvIHRoYXQnKSA9PiBuZXcgQXBwRXJyb3IoJ0ZPUkJJRERFTicsIDQwMywgbXNnKTtcbiJdLCJmaWxlIjoiL3NyYy9jb21tb24vaHR0cC9hcHAtZXJyb3IudHMifQ==

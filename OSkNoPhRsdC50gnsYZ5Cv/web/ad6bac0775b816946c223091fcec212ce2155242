@@ -1,0 +1,10 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/node_modules/.pnpm/vitest@2.1.9_@types+node@22.20.5_jsdom@25.0.1_lightningcss@1.32.0_terser@5.51.2/node_modules/vitest/dist/index.js", {"importedNames":["afterEach"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/node_modules/.pnpm/@testing-library+react@16.3.3_@testing-library+dom@10.4.2_@types+react-dom@18.3.7_@types+reac_aeftit5ke2xxaf4nxeo4zj4kvi/node_modules/@testing-library/react/dist/index.js", {"importedNames":["cleanup"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/node_modules/.pnpm/@testing-library+jest-dom@6.10.0_@testing-library+dom@10.4.2/node_modules/@testing-library/jest-dom/dist/vitest.mjs");
+
+
+
+__vite_ssr_import_0__.afterEach(__vite_ssr_import_1__.cleanup);
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7O0FBQTBCO0FBQ0Y7QUFDakI7QUFFUCxnQ0FBVSw2QkFBTyIsIm5hbWVzIjpbXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsic2V0dXAudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgYWZ0ZXJFYWNoIH0gZnJvbSAndml0ZXN0JztcbmltcG9ydCB7IGNsZWFudXAgfSBmcm9tICdAdGVzdGluZy1saWJyYXJ5L3JlYWN0JztcbmltcG9ydCAnQHRlc3RpbmctbGlicmFyeS9qZXN0LWRvbS92aXRlc3QnO1xuXG5hZnRlckVhY2goY2xlYW51cCk7IC8vIHZpdGVzdCBnbG9iYWxzIGFyZSBvZmYsIHNvIFJUTCBkb2VzIG5vdCBhdXRvLXJlZ2lzdGVyIGNsZWFudXBcblxuIl0sImZpbGUiOiIvVXNlcnMvb2xhbGVrYW4vUHJvamVjdHMvYm9vZ2JlLy53b3JrdHJlZXMvdC1tMy0wNS1tb25leS9hcHBzL2FwcC9zcmMvdGVzdC9zZXR1cC50cyJ9

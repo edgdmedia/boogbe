@@ -1,0 +1,11 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("node:crypto", {"importedNames":["randomUUID"]});
+
+function requestId(req, res, next) {
+    req.id = __vite_ssr_import_0__.randomUUID();
+    res.setHeader('x-request-id', req.id);
+    next();
+}
+Object.defineProperty(__vite_ssr_exports__, "requestId", { enumerable: true, configurable: true, get(){ return requestId }});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTtBQUF5QztBQUdsQyxTQUFTQSxVQUFVQyxHQUE4QixFQUFFQyxHQUFhLEVBQUVDLElBQWtCO0lBQ3pGRixJQUFJRyxFQUFFLEdBQUdDO0lBQ1RILElBQUlJLFNBQVMsQ0FBQyxnQkFBZ0JMLElBQUlHLEVBQUU7SUFDcENEO0FBQ0Y7NkhBQUEiLCJuYW1lcyI6WyJyZXF1ZXN0SWQiLCJyZXEiLCJyZXMiLCJuZXh0IiwiaWQiLCJyYW5kb21VVUlEIiwic2V0SGVhZGVyIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbInJlcXVlc3QtaWQubWlkZGxld2FyZS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyByYW5kb21VVUlEIH0gZnJvbSAnbm9kZTpjcnlwdG8nO1xuaW1wb3J0IHR5cGUgeyBOZXh0RnVuY3Rpb24sIFJlcXVlc3QsIFJlc3BvbnNlIH0gZnJvbSAnZXhwcmVzcyc7XG5cbmV4cG9ydCBmdW5jdGlvbiByZXF1ZXN0SWQocmVxOiBSZXF1ZXN0ICYgeyBpZD86IHN0cmluZyB9LCByZXM6IFJlc3BvbnNlLCBuZXh0OiBOZXh0RnVuY3Rpb24pIHtcbiAgcmVxLmlkID0gcmFuZG9tVVVJRCgpO1xuICByZXMuc2V0SGVhZGVyKCd4LXJlcXVlc3QtaWQnLCByZXEuaWQpO1xuICBuZXh0KCk7XG59XG4iXSwiZmlsZSI6Ii9zcmMvY29tbW9uL2h0dHAvcmVxdWVzdC1pZC5taWRkbGV3YXJlLnRzIn0=

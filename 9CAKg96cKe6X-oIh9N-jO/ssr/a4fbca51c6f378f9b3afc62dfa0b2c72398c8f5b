@@ -1,0 +1,25 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("zod", {"importedNames":["z"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m4-02-ical-schema/packages/shared/src/domain/dates.ts", {"importedNames":["isIsoDate"]});
+
+
+const IsoDateSchema = __vite_ssr_import_0__.z.string().refine(__vite_ssr_import_1__.isIsoDate, 'Use YYYY-MM-DD');
+Object.defineProperty(__vite_ssr_exports__, "IsoDateSchema", { enumerable: true, configurable: true, get(){ return IsoDateSchema }});
+const Kobo = __vite_ssr_import_0__.z.number().int('Must be whole kobo').min(0).max(Number.MAX_SAFE_INTEGER);
+Object.defineProperty(__vite_ssr_exports__, "Kobo", { enumerable: true, configurable: true, get(){ return Kobo }});
+const Bps = __vite_ssr_import_0__.z.number().int().min(0).max(10_000);
+Object.defineProperty(__vite_ssr_exports__, "Bps", { enumerable: true, configurable: true, get(){ return Bps }});
+const E164 = __vite_ssr_import_0__.z.string().regex(/^\+[1-9]\d{7,14}$/, 'Use international format, e.g. +2348012345678');
+Object.defineProperty(__vite_ssr_exports__, "E164", { enumerable: true, configurable: true, get(){ return E164 }});
+const Page = (item)=>__vite_ssr_import_0__.z.object({
+        items: __vite_ssr_import_0__.z.array(item),
+        nextCursor: __vite_ssr_import_0__.z.string().nullable()
+    });
+Object.defineProperty(__vite_ssr_exports__, "Page", { enumerable: true, configurable: true, get(){ return Page }});
+const CursorQuery = __vite_ssr_import_0__.z.object({
+    cursor: __vite_ssr_import_0__.z.string().optional(),
+    limit: __vite_ssr_import_0__.z.coerce.number().int().min(1).max(100).default(50)
+});
+Object.defineProperty(__vite_ssr_exports__, "CursorQuery", { enumerable: true, configurable: true, get(){ return CursorQuery }});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7QUFBd0I7QUFDb0I7QUFFckMsTUFBTUEsZ0JBQWdCQyx3QkFBRUMsTUFBTSxHQUFHQyxNQUFNLENBQUNDLGlDQUFXO3FJQUFrQjtBQUNyRSxNQUFNQyxPQUFPSix3QkFBRUssTUFBTSxHQUFHQyxHQUFHLENBQUMsc0JBQXNCQyxHQUFHLENBQUMsR0FBR0MsR0FBRyxDQUFDQyxPQUFPQyxnQkFBZ0I7bUhBQUU7QUFDdEYsTUFBTUMsTUFBTVgsd0JBQUVLLE1BQU0sR0FBR0MsR0FBRyxHQUFHQyxHQUFHLENBQUMsR0FBR0MsR0FBRyxDQUFDO2lIQUFRO0FBQ2hELE1BQU1JLE9BQU9aLHdCQUFFQyxNQUFNLEdBQUdZLEtBQUssQ0FBQyxxQkFBcUI7bUhBQWlEO0FBQ3BHLE1BQU1DLE9BQU8sQ0FBeUJDLE9BQVlmLHdCQUFFZ0IsTUFBTSxDQUFDO1FBQUVDLE9BQU9qQix3QkFBRWtCLEtBQUssQ0FBQ0g7UUFBT0ksWUFBWW5CLHdCQUFFQyxNQUFNLEdBQUdtQixRQUFRO0lBQUc7bUhBQUc7QUFDeEgsTUFBTUMsY0FBY3JCLHdCQUFFZ0IsTUFBTSxDQUFDO0lBQUVNLFFBQVF0Qix3QkFBRUMsTUFBTSxHQUFHc0IsUUFBUTtJQUFJQyxPQUFPeEIsd0JBQUV5QixNQUFNLENBQUNwQixNQUFNLEdBQUdDLEdBQUcsR0FBR0MsR0FBRyxDQUFDLEdBQUdDLEdBQUcsQ0FBQyxLQUFLa0IsT0FBTyxDQUFDO0FBQUk7aUlBQUciLCJuYW1lcyI6WyJJc29EYXRlU2NoZW1hIiwieiIsInN0cmluZyIsInJlZmluZSIsImlzSXNvRGF0ZSIsIktvYm8iLCJudW1iZXIiLCJpbnQiLCJtaW4iLCJtYXgiLCJOdW1iZXIiLCJNQVhfU0FGRV9JTlRFR0VSIiwiQnBzIiwiRTE2NCIsInJlZ2V4IiwiUGFnZSIsIml0ZW0iLCJvYmplY3QiLCJpdGVtcyIsImFycmF5IiwibmV4dEN1cnNvciIsIm51bGxhYmxlIiwiQ3Vyc29yUXVlcnkiLCJjdXJzb3IiLCJvcHRpb25hbCIsImxpbWl0IiwiY29lcmNlIiwiZGVmYXVsdCJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJjb21tb24udHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgeiB9IGZyb20gJ3pvZCc7XG5pbXBvcnQgeyBpc0lzb0RhdGUgfSBmcm9tICcuLi9kb21haW4vZGF0ZXMnO1xuXG5leHBvcnQgY29uc3QgSXNvRGF0ZVNjaGVtYSA9IHouc3RyaW5nKCkucmVmaW5lKGlzSXNvRGF0ZSwgJ1VzZSBZWVlZLU1NLUREJyk7XG5leHBvcnQgY29uc3QgS29ibyA9IHoubnVtYmVyKCkuaW50KCdNdXN0IGJlIHdob2xlIGtvYm8nKS5taW4oMCkubWF4KE51bWJlci5NQVhfU0FGRV9JTlRFR0VSKTtcbmV4cG9ydCBjb25zdCBCcHMgPSB6Lm51bWJlcigpLmludCgpLm1pbigwKS5tYXgoMTBfMDAwKTtcbmV4cG9ydCBjb25zdCBFMTY0ID0gei5zdHJpbmcoKS5yZWdleCgvXlxcK1sxLTldXFxkezcsMTR9JC8sICdVc2UgaW50ZXJuYXRpb25hbCBmb3JtYXQsIGUuZy4gKzIzNDgwMTIzNDU2NzgnKTtcbmV4cG9ydCBjb25zdCBQYWdlID0gPFQgZXh0ZW5kcyB6LlpvZFR5cGVBbnk+KGl0ZW06IFQpID0+IHoub2JqZWN0KHsgaXRlbXM6IHouYXJyYXkoaXRlbSksIG5leHRDdXJzb3I6IHouc3RyaW5nKCkubnVsbGFibGUoKSB9KTtcbmV4cG9ydCBjb25zdCBDdXJzb3JRdWVyeSA9IHoub2JqZWN0KHsgY3Vyc29yOiB6LnN0cmluZygpLm9wdGlvbmFsKCksIGxpbWl0OiB6LmNvZXJjZS5udW1iZXIoKS5pbnQoKS5taW4oMSkubWF4KDEwMCkuZGVmYXVsdCg1MCkgfSk7XG4iXSwiZmlsZSI6Ii9Vc2Vycy9vbGFsZWthbi9Qcm9qZWN0cy9ib29nYmUvLndvcmt0cmVlcy90LW00LTAyLWljYWwtc2NoZW1hL3BhY2thZ2VzL3NoYXJlZC9zcmMvY29udHJhY3RzL2NvbW1vbi50cyJ9

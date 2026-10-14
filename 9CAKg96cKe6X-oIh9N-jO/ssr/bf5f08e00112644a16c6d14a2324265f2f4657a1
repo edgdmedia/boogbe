@@ -1,0 +1,7 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("uuidv7", {"importedNames":["uuidv7"]});
+
+const newId = ()=>__vite_ssr_import_0__.uuidv7();
+Object.defineProperty(__vite_ssr_exports__, "newId", { enumerable: true, configurable: true, get(){ return newId }});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTtBQUFnQztBQUN6QixNQUFNQSxRQUFRLElBQWNDO3FIQUFTIiwibmFtZXMiOlsibmV3SWQiLCJ1dWlkdjciXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiaWRzLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IHV1aWR2NyB9IGZyb20gJ3V1aWR2Nyc7XG5leHBvcnQgY29uc3QgbmV3SWQgPSAoKTogc3RyaW5nID0+IHV1aWR2NygpO1xuIl0sImZpbGUiOiIvc3JjL2NvbW1vbi9kYi9pZHMudHMifQ==

@@ -1,0 +1,201 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("@nestjs/common", {"importedNames":["Body","Controller","Get","HttpCode","Param","Patch","Post","Query"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("nestjs-zod", {"importedNames":["createZodDto","ZodValidationPipe"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("zod", {"importedNames":["z"]});
+const __vite_ssr_import_3__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m4-02-ical-schema/packages/shared/src/index.ts", {"importedNames":["IsoDateSchema","SetUnitOwnerInput","UnitInput"]});
+const __vite_ssr_import_4__ = await __vite_ssr_import__("/src/common/auth/decorators.ts", {"importedNames":["Ctx","Permission"]});
+const __vite_ssr_import_5__ = await __vite_ssr_import__("/src/common/auth/request-ctx.ts", {"importedNames":["requireOrg"]});
+const __vite_ssr_import_6__ = await __vite_ssr_import__("/src/modules/inventory/units.service.ts", {"importedNames":["UnitsService"]});
+function _ts_decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
+        r = Reflect.decorate(decorators, target, key, desc);
+    } else {
+        for(var i = decorators.length - 1; i >= 0; i--){
+            if (d = decorators[i]) {
+                r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+            }
+        }
+    }
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+function _ts_metadata(metadataKey, metadataValue) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") {
+        return Reflect.metadata(metadataKey, metadataValue);
+    }
+}
+function _ts_param(paramIndex, decorator) {
+    return function(target, key) {
+        decorator(target, key, paramIndex);
+    };
+}
+
+
+
+
+
+
+
+let UnitDto = class UnitDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_3__.UnitInput) {
+};
+let UnitPatchDto = class UnitPatchDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_3__.UnitInput.partial()) {
+};
+let ListQuery = class ListQuery extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.z.object({
+    propertyId: __vite_ssr_import_2__.z.string().optional(),
+    includeArchived: __vite_ssr_import_2__.z.enum([
+        'true',
+        'false'
+    ]).optional(),
+    asOf: __vite_ssr_import_3__.IsoDateSchema.optional()
+})) {
+};
+class UnitsController {
+    svc;
+    constructor(svc){
+        this.svc = svc;
+    }
+    async list(c, q) {
+        return {
+            items: await this.svc.list(__vite_ssr_import_5__.requireOrg(c), {
+                propertyId: q.propertyId,
+                includeArchived: q.includeArchived === 'true',
+                asOf: q.asOf
+            })
+        };
+    }
+    get(c, id) {
+        return this.svc.get(__vite_ssr_import_5__.requireOrg(c), id);
+    }
+    create(c, b) {
+        return this.svc.create(__vite_ssr_import_5__.requireOrg(c), b);
+    }
+    update(c, id, b) {
+        return this.svc.update(__vite_ssr_import_5__.requireOrg(c), id, b);
+    }
+    archive(c, id) {
+        return this.svc.setActive(__vite_ssr_import_5__.requireOrg(c), id, false);
+    }
+    unarchive(c, id) {
+        return this.svc.setActive(__vite_ssr_import_5__.requireOrg(c), id, true);
+    }
+    // A discriminated union can't be a DTO class, so the schema validates the body directly.
+    owner(c, id, b) {
+        return this.svc.setOwner(__vite_ssr_import_5__.requireOrg(c), id, b);
+    }
+    history(c, id) {
+        return this.svc.ownershipHistory(__vite_ssr_import_5__.requireOrg(c), id);
+    }
+}
+Object.defineProperty(__vite_ssr_exports__, "UnitsController", { enumerable: true, configurable: true, get(){ return UnitsController }});
+_ts_decorate([
+    __vite_ssr_import_0__.Get(),
+    __vite_ssr_import_4__.Permission('inventory.read'),
+    _ts_param(0, __vite_ssr_import_4__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Query()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        typeof ListQuery === "undefined" ? Object : ListQuery
+    ]),
+    _ts_metadata("design:returntype", Promise)
+], UnitsController.prototype, "list", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Get(':id'),
+    __vite_ssr_import_4__.Permission('inventory.read'),
+    _ts_param(0, __vite_ssr_import_4__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], UnitsController.prototype, "get", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post(),
+    __vite_ssr_import_4__.Permission('inventory.write'),
+    _ts_param(0, __vite_ssr_import_4__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        typeof UnitDto === "undefined" ? Object : UnitDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], UnitsController.prototype, "create", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Patch(':id'),
+    __vite_ssr_import_4__.Permission('inventory.write'),
+    _ts_param(0, __vite_ssr_import_4__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_param(2, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String,
+        typeof UnitPatchDto === "undefined" ? Object : UnitPatchDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], UnitsController.prototype, "update", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post(':id/archive'),
+    __vite_ssr_import_0__.HttpCode(200),
+    __vite_ssr_import_4__.Permission('inventory.write'),
+    _ts_param(0, __vite_ssr_import_4__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], UnitsController.prototype, "archive", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post(':id/unarchive'),
+    __vite_ssr_import_0__.HttpCode(200),
+    __vite_ssr_import_4__.Permission('inventory.write'),
+    _ts_param(0, __vite_ssr_import_4__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], UnitsController.prototype, "unarchive", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post(':id/owner'),
+    __vite_ssr_import_0__.HttpCode(200),
+    __vite_ssr_import_4__.Permission('owners.write'),
+    _ts_param(0, __vite_ssr_import_4__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_param(2, __vite_ssr_import_0__.Body(new __vite_ssr_import_1__.ZodValidationPipe(__vite_ssr_import_3__.SetUnitOwnerInput))),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String,
+        typeof __vite_ssr_import_3__.SetUnitOwnerInput === "undefined" ? Object : __vite_ssr_import_3__.SetUnitOwnerInput
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], UnitsController.prototype, "owner", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Get(':id/ownership'),
+    __vite_ssr_import_4__.Permission('owners.read'),
+    _ts_param(0, __vite_ssr_import_4__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], UnitsController.prototype, "history", null);
+UnitsController = _ts_decorate([
+    __vite_ssr_import_0__.Controller('units'),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof __vite_ssr_import_6__.UnitsService === "undefined" ? Object : __vite_ssr_import_6__.UnitsService
+    ])
+], UnitsController);
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBQTRGO0FBQy9CO0FBQ3JDO0FBQ3FEO0FBQ2Q7QUFDYTtBQUM3QjtBQUUvQyxXQUFNQSxHQUFOLE1BQU1BLGdCQUFnQkMsbUNBQWFDO0FBQVk7QUFDL0MsZ0JBQU1DLEdBQU4sTUFBTUEscUJBQXFCRixtQ0FBYUMsZ0NBQVVFLE9BQU87QUFBSztBQUM5RCxhQUFNQyxHQUFOLE1BQU1BLGtCQUFrQkosbUNBQ3RCSyx3QkFBRUMsTUFBTSxDQUFDO0lBQ1BDLFlBQVlGLHdCQUFFRyxNQUFNLEdBQUdDLFFBQVE7SUFDL0JDLGlCQUFpQkwsd0JBQUVNLElBQUksQ0FBQztRQUFDO1FBQVE7S0FBUSxFQUFFRixRQUFRO0lBQ25ERyxNQUFNQyxvQ0FBY0osUUFBUTtBQUM5QjtBQUNDO0FBR0ksTUFBTUs7O0lBQ1gsWUFBWSxHQUFrQyxDQUFFO2FBQW5CQztJQUFvQjtJQUVqRCxNQUVNQyxLQUFLLENBQW9CLEVBQUUsQ0FBcUIsRUFBRTtRQUN0RCxPQUFPO1lBQ0xDLE9BQU8sTUFBTSxJQUFJLENBQUNGLEdBQUcsQ0FBQ0MsSUFBSSxDQUFDRSxpQ0FBV0MsSUFBSTtnQkFDeENaLFlBQVlhLEVBQUViLFVBQVU7Z0JBQ3hCRyxpQkFBaUJVLEVBQUVWLGVBQWUsS0FBSztnQkFDdkNFLE1BQU1RLEVBQUVSLElBQUk7WUFDZDtRQUNGO0lBQ0Y7SUFJQVMsSUFBSSxDQUFvQixFQUFFLEVBQXVCLEVBQUU7UUFDakQsT0FBTyxJQUFJLENBQUNOLEdBQUcsQ0FBQ00sR0FBRyxDQUFDSCxpQ0FBV0MsSUFBSUc7SUFDckM7SUFJQUMsT0FBTyxDQUFvQixFQUFFLENBQWtCLEVBQUU7UUFDL0MsT0FBTyxJQUFJLENBQUNSLEdBQUcsQ0FBQ1EsTUFBTSxDQUFDTCxpQ0FBV0MsSUFBSUs7SUFDeEM7SUFJQUMsT0FBTyxDQUFvQixFQUFFLEVBQXVCLEVBQUUsQ0FBdUIsRUFBRTtRQUM3RSxPQUFPLElBQUksQ0FBQ1YsR0FBRyxDQUFDVSxNQUFNLENBQUNQLGlDQUFXQyxJQUFJRyxJQUFJRTtJQUM1QztJQUtBRSxRQUFRLENBQW9CLEVBQUUsRUFBdUIsRUFBRTtRQUNyRCxPQUFPLElBQUksQ0FBQ1gsR0FBRyxDQUFDWSxTQUFTLENBQUNULGlDQUFXQyxJQUFJRyxJQUFJO0lBQy9DO0lBS0FNLFVBQVUsQ0FBb0IsRUFBRSxFQUF1QixFQUFFO1FBQ3ZELE9BQU8sSUFBSSxDQUFDYixHQUFHLENBQUNZLFNBQVMsQ0FBQ1QsaUNBQVdDLElBQUlHLElBQUk7SUFDL0M7SUFLQSx5RkFBeUY7SUFDekZPLE1BQ0UsQ0FBb0IsRUFDcEIsRUFBdUIsRUFDdkIsQ0FBb0UsRUFDcEU7UUFDQSxPQUFPLElBQUksQ0FBQ2QsR0FBRyxDQUFDZSxRQUFRLENBQUNaLGlDQUFXQyxJQUFJRyxJQUFJRTtJQUM5QztJQUlBTyxRQUFRLENBQW9CLEVBQUUsRUFBdUIsRUFBRTtRQUNyRCxPQUFPLElBQUksQ0FBQ2hCLEdBQUcsQ0FBQ2lCLGdCQUFnQixDQUFDZCxpQ0FBV0MsSUFBSUc7SUFDbEQ7QUFDRjt5SUFBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Z0RBVmNXLHdDQUFrQkMiLCJuYW1lcyI6WyJVbml0RHRvIiwiY3JlYXRlWm9kRHRvIiwiVW5pdElucHV0IiwiVW5pdFBhdGNoRHRvIiwicGFydGlhbCIsIkxpc3RRdWVyeSIsInoiLCJvYmplY3QiLCJwcm9wZXJ0eUlkIiwic3RyaW5nIiwib3B0aW9uYWwiLCJpbmNsdWRlQXJjaGl2ZWQiLCJlbnVtIiwiYXNPZiIsIklzb0RhdGVTY2hlbWEiLCJVbml0c0NvbnRyb2xsZXIiLCJzdmMiLCJsaXN0IiwiaXRlbXMiLCJyZXF1aXJlT3JnIiwiYyIsInEiLCJnZXQiLCJpZCIsImNyZWF0ZSIsImIiLCJ1cGRhdGUiLCJhcmNoaXZlIiwic2V0QWN0aXZlIiwidW5hcmNoaXZlIiwib3duZXIiLCJzZXRPd25lciIsImhpc3RvcnkiLCJvd25lcnNoaXBIaXN0b3J5IiwiWm9kVmFsaWRhdGlvblBpcGUiLCJTZXRVbml0T3duZXJJbnB1dCJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJ1bml0cy5jb250cm9sbGVyLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEJvZHksIENvbnRyb2xsZXIsIEdldCwgSHR0cENvZGUsIFBhcmFtLCBQYXRjaCwgUG9zdCwgUXVlcnkgfSBmcm9tICdAbmVzdGpzL2NvbW1vbic7XG5pbXBvcnQgeyBjcmVhdGVab2REdG8sIFpvZFZhbGlkYXRpb25QaXBlIH0gZnJvbSAnbmVzdGpzLXpvZCc7XG5pbXBvcnQgeyB6IH0gZnJvbSAnem9kJztcbmltcG9ydCB7IElzb0RhdGVTY2hlbWEsIFNldFVuaXRPd25lcklucHV0LCBVbml0SW5wdXQgfSBmcm9tICdAYm9vZ2JlL3NoYXJlZCc7XG5pbXBvcnQgeyBDdHgsIFBlcm1pc3Npb24gfSBmcm9tICcuLi8uLi9jb21tb24vYXV0aC9kZWNvcmF0b3JzJztcbmltcG9ydCB7IHJlcXVpcmVPcmcsIHR5cGUgUmVxdWVzdEN0eCB9IGZyb20gJy4uLy4uL2NvbW1vbi9hdXRoL3JlcXVlc3QtY3R4JztcbmltcG9ydCB7IFVuaXRzU2VydmljZSB9IGZyb20gJy4vdW5pdHMuc2VydmljZSc7XG5cbmNsYXNzIFVuaXREdG8gZXh0ZW5kcyBjcmVhdGVab2REdG8oVW5pdElucHV0KSB7fVxuY2xhc3MgVW5pdFBhdGNoRHRvIGV4dGVuZHMgY3JlYXRlWm9kRHRvKFVuaXRJbnB1dC5wYXJ0aWFsKCkpIHt9XG5jbGFzcyBMaXN0UXVlcnkgZXh0ZW5kcyBjcmVhdGVab2REdG8oXG4gIHoub2JqZWN0KHtcbiAgICBwcm9wZXJ0eUlkOiB6LnN0cmluZygpLm9wdGlvbmFsKCksXG4gICAgaW5jbHVkZUFyY2hpdmVkOiB6LmVudW0oWyd0cnVlJywgJ2ZhbHNlJ10pLm9wdGlvbmFsKCksXG4gICAgYXNPZjogSXNvRGF0ZVNjaGVtYS5vcHRpb25hbCgpLFxuICB9KSxcbikge31cblxuQENvbnRyb2xsZXIoJ3VuaXRzJylcbmV4cG9ydCBjbGFzcyBVbml0c0NvbnRyb2xsZXIge1xuICBjb25zdHJ1Y3Rvcihwcml2YXRlIHJlYWRvbmx5IHN2YzogVW5pdHNTZXJ2aWNlKSB7fVxuXG4gIEBHZXQoKVxuICBAUGVybWlzc2lvbignaW52ZW50b3J5LnJlYWQnKVxuICBhc3luYyBsaXN0KEBDdHgoKSBjOiBSZXF1ZXN0Q3R4LCBAUXVlcnkoKSBxOiBMaXN0UXVlcnkpIHtcbiAgICByZXR1cm4ge1xuICAgICAgaXRlbXM6IGF3YWl0IHRoaXMuc3ZjLmxpc3QocmVxdWlyZU9yZyhjKSwge1xuICAgICAgICBwcm9wZXJ0eUlkOiBxLnByb3BlcnR5SWQsXG4gICAgICAgIGluY2x1ZGVBcmNoaXZlZDogcS5pbmNsdWRlQXJjaGl2ZWQgPT09ICd0cnVlJyxcbiAgICAgICAgYXNPZjogcS5hc09mLFxuICAgICAgfSksXG4gICAgfTtcbiAgfVxuXG4gIEBHZXQoJzppZCcpXG4gIEBQZXJtaXNzaW9uKCdpbnZlbnRvcnkucmVhZCcpXG4gIGdldChAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcpIHtcbiAgICByZXR1cm4gdGhpcy5zdmMuZ2V0KHJlcXVpcmVPcmcoYyksIGlkKTtcbiAgfVxuXG4gIEBQb3N0KClcbiAgQFBlcm1pc3Npb24oJ2ludmVudG9yeS53cml0ZScpXG4gIGNyZWF0ZShAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQEJvZHkoKSBiOiBVbml0RHRvKSB7XG4gICAgcmV0dXJuIHRoaXMuc3ZjLmNyZWF0ZShyZXF1aXJlT3JnKGMpLCBiKTtcbiAgfVxuXG4gIEBQYXRjaCgnOmlkJylcbiAgQFBlcm1pc3Npb24oJ2ludmVudG9yeS53cml0ZScpXG4gIHVwZGF0ZShAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcsIEBCb2R5KCkgYjogVW5pdFBhdGNoRHRvKSB7XG4gICAgcmV0dXJuIHRoaXMuc3ZjLnVwZGF0ZShyZXF1aXJlT3JnKGMpLCBpZCwgYik7XG4gIH1cblxuICBAUG9zdCgnOmlkL2FyY2hpdmUnKVxuICBASHR0cENvZGUoMjAwKVxuICBAUGVybWlzc2lvbignaW52ZW50b3J5LndyaXRlJylcbiAgYXJjaGl2ZShAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcpIHtcbiAgICByZXR1cm4gdGhpcy5zdmMuc2V0QWN0aXZlKHJlcXVpcmVPcmcoYyksIGlkLCBmYWxzZSk7XG4gIH1cblxuICBAUG9zdCgnOmlkL3VuYXJjaGl2ZScpXG4gIEBIdHRwQ29kZSgyMDApXG4gIEBQZXJtaXNzaW9uKCdpbnZlbnRvcnkud3JpdGUnKVxuICB1bmFyY2hpdmUoQEN0eCgpIGM6IFJlcXVlc3RDdHgsIEBQYXJhbSgnaWQnKSBpZDogc3RyaW5nKSB7XG4gICAgcmV0dXJuIHRoaXMuc3ZjLnNldEFjdGl2ZShyZXF1aXJlT3JnKGMpLCBpZCwgdHJ1ZSk7XG4gIH1cblxuICBAUG9zdCgnOmlkL293bmVyJylcbiAgQEh0dHBDb2RlKDIwMClcbiAgQFBlcm1pc3Npb24oJ293bmVycy53cml0ZScpXG4gIC8vIEEgZGlzY3JpbWluYXRlZCB1bmlvbiBjYW4ndCBiZSBhIERUTyBjbGFzcywgc28gdGhlIHNjaGVtYSB2YWxpZGF0ZXMgdGhlIGJvZHkgZGlyZWN0bHkuXG4gIG93bmVyKFxuICAgIEBDdHgoKSBjOiBSZXF1ZXN0Q3R4LFxuICAgIEBQYXJhbSgnaWQnKSBpZDogc3RyaW5nLFxuICAgIEBCb2R5KG5ldyBab2RWYWxpZGF0aW9uUGlwZShTZXRVbml0T3duZXJJbnB1dCkpIGI6IFNldFVuaXRPd25lcklucHV0LFxuICApIHtcbiAgICByZXR1cm4gdGhpcy5zdmMuc2V0T3duZXIocmVxdWlyZU9yZyhjKSwgaWQsIGIpO1xuICB9XG5cbiAgQEdldCgnOmlkL293bmVyc2hpcCcpXG4gIEBQZXJtaXNzaW9uKCdvd25lcnMucmVhZCcpXG4gIGhpc3RvcnkoQEN0eCgpIGM6IFJlcXVlc3RDdHgsIEBQYXJhbSgnaWQnKSBpZDogc3RyaW5nKSB7XG4gICAgcmV0dXJuIHRoaXMuc3ZjLm93bmVyc2hpcEhpc3RvcnkocmVxdWlyZU9yZyhjKSwgaWQpO1xuICB9XG59XG4iXSwiZmlsZSI6Ii9zcmMvbW9kdWxlcy9pbnZlbnRvcnkvdW5pdHMuY29udHJvbGxlci50cyJ9

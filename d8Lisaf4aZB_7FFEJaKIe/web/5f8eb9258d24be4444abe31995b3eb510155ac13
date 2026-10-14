@@ -1,0 +1,37 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/node_modules/.pnpm/vitest@2.1.9_@types+node@22.20.5_jsdom@25.0.1_lightningcss@1.32.0_terser@5.51.2/node_modules/vitest/dist/index.js", {"importedNames":["afterEach","describe","expect","it","vi"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/node_modules/.pnpm/zod@4.6.5/node_modules/zod/index.js", {"importedNames":["z"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/src/lib/api.ts", {"importedNames":["api","ApiError"]});
+
+
+
+__vite_ssr_import_0__.afterEach(() => __vite_ssr_import_0__.vi.restoreAllMocks());
+__vite_ssr_import_0__.describe("api", () => {
+  __vite_ssr_import_0__.it("sends credentials and JSON, parses with schema", async () => {
+    const f = __vite_ssr_import_0__.vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ n: 1 }), { status: 200, headers: { "content-type": "application/json" } })
+    );
+    const r = await __vite_ssr_import_2__.api("/v1/x", { method: "POST", body: { a: 1 }, schema: __vite_ssr_import_1__.z.object({ n: __vite_ssr_import_1__.z.number() }) });
+    __vite_ssr_import_0__.expect(r).toEqual({ n: 1 });
+    __vite_ssr_import_0__.expect(f).toHaveBeenCalledWith(
+      "/v1/x",
+      __vite_ssr_import_0__.expect.objectContaining({ method: "POST", credentials: "include", body: '{"a":1}' })
+    );
+  });
+  __vite_ssr_import_0__.it("throws ApiError with code from the envelope", async () => {
+    __vite_ssr_import_0__.vi.spyOn(globalThis, "fetch").mockImplementation(
+      async () => new Response(JSON.stringify({ error: { code: "DATES_UNAVAILABLE", message: "Taken" } }), { status: 409 })
+    );
+    await __vite_ssr_import_0__.expect(__vite_ssr_import_2__.api("/v1/x")).rejects.toMatchObject({ code: "DATES_UNAVAILABLE", status: 409, message: "Taken" });
+    await __vite_ssr_import_0__.expect(__vite_ssr_import_2__.api("/v1/x")).rejects.toBeInstanceOf(__vite_ssr_import_2__.ApiError);
+  });
+  __vite_ssr_import_0__.it("maps network failure to a friendly error", async () => {
+    __vite_ssr_import_0__.vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("Failed to fetch"));
+    await __vite_ssr_import_0__.expect(__vite_ssr_import_2__.api("/v1/x")).rejects.toMatchObject({
+      code: "INTERNAL",
+      message: "Network problem — check your connection and try again."
+    });
+  });
+});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7O0FBQW9EO0FBQ2xDO0FBQ1k7QUFFOUIsZ0NBQVUsTUFBTSx5QkFBRyxnQkFBZ0IsQ0FBQztBQUVwQywrQkFBUyxPQUFPLE1BQU07QUFDcEIsMkJBQUcsa0RBQWtELFlBQVk7QUFDL0QsVUFBTSxJQUFJLHlCQUNQLE1BQU0sWUFBWSxPQUFPLEVBQ3pCO0FBQUEsTUFDQyxJQUFJLFNBQVMsS0FBSyxVQUFVLEVBQUUsR0FBRyxFQUFFLENBQUMsR0FBRyxFQUFFLFFBQVEsS0FBSyxTQUFTLEVBQUUsZ0JBQWdCLG1CQUFtQixFQUFFLENBQUM7QUFBQSxJQUN6RztBQUNGLFVBQU0sSUFBSSxNQUFNLDBCQUFJLFNBQVMsRUFBRSxRQUFRLFFBQVEsTUFBTSxFQUFFLEdBQUcsRUFBRSxHQUFHLFFBQVEsd0JBQUUsT0FBTyxFQUFFLEdBQUcsd0JBQUUsT0FBTyxFQUFFLENBQUMsRUFBRSxDQUFDO0FBQ3BHLGlDQUFPLENBQUMsRUFBRSxRQUFRLEVBQUUsR0FBRyxFQUFFLENBQUM7QUFDMUIsaUNBQU8sQ0FBQyxFQUFFO0FBQUEsTUFDUjtBQUFBLE1BQ0EsNkJBQU8saUJBQWlCLEVBQUUsUUFBUSxRQUFRLGFBQWEsV0FBVyxNQUFNLFVBQVUsQ0FBQztBQUFBLElBQ3JGO0FBQUEsRUFDRixDQUFDO0FBQ0QsMkJBQUcsK0NBQStDLFlBQVk7QUFDNUQsNkJBQUcsTUFBTSxZQUFZLE9BQU8sRUFBRTtBQUFBLE1BQzVCLFlBQVksSUFBSSxTQUFTLEtBQUssVUFBVSxFQUFFLE9BQU8sRUFBRSxNQUFNLHFCQUFxQixTQUFTLFFBQVEsRUFBRSxDQUFDLEdBQUcsRUFBRSxRQUFRLElBQUksQ0FBQztBQUFBLElBQ3RIO0FBQ0EsVUFBTSw2QkFBTywwQkFBSSxPQUFPLENBQUMsRUFBRSxRQUFRLGNBQWMsRUFBRSxNQUFNLHFCQUFxQixRQUFRLEtBQUssU0FBUyxRQUFRLENBQUM7QUFDN0csVUFBTSw2QkFBTywwQkFBSSxPQUFPLENBQUMsRUFBRSxRQUFRLGVBQWUsOEJBQVE7QUFBQSxFQUM1RCxDQUFDO0FBQ0QsMkJBQUcsNENBQTRDLFlBQVk7QUFDekQsNkJBQUcsTUFBTSxZQUFZLE9BQU8sRUFBRSxrQkFBa0IsSUFBSSxVQUFVLGlCQUFpQixDQUFDO0FBQ2hGLFVBQU0sNkJBQU8sMEJBQUksT0FBTyxDQUFDLEVBQUUsUUFBUSxjQUFjO0FBQUEsTUFDL0MsTUFBTTtBQUFBLE1BQ04sU0FBUztBQUFBLElBQ1gsQ0FBQztBQUFBLEVBQ0gsQ0FBQztBQUNILENBQUMiLCJuYW1lcyI6W10sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbImFwaS50ZXN0LnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IGFmdGVyRWFjaCwgZGVzY3JpYmUsIGV4cGVjdCwgaXQsIHZpIH0gZnJvbSAndml0ZXN0JztcbmltcG9ydCB7IHogfSBmcm9tICd6b2QnO1xuaW1wb3J0IHsgYXBpLCBBcGlFcnJvciB9IGZyb20gJy4vYXBpJztcblxuYWZ0ZXJFYWNoKCgpID0+IHZpLnJlc3RvcmVBbGxNb2NrcygpKTtcblxuZGVzY3JpYmUoJ2FwaScsICgpID0+IHtcbiAgaXQoJ3NlbmRzIGNyZWRlbnRpYWxzIGFuZCBKU09OLCBwYXJzZXMgd2l0aCBzY2hlbWEnLCBhc3luYyAoKSA9PiB7XG4gICAgY29uc3QgZiA9IHZpXG4gICAgICAuc3B5T24oZ2xvYmFsVGhpcywgJ2ZldGNoJylcbiAgICAgIC5tb2NrUmVzb2x2ZWRWYWx1ZShcbiAgICAgICAgbmV3IFJlc3BvbnNlKEpTT04uc3RyaW5naWZ5KHsgbjogMSB9KSwgeyBzdGF0dXM6IDIwMCwgaGVhZGVyczogeyAnY29udGVudC10eXBlJzogJ2FwcGxpY2F0aW9uL2pzb24nIH0gfSksXG4gICAgICApO1xuICAgIGNvbnN0IHIgPSBhd2FpdCBhcGkoJy92MS94JywgeyBtZXRob2Q6ICdQT1NUJywgYm9keTogeyBhOiAxIH0sIHNjaGVtYTogei5vYmplY3QoeyBuOiB6Lm51bWJlcigpIH0pIH0pO1xuICAgIGV4cGVjdChyKS50b0VxdWFsKHsgbjogMSB9KTtcbiAgICBleHBlY3QoZikudG9IYXZlQmVlbkNhbGxlZFdpdGgoXG4gICAgICAnL3YxL3gnLFxuICAgICAgZXhwZWN0Lm9iamVjdENvbnRhaW5pbmcoeyBtZXRob2Q6ICdQT1NUJywgY3JlZGVudGlhbHM6ICdpbmNsdWRlJywgYm9keTogJ3tcImFcIjoxfScgfSksXG4gICAgKTtcbiAgfSk7XG4gIGl0KCd0aHJvd3MgQXBpRXJyb3Igd2l0aCBjb2RlIGZyb20gdGhlIGVudmVsb3BlJywgYXN5bmMgKCkgPT4ge1xuICAgIHZpLnNweU9uKGdsb2JhbFRoaXMsICdmZXRjaCcpLm1vY2tJbXBsZW1lbnRhdGlvbihcbiAgICAgIGFzeW5jICgpID0+IG5ldyBSZXNwb25zZShKU09OLnN0cmluZ2lmeSh7IGVycm9yOiB7IGNvZGU6ICdEQVRFU19VTkFWQUlMQUJMRScsIG1lc3NhZ2U6ICdUYWtlbicgfSB9KSwgeyBzdGF0dXM6IDQwOSB9KSxcbiAgICApO1xuICAgIGF3YWl0IGV4cGVjdChhcGkoJy92MS94JykpLnJlamVjdHMudG9NYXRjaE9iamVjdCh7IGNvZGU6ICdEQVRFU19VTkFWQUlMQUJMRScsIHN0YXR1czogNDA5LCBtZXNzYWdlOiAnVGFrZW4nIH0pO1xuICAgIGF3YWl0IGV4cGVjdChhcGkoJy92MS94JykpLnJlamVjdHMudG9CZUluc3RhbmNlT2YoQXBpRXJyb3IpO1xuICB9KTtcbiAgaXQoJ21hcHMgbmV0d29yayBmYWlsdXJlIHRvIGEgZnJpZW5kbHkgZXJyb3InLCBhc3luYyAoKSA9PiB7XG4gICAgdmkuc3B5T24oZ2xvYmFsVGhpcywgJ2ZldGNoJykubW9ja1JlamVjdGVkVmFsdWUobmV3IFR5cGVFcnJvcignRmFpbGVkIHRvIGZldGNoJykpO1xuICAgIGF3YWl0IGV4cGVjdChhcGkoJy92MS94JykpLnJlamVjdHMudG9NYXRjaE9iamVjdCh7XG4gICAgICBjb2RlOiAnSU5URVJOQUwnLFxuICAgICAgbWVzc2FnZTogJ05ldHdvcmsgcHJvYmxlbSDigJQgY2hlY2sgeW91ciBjb25uZWN0aW9uIGFuZCB0cnkgYWdhaW4uJyxcbiAgICB9KTtcbiAgfSk7XG59KTtcbiJdLCJmaWxlIjoiL1VzZXJzL29sYWxla2FuL1Byb2plY3RzL2Jvb2diZS8ud29ya3RyZWVzL3QtbTMtMDQvYXBwcy9hcHAvc3JjL2xpYi9hcGkudGVzdC50cyJ9

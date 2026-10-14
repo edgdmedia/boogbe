@@ -1,0 +1,172 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("@nestjs/common", {"importedNames":["Body","Controller","Get","HttpCode","Param","Patch","Post","Query"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("nestjs-zod", {"importedNames":["createZodDto"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m4-02-ical-schema/packages/shared/src/index.ts", {"importedNames":["PropertyInput","SetPropertyOwnerInput"]});
+const __vite_ssr_import_3__ = await __vite_ssr_import__("/src/common/auth/decorators.ts", {"importedNames":["Ctx","Permission"]});
+const __vite_ssr_import_4__ = await __vite_ssr_import__("/src/common/auth/request-ctx.ts", {"importedNames":["requireOrg"]});
+const __vite_ssr_import_5__ = await __vite_ssr_import__("/src/modules/inventory/properties.service.ts", {"importedNames":["PropertiesService"]});
+function _ts_decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
+        r = Reflect.decorate(decorators, target, key, desc);
+    } else {
+        for(var i = decorators.length - 1; i >= 0; i--){
+            if (d = decorators[i]) {
+                r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+            }
+        }
+    }
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+function _ts_metadata(metadataKey, metadataValue) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") {
+        return Reflect.metadata(metadataKey, metadataValue);
+    }
+}
+function _ts_param(paramIndex, decorator) {
+    return function(target, key) {
+        decorator(target, key, paramIndex);
+    };
+}
+
+
+
+
+
+
+let PropertyDto = class PropertyDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.PropertyInput) {
+};
+let PropertyPatchDto = class PropertyPatchDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.PropertyInput.partial()) {
+};
+let OwnerDto = class OwnerDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.SetPropertyOwnerInput) {
+};
+class PropertiesController {
+    svc;
+    constructor(svc){
+        this.svc = svc;
+    }
+    async list(c, a) {
+        return {
+            items: await this.svc.list(__vite_ssr_import_4__.requireOrg(c), a === 'true')
+        };
+    }
+    get(c, id) {
+        return this.svc.get(__vite_ssr_import_4__.requireOrg(c), id);
+    }
+    create(c, b) {
+        return this.svc.create(__vite_ssr_import_4__.requireOrg(c), b);
+    }
+    update(c, id, b) {
+        return this.svc.update(__vite_ssr_import_4__.requireOrg(c), id, b);
+    }
+    archive(c, id) {
+        return this.svc.setActive(__vite_ssr_import_4__.requireOrg(c), id, false);
+    }
+    unarchive(c, id) {
+        return this.svc.setActive(__vite_ssr_import_4__.requireOrg(c), id, true);
+    }
+    owner(c, id, b) {
+        return this.svc.setDefaultOwner(__vite_ssr_import_4__.requireOrg(c), id, b);
+    }
+}
+Object.defineProperty(__vite_ssr_exports__, "PropertiesController", { enumerable: true, configurable: true, get(){ return PropertiesController }});
+_ts_decorate([
+    __vite_ssr_import_0__.Get(),
+    __vite_ssr_import_3__.Permission('inventory.read'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Query('includeArchived')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String
+    ]),
+    _ts_metadata("design:returntype", Promise)
+], PropertiesController.prototype, "list", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Get(':id'),
+    __vite_ssr_import_3__.Permission('inventory.read'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PropertiesController.prototype, "get", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post(),
+    __vite_ssr_import_3__.Permission('inventory.write'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        typeof PropertyDto === "undefined" ? Object : PropertyDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PropertiesController.prototype, "create", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Patch(':id'),
+    __vite_ssr_import_3__.Permission('inventory.write'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_param(2, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String,
+        typeof PropertyPatchDto === "undefined" ? Object : PropertyPatchDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PropertiesController.prototype, "update", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post(':id/archive'),
+    __vite_ssr_import_0__.HttpCode(200),
+    __vite_ssr_import_3__.Permission('inventory.write'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PropertiesController.prototype, "archive", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post(':id/unarchive'),
+    __vite_ssr_import_0__.HttpCode(200),
+    __vite_ssr_import_3__.Permission('inventory.write'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PropertiesController.prototype, "unarchive", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post(':id/owner'),
+    __vite_ssr_import_0__.HttpCode(200),
+    __vite_ssr_import_3__.Permission('owners.write'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_param(2, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String,
+        typeof OwnerDto === "undefined" ? Object : OwnerDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PropertiesController.prototype, "owner", null);
+PropertiesController = _ts_decorate([
+    __vite_ssr_import_0__.Controller('properties'),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof __vite_ssr_import_5__.PropertiesService === "undefined" ? Object : __vite_ssr_import_5__.PropertiesService
+    ])
+], PropertiesController);
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QUFBNEY7QUFDbEQ7QUFDNEI7QUFDUDtBQUNhO0FBQ25CO0FBRXpELGVBQU1BLEdBQU4sTUFBTUEsb0JBQW9CQyxtQ0FBYUM7QUFBZ0I7QUFDdkQsb0JBQU1DLEdBQU4sTUFBTUEseUJBQXlCRixtQ0FBYUMsb0NBQWNFLE9BQU87QUFBSztBQUN0RSxZQUFNQyxHQUFOLE1BQU1BLGlCQUFpQkosbUNBQWFLO0FBQXdCO0FBR3JELE1BQU1DOztJQUNYLFlBQVksR0FBdUMsQ0FBRTthQUF4QkM7SUFBeUI7SUFFdEQsTUFFTUMsS0FBSyxDQUFvQixFQUFFLENBQW9DLEVBQUU7UUFDckUsT0FBTztZQUFFQyxPQUFPLE1BQU0sSUFBSSxDQUFDRixHQUFHLENBQUNDLElBQUksQ0FBQ0UsaUNBQVdDLElBQUlDLE1BQU07UUFBUTtJQUNuRTtJQUlBQyxJQUFJLENBQW9CLEVBQUUsRUFBdUIsRUFBRTtRQUNqRCxPQUFPLElBQUksQ0FBQ04sR0FBRyxDQUFDTSxHQUFHLENBQUNILGlDQUFXQyxJQUFJRztJQUNyQztJQUlBQyxPQUFPLENBQW9CLEVBQUUsQ0FBc0IsRUFBRTtRQUNuRCxPQUFPLElBQUksQ0FBQ1IsR0FBRyxDQUFDUSxNQUFNLENBQUNMLGlDQUFXQyxJQUFJSztJQUN4QztJQUlBQyxPQUFPLENBQW9CLEVBQUUsRUFBdUIsRUFBRSxDQUEyQixFQUFFO1FBQ2pGLE9BQU8sSUFBSSxDQUFDVixHQUFHLENBQUNVLE1BQU0sQ0FBQ1AsaUNBQVdDLElBQUlHLElBQUlFO0lBQzVDO0lBS0FFLFFBQVEsQ0FBb0IsRUFBRSxFQUF1QixFQUFFO1FBQ3JELE9BQU8sSUFBSSxDQUFDWCxHQUFHLENBQUNZLFNBQVMsQ0FBQ1QsaUNBQVdDLElBQUlHLElBQUk7SUFDL0M7SUFLQU0sVUFBVSxDQUFvQixFQUFFLEVBQXVCLEVBQUU7UUFDdkQsT0FBTyxJQUFJLENBQUNiLEdBQUcsQ0FBQ1ksU0FBUyxDQUFDVCxpQ0FBV0MsSUFBSUcsSUFBSTtJQUMvQztJQUtBTyxNQUFNLENBQW9CLEVBQUUsRUFBdUIsRUFBRSxDQUFtQixFQUFFO1FBQ3hFLE9BQU8sSUFBSSxDQUFDZCxHQUFHLENBQUNlLGVBQWUsQ0FBQ1osaUNBQVdDLElBQUlHLElBQUlFO0lBQ3JEO0FBQ0Y7bUpBQUEiLCJuYW1lcyI6WyJQcm9wZXJ0eUR0byIsImNyZWF0ZVpvZER0byIsIlByb3BlcnR5SW5wdXQiLCJQcm9wZXJ0eVBhdGNoRHRvIiwicGFydGlhbCIsIk93bmVyRHRvIiwiU2V0UHJvcGVydHlPd25lcklucHV0IiwiUHJvcGVydGllc0NvbnRyb2xsZXIiLCJzdmMiLCJsaXN0IiwiaXRlbXMiLCJyZXF1aXJlT3JnIiwiYyIsImEiLCJnZXQiLCJpZCIsImNyZWF0ZSIsImIiLCJ1cGRhdGUiLCJhcmNoaXZlIiwic2V0QWN0aXZlIiwidW5hcmNoaXZlIiwib3duZXIiLCJzZXREZWZhdWx0T3duZXIiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsicHJvcGVydGllcy5jb250cm9sbGVyLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEJvZHksIENvbnRyb2xsZXIsIEdldCwgSHR0cENvZGUsIFBhcmFtLCBQYXRjaCwgUG9zdCwgUXVlcnkgfSBmcm9tICdAbmVzdGpzL2NvbW1vbic7XG5pbXBvcnQgeyBjcmVhdGVab2REdG8gfSBmcm9tICduZXN0anMtem9kJztcbmltcG9ydCB7IFByb3BlcnR5SW5wdXQsIFNldFByb3BlcnR5T3duZXJJbnB1dCB9IGZyb20gJ0Bib29nYmUvc2hhcmVkJztcbmltcG9ydCB7IEN0eCwgUGVybWlzc2lvbiB9IGZyb20gJy4uLy4uL2NvbW1vbi9hdXRoL2RlY29yYXRvcnMnO1xuaW1wb3J0IHsgcmVxdWlyZU9yZywgdHlwZSBSZXF1ZXN0Q3R4IH0gZnJvbSAnLi4vLi4vY29tbW9uL2F1dGgvcmVxdWVzdC1jdHgnO1xuaW1wb3J0IHsgUHJvcGVydGllc1NlcnZpY2UgfSBmcm9tICcuL3Byb3BlcnRpZXMuc2VydmljZSc7XG5cbmNsYXNzIFByb3BlcnR5RHRvIGV4dGVuZHMgY3JlYXRlWm9kRHRvKFByb3BlcnR5SW5wdXQpIHt9XG5jbGFzcyBQcm9wZXJ0eVBhdGNoRHRvIGV4dGVuZHMgY3JlYXRlWm9kRHRvKFByb3BlcnR5SW5wdXQucGFydGlhbCgpKSB7fVxuY2xhc3MgT3duZXJEdG8gZXh0ZW5kcyBjcmVhdGVab2REdG8oU2V0UHJvcGVydHlPd25lcklucHV0KSB7fVxuXG5AQ29udHJvbGxlcigncHJvcGVydGllcycpXG5leHBvcnQgY2xhc3MgUHJvcGVydGllc0NvbnRyb2xsZXIge1xuICBjb25zdHJ1Y3Rvcihwcml2YXRlIHJlYWRvbmx5IHN2YzogUHJvcGVydGllc1NlcnZpY2UpIHt9XG5cbiAgQEdldCgpXG4gIEBQZXJtaXNzaW9uKCdpbnZlbnRvcnkucmVhZCcpXG4gIGFzeW5jIGxpc3QoQEN0eCgpIGM6IFJlcXVlc3RDdHgsIEBRdWVyeSgnaW5jbHVkZUFyY2hpdmVkJykgYT86IHN0cmluZykge1xuICAgIHJldHVybiB7IGl0ZW1zOiBhd2FpdCB0aGlzLnN2Yy5saXN0KHJlcXVpcmVPcmcoYyksIGEgPT09ICd0cnVlJykgfTtcbiAgfVxuXG4gIEBHZXQoJzppZCcpXG4gIEBQZXJtaXNzaW9uKCdpbnZlbnRvcnkucmVhZCcpXG4gIGdldChAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcpIHtcbiAgICByZXR1cm4gdGhpcy5zdmMuZ2V0KHJlcXVpcmVPcmcoYyksIGlkKTtcbiAgfVxuXG4gIEBQb3N0KClcbiAgQFBlcm1pc3Npb24oJ2ludmVudG9yeS53cml0ZScpXG4gIGNyZWF0ZShAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQEJvZHkoKSBiOiBQcm9wZXJ0eUR0bykge1xuICAgIHJldHVybiB0aGlzLnN2Yy5jcmVhdGUocmVxdWlyZU9yZyhjKSwgYik7XG4gIH1cblxuICBAUGF0Y2goJzppZCcpXG4gIEBQZXJtaXNzaW9uKCdpbnZlbnRvcnkud3JpdGUnKVxuICB1cGRhdGUoQEN0eCgpIGM6IFJlcXVlc3RDdHgsIEBQYXJhbSgnaWQnKSBpZDogc3RyaW5nLCBAQm9keSgpIGI6IFByb3BlcnR5UGF0Y2hEdG8pIHtcbiAgICByZXR1cm4gdGhpcy5zdmMudXBkYXRlKHJlcXVpcmVPcmcoYyksIGlkLCBiKTtcbiAgfVxuXG4gIEBQb3N0KCc6aWQvYXJjaGl2ZScpXG4gIEBIdHRwQ29kZSgyMDApXG4gIEBQZXJtaXNzaW9uKCdpbnZlbnRvcnkud3JpdGUnKVxuICBhcmNoaXZlKEBDdHgoKSBjOiBSZXF1ZXN0Q3R4LCBAUGFyYW0oJ2lkJykgaWQ6IHN0cmluZykge1xuICAgIHJldHVybiB0aGlzLnN2Yy5zZXRBY3RpdmUocmVxdWlyZU9yZyhjKSwgaWQsIGZhbHNlKTtcbiAgfVxuXG4gIEBQb3N0KCc6aWQvdW5hcmNoaXZlJylcbiAgQEh0dHBDb2RlKDIwMClcbiAgQFBlcm1pc3Npb24oJ2ludmVudG9yeS53cml0ZScpXG4gIHVuYXJjaGl2ZShAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcpIHtcbiAgICByZXR1cm4gdGhpcy5zdmMuc2V0QWN0aXZlKHJlcXVpcmVPcmcoYyksIGlkLCB0cnVlKTtcbiAgfVxuXG4gIEBQb3N0KCc6aWQvb3duZXInKVxuICBASHR0cENvZGUoMjAwKVxuICBAUGVybWlzc2lvbignb3duZXJzLndyaXRlJylcbiAgb3duZXIoQEN0eCgpIGM6IFJlcXVlc3RDdHgsIEBQYXJhbSgnaWQnKSBpZDogc3RyaW5nLCBAQm9keSgpIGI6IE93bmVyRHRvKSB7XG4gICAgcmV0dXJuIHRoaXMuc3ZjLnNldERlZmF1bHRPd25lcihyZXF1aXJlT3JnKGMpLCBpZCwgYik7XG4gIH1cbn1cbiJdLCJmaWxlIjoiL3NyYy9tb2R1bGVzL2ludmVudG9yeS9wcm9wZXJ0aWVzLmNvbnRyb2xsZXIudHMifQ==

@@ -1,0 +1,140 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/node_modules/.pnpm/react@18.3.1/node_modules/react/jsx-dev-runtime.js", {"importedNames":["jsxDEV"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/node_modules/.pnpm/react@18.3.1/node_modules/react/index.js", {"importedNames":["useState"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/node_modules/.pnpm/zod@4.6.5/node_modules/zod/index.js", {"importedNames":["z"]});
+const __vite_ssr_import_3__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/packages/shared/src/index.ts", {"importedNames":["Guest","GuestInput"]});
+const __vite_ssr_import_4__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/packages/ui/src/index.ts", {"importedNames":["Button","Field","Input"]});
+const __vite_ssr_import_5__ = await __vite_ssr_import__("/src/components/PhoneInput.tsx", {"importedNames":["PhoneInput"]});
+const __vite_ssr_import_6__ = await __vite_ssr_import__("/src/lib/api.ts", {"importedNames":["api"]});
+
+
+
+
+
+
+
+function GuestForm({
+  initial,
+  onSaved,
+  onMatch
+}) {
+  const [v, setV] = __vite_ssr_import_1__.useState({
+    fullName: initial?.fullName ?? "",
+    phoneE164: initial?.phoneE164 ?? null,
+    email: initial?.email ?? "",
+    notes: initial?.notes ?? ""
+  });
+  const [match, setMatch] = __vite_ssr_import_1__.useState(null);
+  const [err, setErr] = __vite_ssr_import_1__.useState({});
+  const [busy, setBusy] = __vite_ssr_import_1__.useState(false);
+  const check = async () => {
+    if (initial || !v.phoneE164 && !v.email) return;
+    const qs = new URLSearchParams({ ...v.phoneE164 && { phone: v.phoneE164 }, ...v.email && { email: v.email } });
+    try {
+      const r = await __vite_ssr_import_6__.api(`/v1/guests/match?${qs}`, { schema: __vite_ssr_import_2__.z.object({ items: __vite_ssr_import_2__.z.array(__vite_ssr_import_3__.Guest) }) });
+      setMatch(r.items[0] ?? null);
+    } catch {
+      setMatch(null);
+    }
+  };
+  return /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(
+    "form",
+    {
+      noValidate: true,
+      className: "flex flex-col gap-3",
+      onSubmit: async (e) => {
+        e.preventDefault();
+        const parsed = __vite_ssr_import_3__.GuestInput.safeParse({
+          fullName: v.fullName,
+          phoneE164: v.phoneE164 ?? "",
+          email: v.email || null,
+          notes: v.notes || null
+        });
+        if (!parsed.success) return setErr(Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])));
+        setBusy(true);
+        try {
+          onSaved(
+            await __vite_ssr_import_6__.api(initial ? `/v1/guests/${initial.id}` : "/v1/guests", {
+              method: initial ? "PATCH" : "POST",
+              body: parsed.data,
+              schema: __vite_ssr_import_3__.Guest
+            })
+          );
+        } finally {
+          setBusy(false);
+        }
+      },
+      children: [
+        /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_4__.Field, { label: "Full name", error: err.fullName, children: /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_4__.Input, { value: v.fullName, onChange: (e) => setV({ ...v, fullName: e.target.value }) }, void 0, false, {
+          fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+          lineNumber: 64,
+          columnNumber: 9
+        }, this) }, void 0, false, {
+          fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+          lineNumber: 63,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_4__.Field, { label: "Phone (WhatsApp)", error: err.phoneE164 && "Enter a valid phone number", children: /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_5__.PhoneInput, { value: v.phoneE164, onChange: (p) => setV({ ...v, phoneE164: p }), onBlur: check }, void 0, false, {
+          fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+          lineNumber: 67,
+          columnNumber: 9
+        }, this) }, void 0, false, {
+          fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+          lineNumber: 66,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_4__.Field, { label: "Email (optional)", error: err.email, children: /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_4__.Input, { type: "email", value: v.email, onChange: (e) => setV({ ...v, email: e.target.value }), onBlur: check }, void 0, false, {
+          fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+          lineNumber: 70,
+          columnNumber: 9
+        }, this) }, void 0, false, {
+          fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+          lineNumber: 69,
+          columnNumber: 7
+        }, this),
+        match && onMatch && /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("div", { role: "status", className: "rounded-lg border border-warning bg-warning/10 p-3 text-sm", children: [
+          "This looks like ",
+          match.fullName,
+          " (",
+          match.bookingCount,
+          " bookings).",
+          " ",
+          /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("button", { type: "button", className: "font-medium underline", onClick: () => onMatch(match), children: "Use existing guest" }, void 0, false, {
+            fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+            lineNumber: 75,
+            columnNumber: 11
+          }, this)
+        ] }, void 0, true, {
+          fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+          lineNumber: 73,
+          columnNumber: 9
+        }, this),
+        /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_4__.Field, { label: "Notes", children: /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_4__.Input, { value: v.notes, onChange: (e) => setV({ ...v, notes: e.target.value }) }, void 0, false, {
+          fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+          lineNumber: 81,
+          columnNumber: 9
+        }, this) }, void 0, false, {
+          fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+          lineNumber: 80,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_4__.Button, { type: "submit", loading: busy, children: initial ? "Save guest" : "Add guest" }, void 0, false, {
+          fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+          lineNumber: 83,
+          columnNumber: 7
+        }, this)
+      ]
+    },
+    void 0,
+    true,
+    {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestForm.tsx",
+      lineNumber: 37,
+      columnNumber: 5
+    },
+    this
+  );
+}
+Object.defineProperty(__vite_ssr_exports__, "GuestForm", { enumerable: true, configurable: true, get(){ return GuestForm }});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,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dXJjZXNDb250ZW50IjpbImltcG9ydCB7IHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnO1xuaW1wb3J0IHsgeiB9IGZyb20gJ3pvZCc7XG5pbXBvcnQgeyBHdWVzdCwgR3Vlc3RJbnB1dCB9IGZyb20gJ0Bib29nYmUvc2hhcmVkJztcbmltcG9ydCB7IEJ1dHRvbiwgRmllbGQsIElucHV0IH0gZnJvbSAnQGJvb2diZS91aSc7XG5pbXBvcnQgeyBQaG9uZUlucHV0IH0gZnJvbSAnLi4vLi4vY29tcG9uZW50cy9QaG9uZUlucHV0JztcbmltcG9ydCB7IGFwaSB9IGZyb20gJy4uLy4uL2xpYi9hcGknO1xuXG5leHBvcnQgZnVuY3Rpb24gR3Vlc3RGb3JtKHtcbiAgaW5pdGlhbCxcbiAgb25TYXZlZCxcbiAgb25NYXRjaCxcbn06IHtcbiAgaW5pdGlhbD86IEd1ZXN0O1xuICBvblNhdmVkOiAoZzogR3Vlc3QpID0+IHZvaWQ7XG4gIG9uTWF0Y2g/OiAoZzogR3Vlc3QpID0+IHZvaWQ7XG59KSB7XG4gIGNvbnN0IFt2LCBzZXRWXSA9IHVzZVN0YXRlKHtcbiAgICBmdWxsTmFtZTogaW5pdGlhbD8uZnVsbE5hbWUgPz8gJycsXG4gICAgcGhvbmVFMTY0OiBpbml0aWFsPy5waG9uZUUxNjQgPz8gKG51bGwgYXMgc3RyaW5nIHwgbnVsbCksXG4gICAgZW1haWw6IGluaXRpYWw/LmVtYWlsID8/ICcnLFxuICAgIG5vdGVzOiBpbml0aWFsPy5ub3RlcyA/PyAnJyxcbiAgfSk7XG4gIGNvbnN0IFttYXRjaCwgc2V0TWF0Y2hdID0gdXNlU3RhdGU8R3Vlc3QgfCBudWxsPihudWxsKTtcbiAgY29uc3QgW2Vyciwgc2V0RXJyXSA9IHVzZVN0YXRlPFJlY29yZDxzdHJpbmcsIHN0cmluZz4+KHt9KTtcbiAgY29uc3QgW2J1c3ksIHNldEJ1c3ldID0gdXNlU3RhdGUoZmFsc2UpO1xuICBjb25zdCBjaGVjayA9IGFzeW5jICgpID0+IHtcbiAgICBpZiAoaW5pdGlhbCB8fCAoIXYucGhvbmVFMTY0ICYmICF2LmVtYWlsKSkgcmV0dXJuO1xuICAgIGNvbnN0IHFzID0gbmV3IFVSTFNlYXJjaFBhcmFtcyh7IC4uLih2LnBob25lRTE2NCAmJiB7IHBob25lOiB2LnBob25lRTE2NCB9KSwgLi4uKHYuZW1haWwgJiYgeyBlbWFpbDogdi5lbWFpbCB9KSB9KTtcbiAgICB0cnkge1xuICAgICAgY29uc3QgciA9IGF3YWl0IGFwaShgL3YxL2d1ZXN0cy9tYXRjaD8ke3FzfWAsIHsgc2NoZW1hOiB6Lm9iamVjdCh7IGl0ZW1zOiB6LmFycmF5KEd1ZXN0KSB9KSB9KTtcbiAgICAgIHNldE1hdGNoKHIuaXRlbXNbMF0gPz8gbnVsbCk7XG4gICAgfSBjYXRjaCB7XG4gICAgICBzZXRNYXRjaChudWxsKTsgLy8gaGFsZi10eXBlZCBlbWFpbHMgb3IgQVBJIGhpY2N1cHMgbXVzdCBuZXZlciBzdXJmYWNlIGFzIGFuIHVuY2F1Z2h0IGVycm9yXG4gICAgfVxuICB9O1xuICByZXR1cm4gKFxuICAgIDxmb3JtXG4gICAgICBub1ZhbGlkYXRlXG4gICAgICBjbGFzc05hbWU9XCJmbGV4IGZsZXgtY29sIGdhcC0zXCJcbiAgICAgIG9uU3VibWl0PXthc3luYyAoZSkgPT4ge1xuICAgICAgICBlLnByZXZlbnREZWZhdWx0KCk7XG4gICAgICAgIGNvbnN0IHBhcnNlZCA9IEd1ZXN0SW5wdXQuc2FmZVBhcnNlKHtcbiAgICAgICAgICBmdWxsTmFtZTogdi5mdWxsTmFtZSxcbiAgICAgICAgICBwaG9uZUUxNjQ6IHYucGhvbmVFMTY0ID8/ICcnLFxuICAgICAgICAgIGVtYWlsOiB2LmVtYWlsIHx8IG51bGwsXG4gICAgICAgICAgbm90ZXM6IHYubm90ZXMgfHwgbnVsbCxcbiAgICAgICAgfSk7XG4gICAgICAgIGlmICghcGFyc2VkLnN1Y2Nlc3MpIHJldHVybiBzZXRFcnIoT2JqZWN0LmZyb21FbnRyaWVzKHBhcnNlZC5lcnJvci5pc3N1ZXMubWFwKChpKSA9PiBbU3RyaW5nKGkucGF0aFswXSksIGkubWVzc2FnZV0pKSk7XG4gICAgICAgIHNldEJ1c3kodHJ1ZSk7XG4gICAgICAgIHRyeSB7XG4gICAgICAgICAgb25TYXZlZChcbiAgICAgICAgICAgIGF3YWl0IGFwaShpbml0aWFsID8gYC92MS9ndWVzdHMvJHtpbml0aWFsLmlkfWAgOiAnL3YxL2d1ZXN0cycsIHtcbiAgICAgICAgICAgICAgbWV0aG9kOiBpbml0aWFsID8gJ1BBVENIJyA6ICdQT1NUJyxcbiAgICAgICAgICAgICAgYm9keTogcGFyc2VkLmRhdGEsXG4gICAgICAgICAgICAgIHNjaGVtYTogR3Vlc3QsXG4gICAgICAgICAgICB9KSxcbiAgICAgICAgICApO1xuICAgICAgICB9IGZpbmFsbHkge1xuICAgICAgICAgIHNldEJ1c3koZmFsc2UpO1xuICAgICAgICB9XG4gICAgICB9fVxuICAgID5cbiAgICAgIDxGaWVsZCBsYWJlbD1cIkZ1bGwgbmFtZVwiIGVycm9yPXtlcnIuZnVsbE5hbWV9PlxuICAgICAgICA8SW5wdXQgdmFsdWU9e3YuZnVsbE5hbWV9IG9uQ2hhbmdlPXsoZSkgPT4gc2V0Vih7IC4uLnYsIGZ1bGxOYW1lOiBlLnRhcmdldC52YWx1ZSB9KX0gLz5cbiAgICAgIDwvRmllbGQ+XG4gICAgICA8RmllbGQgbGFiZWw9XCJQaG9uZSAoV2hhdHNBcHApXCIgZXJyb3I9e2Vyci5waG9uZUUxNjQgJiYgJ0VudGVyIGEgdmFsaWQgcGhvbmUgbnVtYmVyJ30+XG4gICAgICAgIDxQaG9uZUlucHV0IHZhbHVlPXt2LnBob25lRTE2NH0gb25DaGFuZ2U9eyhwKSA9PiBzZXRWKHsgLi4udiwgcGhvbmVFMTY0OiBwIH0pfSBvbkJsdXI9e2NoZWNrfSAvPlxuICAgICAgPC9GaWVsZD5cbiAgICAgIDxGaWVsZCBsYWJlbD1cIkVtYWlsIChvcHRpb25hbClcIiBlcnJvcj17ZXJyLmVtYWlsfT5cbiAgICAgICAgPElucHV0IHR5cGU9XCJlbWFpbFwiIHZhbHVlPXt2LmVtYWlsfSBvbkNoYW5nZT17KGUpID0+IHNldFYoeyAuLi52LCBlbWFpbDogZS50YXJnZXQudmFsdWUgfSl9IG9uQmx1cj17Y2hlY2t9IC8+XG4gICAgICA8L0ZpZWxkPlxuICAgICAge21hdGNoICYmIG9uTWF0Y2ggJiYgKFxuICAgICAgICA8ZGl2IHJvbGU9XCJzdGF0dXNcIiBjbGFzc05hbWU9XCJyb3VuZGVkLWxnIGJvcmRlciBib3JkZXItd2FybmluZyBiZy13YXJuaW5nLzEwIHAtMyB0ZXh0LXNtXCI+XG4gICAgICAgICAgVGhpcyBsb29rcyBsaWtlIHttYXRjaC5mdWxsTmFtZX0gKHttYXRjaC5ib29raW5nQ291bnR9IGJvb2tpbmdzKS57JyAnfVxuICAgICAgICAgIDxidXR0b24gdHlwZT1cImJ1dHRvblwiIGNsYXNzTmFtZT1cImZvbnQtbWVkaXVtIHVuZGVybGluZVwiIG9uQ2xpY2s9eygpID0+IG9uTWF0Y2gobWF0Y2gpfT5cbiAgICAgICAgICAgIFVzZSBleGlzdGluZyBndWVzdFxuICAgICAgICAgIDwvYnV0dG9uPlxuICAgICAgICA8L2Rpdj5cbiAgICAgICl9XG4gICAgICA8RmllbGQgbGFiZWw9XCJOb3Rlc1wiPlxuICAgICAgICA8SW5wdXQgdmFsdWU9e3Yubm90ZXN9IG9uQ2hhbmdlPXsoZSkgPT4gc2V0Vih7IC4uLnYsIG5vdGVzOiBlLnRhcmdldC52YWx1ZSB9KX0gLz5cbiAgICAgIDwvRmllbGQ+XG4gICAgICA8QnV0dG9uIHR5cGU9XCJzdWJtaXRcIiBsb2FkaW5nPXtidXN5fT5cbiAgICAgICAge2luaXRpYWwgPyAnU2F2ZSBndWVzdCcgOiAnQWRkIGd1ZXN0J31cbiAgICAgIDwvQnV0dG9uPlxuICAgIDwvZm9ybT5cbiAgKTtcbn1cbiJdLCJmaWxlIjoiL3NyYy9mZWF0dXJlcy9ndWVzdHMvR3Vlc3RGb3JtLnRzeCJ9

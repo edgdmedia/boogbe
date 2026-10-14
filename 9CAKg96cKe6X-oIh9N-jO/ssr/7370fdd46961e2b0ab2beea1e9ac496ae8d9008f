@@ -1,0 +1,41 @@
+const NEXT = {
+    tentative: [
+        'confirmed',
+        'cancelled'
+    ],
+    confirmed: [
+        'checked_in',
+        'cancelled',
+        'no_show'
+    ],
+    checked_in: [
+        'checked_out'
+    ],
+    checked_out: [],
+    cancelled: [],
+    no_show: []
+};
+/** Statuses that hold the dates (must match the booking exclusion constraint's WHERE clause). */ const ACTIVE_STATUSES = [
+    'tentative',
+    'confirmed',
+    'checked_in'
+];
+Object.defineProperty(__vite_ssr_exports__, "ACTIVE_STATUSES", { enumerable: true, configurable: true, get(){ return ACTIVE_STATUSES }});
+const STATUS_LABELS = {
+    tentative: 'Tentative',
+    confirmed: 'Confirmed',
+    checked_in: 'Checked in',
+    checked_out: 'Checked out',
+    cancelled: 'Cancelled',
+    no_show: 'No-show'
+};
+Object.defineProperty(__vite_ssr_exports__, "STATUS_LABELS", { enumerable: true, configurable: true, get(){ return STATUS_LABELS }});
+const nextStatuses = (from)=>[
+        ...NEXT[from]
+    ];
+Object.defineProperty(__vite_ssr_exports__, "nextStatuses", { enumerable: true, configurable: true, get(){ return nextStatuses }});
+const canTransition = (from, to)=>NEXT[from].includes(to);
+Object.defineProperty(__vite_ssr_exports__, "canTransition", { enumerable: true, configurable: true, get(){ return canTransition }});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBRUEsTUFBTUEsT0FBK0M7SUFDbkRDLFdBQVc7UUFBQztRQUFhO0tBQVk7SUFDckNDLFdBQVc7UUFBQztRQUFjO1FBQWE7S0FBVTtJQUNqREMsWUFBWTtRQUFDO0tBQWM7SUFDM0JDLGFBQWEsRUFBRTtJQUNmQyxXQUFXLEVBQUU7SUFDYkMsU0FBUyxFQUFFO0FBQ2I7QUFDQSwrRkFBK0YsR0FDeEYsTUFBTUMsa0JBQTRDO0lBQUM7SUFBYTtJQUFhO0NBQWE7eUlBQUM7QUFDM0YsTUFBTUMsZ0JBQStDO0lBQzFEUCxXQUFXO0lBQ1hDLFdBQVc7SUFDWEMsWUFBWTtJQUNaQyxhQUFhO0lBQ2JDLFdBQVc7SUFDWEMsU0FBUztBQUNYO3FJQUFFO0FBQ0ssTUFBTUcsZUFBZSxDQUFDQyxPQUF3QjtXQUFJVixJQUFJLENBQUNVLEtBQUs7S0FBQzttSUFBQztBQUM5RCxNQUFNQyxnQkFBZ0IsQ0FBQ0QsTUFBcUJFLEtBQXNCWixJQUFJLENBQUNVLEtBQUssQ0FBQ0csUUFBUSxDQUFDRDtxSUFBSSIsIm5hbWVzIjpbIk5FWFQiLCJ0ZW50YXRpdmUiLCJjb25maXJtZWQiLCJjaGVja2VkX2luIiwiY2hlY2tlZF9vdXQiLCJjYW5jZWxsZWQiLCJub19zaG93IiwiQUNUSVZFX1NUQVRVU0VTIiwiU1RBVFVTX0xBQkVMUyIsIm5leHRTdGF0dXNlcyIsImZyb20iLCJjYW5UcmFuc2l0aW9uIiwidG8iLCJpbmNsdWRlcyJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJib29raW5nLXN0YXR1cy50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgdHlwZSB7IEJvb2tpbmdTdGF0dXMgfSBmcm9tICcuLi9jb250cmFjdHMvY2FsZW5kYXInO1xuXG5jb25zdCBORVhUOiBSZWNvcmQ8Qm9va2luZ1N0YXR1cywgQm9va2luZ1N0YXR1c1tdPiA9IHtcbiAgdGVudGF0aXZlOiBbJ2NvbmZpcm1lZCcsICdjYW5jZWxsZWQnXSxcbiAgY29uZmlybWVkOiBbJ2NoZWNrZWRfaW4nLCAnY2FuY2VsbGVkJywgJ25vX3Nob3cnXSxcbiAgY2hlY2tlZF9pbjogWydjaGVja2VkX291dCddLFxuICBjaGVja2VkX291dDogW10sXG4gIGNhbmNlbGxlZDogW10sXG4gIG5vX3Nob3c6IFtdLFxufTtcbi8qKiBTdGF0dXNlcyB0aGF0IGhvbGQgdGhlIGRhdGVzIChtdXN0IG1hdGNoIHRoZSBib29raW5nIGV4Y2x1c2lvbiBjb25zdHJhaW50J3MgV0hFUkUgY2xhdXNlKS4gKi9cbmV4cG9ydCBjb25zdCBBQ1RJVkVfU1RBVFVTRVM6IHJlYWRvbmx5IEJvb2tpbmdTdGF0dXNbXSA9IFsndGVudGF0aXZlJywgJ2NvbmZpcm1lZCcsICdjaGVja2VkX2luJ107XG5leHBvcnQgY29uc3QgU1RBVFVTX0xBQkVMUzogUmVjb3JkPEJvb2tpbmdTdGF0dXMsIHN0cmluZz4gPSB7XG4gIHRlbnRhdGl2ZTogJ1RlbnRhdGl2ZScsXG4gIGNvbmZpcm1lZDogJ0NvbmZpcm1lZCcsXG4gIGNoZWNrZWRfaW46ICdDaGVja2VkIGluJyxcbiAgY2hlY2tlZF9vdXQ6ICdDaGVja2VkIG91dCcsXG4gIGNhbmNlbGxlZDogJ0NhbmNlbGxlZCcsXG4gIG5vX3Nob3c6ICdOby1zaG93Jyxcbn07XG5leHBvcnQgY29uc3QgbmV4dFN0YXR1c2VzID0gKGZyb206IEJvb2tpbmdTdGF0dXMpID0+IFsuLi5ORVhUW2Zyb21dXTtcbmV4cG9ydCBjb25zdCBjYW5UcmFuc2l0aW9uID0gKGZyb206IEJvb2tpbmdTdGF0dXMsIHRvOiBCb29raW5nU3RhdHVzKSA9PiBORVhUW2Zyb21dLmluY2x1ZGVzKHRvKTtcbiJdLCJmaWxlIjoiL1VzZXJzL29sYWxla2FuL1Byb2plY3RzL2Jvb2diZS8ud29ya3RyZWVzL3QtbTQtMDItaWNhbC1zY2hlbWEvcGFja2FnZXMvc2hhcmVkL3NyYy9kb21haW4vYm9va2luZy1zdGF0dXMudHMifQ==

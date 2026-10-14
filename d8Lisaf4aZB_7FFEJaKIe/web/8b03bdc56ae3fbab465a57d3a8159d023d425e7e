@@ -1,0 +1,61 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/node_modules/.pnpm/react@18.3.1/node_modules/react/jsx-dev-runtime.js", {"importedNames":["jsxDEV"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/node_modules/.pnpm/@testing-library+react@16.3.3_@testing-library+dom@10.4.2_@types+react-dom@18.3.7_@types+reac_aeftit5ke2xxaf4nxeo4zj4kvi/node_modules/@testing-library/react/dist/index.js", {"importedNames":["fireEvent","render","screen"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/node_modules/.pnpm/vitest@2.1.9_@types+node@22.20.5_jsdom@25.0.1_lightningcss@1.32.0_terser@5.51.2/node_modules/vitest/dist/index.js", {"importedNames":["describe","expect","it","vi"]});
+const __vite_ssr_import_3__ = await __vite_ssr_import__("/src/features/calendar/CalendarGrid.tsx", {"importedNames":["CalendarGrid"]});
+const __vite_ssr_import_4__ = await __vite_ssr_import__("/src/features/calendar/layout.ts", {"importedNames":["layoutBars"]});
+
+
+
+
+
+const data = {
+  from: "2026-11-01",
+  to: "2026-11-15",
+  today: "2026-11-02",
+  properties: [
+    {
+      id: "p",
+      name: "The Rock",
+      units: [{ id: "u1", name: "Kairo", bedrooms: 2, maxGuests: 4, nightlyRateKobo: 2e7 }]
+    }
+  ],
+  items: [
+    { kind: "block", id: "b1", unitId: "u1", start: "2026-11-03", end: "2026-11-05", source: "manual", reason: "maintenance", label: "Maintenance" }
+  ]
+};
+__vite_ssr_import_2__.describe("CalendarGrid", () => {
+  __vite_ssr_import_2__.it("renders units, today marker and bars", () => {
+    __vite_ssr_import_1__.render(/* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_3__.CalendarGrid, { data, onEmptySelect: __vite_ssr_import_2__.vi.fn(), onItemClick: __vite_ssr_import_2__.vi.fn() }, void 0, false, {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/apps/app/src/features/calendar/CalendarGrid.test.tsx",
+      lineNumber: 25,
+      columnNumber: 12
+    }, this));
+    __vite_ssr_import_2__.expect(__vite_ssr_import_1__.screen.getByRole("rowheader", { name: /Kairo/ })).toBeInTheDocument();
+    __vite_ssr_import_2__.expect(__vite_ssr_import_1__.screen.getByRole("button", { name: /Maintenance, 3 Nov – 5 Nov/ })).toBeInTheDocument();
+    __vite_ssr_import_2__.expect(__vite_ssr_import_1__.screen.getByRole("columnheader", { name: /2 Nov.*today/i })).toBeInTheDocument();
+  });
+  __vite_ssr_import_2__.it("drag-selects empty cells into a range", () => {
+    const onEmptySelect = __vite_ssr_import_2__.vi.fn();
+    __vite_ssr_import_1__.render(/* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_3__.CalendarGrid, { data, onEmptySelect, onItemClick: __vite_ssr_import_2__.vi.fn() }, void 0, false, {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/apps/app/src/features/calendar/CalendarGrid.test.tsx",
+      lineNumber: 32,
+      columnNumber: 12
+    }, this));
+    __vite_ssr_import_1__.fireEvent.mouseDown(__vite_ssr_import_1__.screen.getByTestId("cell-u1-2026-11-06"));
+    __vite_ssr_import_1__.fireEvent.mouseEnter(__vite_ssr_import_1__.screen.getByTestId("cell-u1-2026-11-08"));
+    __vite_ssr_import_1__.fireEvent.mouseUp(__vite_ssr_import_1__.screen.getByTestId("cell-u1-2026-11-08"));
+    __vite_ssr_import_2__.expect(onEmptySelect).toHaveBeenCalledWith("u1", "2026-11-06", "2026-11-09");
+  });
+});
+__vite_ssr_import_2__.describe("narrow (mobile) window", () => {
+  __vite_ssr_import_2__.it("includes a stay departing today when the window starts the day before", () => {
+    const departing = { kind: "block", id: "st", unitId: "u1", start: "2026-10-30", end: "2026-11-01", source: "manual", reason: "maintenance", label: "Stay" };
+    const bars = __vite_ssr_import_4__.layoutBars([departing], "2026-10-31", 3);
+    __vite_ssr_import_2__.expect(bars).toHaveLength(1);
+    __vite_ssr_import_2__.expect(bars[0].col).toBe(0);
+    __vite_ssr_import_2__.expect(bars[0].span).toBe(1);
+  });
+});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7Ozs7QUF3Qlc7QUF4QitCO0FBQ0Q7QUFFWjtBQUNGO0FBRTNCLE1BQU0sT0FBeUI7QUFBQSxFQUM3QixNQUFNO0FBQUEsRUFDTixJQUFJO0FBQUEsRUFDSixPQUFPO0FBQUEsRUFDUCxZQUFZO0FBQUEsSUFDVjtBQUFBLE1BQ0UsSUFBSTtBQUFBLE1BQ0osTUFBTTtBQUFBLE1BQ04sT0FBTyxDQUFDLEVBQUUsSUFBSSxNQUFNLE1BQU0sU0FBUyxVQUFVLEdBQUcsV0FBVyxHQUFHLGlCQUFpQixJQUFXLENBQUM7QUFBQSxJQUM3RjtBQUFBLEVBQ0Y7QUFBQSxFQUNBLE9BQU87QUFBQSxJQUNMLEVBQUUsTUFBTSxTQUFTLElBQUksTUFBTSxRQUFRLE1BQU0sT0FBTyxjQUFjLEtBQUssY0FBYyxRQUFRLFVBQVUsUUFBUSxlQUFlLE9BQU8sY0FBYztBQUFBLEVBQ2pKO0FBQ0Y7QUFFQSwrQkFBUyxnQkFBZ0IsTUFBTTtBQUM3QiwyQkFBRyx3Q0FBd0MsTUFBTTtBQUMvQyxpQ0FBTyw2Q0FBQyxzQ0FBYSxNQUFZLGVBQWUseUJBQUcsR0FBRyxHQUFHLGFBQWEseUJBQUcsR0FBRyxLQUFyRTtBQUFBO0FBQUE7QUFBQTtBQUFBLFdBQXdFLENBQUU7QUFDakYsaUNBQU8sNkJBQU8sVUFBVSxhQUFhLEVBQUUsTUFBTSxRQUFRLENBQUMsQ0FBQyxFQUFFLGtCQUFrQjtBQUMzRSxpQ0FBTyw2QkFBTyxVQUFVLFVBQVUsRUFBRSxNQUFNLDZCQUE2QixDQUFDLENBQUMsRUFBRSxrQkFBa0I7QUFDN0YsaUNBQU8sNkJBQU8sVUFBVSxnQkFBZ0IsRUFBRSxNQUFNLGdCQUFnQixDQUFDLENBQUMsRUFBRSxrQkFBa0I7QUFBQSxFQUN4RixDQUFDO0FBQ0QsMkJBQUcseUNBQXlDLE1BQU07QUFDaEQsVUFBTSxnQkFBZ0IseUJBQUcsR0FBRztBQUM1QixpQ0FBTyw2Q0FBQyxzQ0FBYSxNQUFZLGVBQThCLGFBQWEseUJBQUcsR0FBRyxLQUEzRTtBQUFBO0FBQUE7QUFBQTtBQUFBLFdBQThFLENBQUU7QUFDdkYsb0NBQVUsVUFBVSw2QkFBTyxZQUFZLG9CQUFvQixDQUFDO0FBQzVELG9DQUFVLFdBQVcsNkJBQU8sWUFBWSxvQkFBb0IsQ0FBQztBQUM3RCxvQ0FBVSxRQUFRLDZCQUFPLFlBQVksb0JBQW9CLENBQUM7QUFDMUQsaUNBQU8sYUFBYSxFQUFFLHFCQUFxQixNQUFNLGNBQWMsWUFBWTtBQUFBLEVBQzdFLENBQUM7QUFDSCxDQUFDO0FBRUQsK0JBQVMsMEJBQTBCLE1BQU07QUFDdkMsMkJBQUcseUVBQXlFLE1BQU07QUFHaEYsVUFBTSxZQUFZLEVBQUUsTUFBTSxTQUFrQixJQUFJLE1BQU0sUUFBUSxNQUFNLE9BQU8sY0FBYyxLQUFLLGNBQWMsUUFBUSxVQUFtQixRQUFRLGVBQWUsT0FBTyxPQUFPO0FBQzVLLFVBQU0sT0FBTyxpQ0FBVyxDQUFDLFNBQVMsR0FBRyxjQUFjLENBQUM7QUFDcEQsaUNBQU8sSUFBSSxFQUFFLGFBQWEsQ0FBQztBQUMzQixpQ0FBTyxLQUFLLENBQUMsRUFBRyxHQUFHLEVBQUUsS0FBSyxDQUFDO0FBQzNCLGlDQUFPLEtBQUssQ0FBQyxFQUFHLElBQUksRUFBRSxLQUFLLENBQUM7QUFBQSxFQUM5QixDQUFDO0FBQ0gsQ0FBQyIsIm5hbWVzIjpbXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiQ2FsZW5kYXJHcmlkLnRlc3QudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IGZpcmVFdmVudCwgcmVuZGVyLCBzY3JlZW4gfSBmcm9tICdAdGVzdGluZy1saWJyYXJ5L3JlYWN0JztcbmltcG9ydCB7IGRlc2NyaWJlLCBleHBlY3QsIGl0LCB2aSB9IGZyb20gJ3ZpdGVzdCc7XG5pbXBvcnQgdHlwZSB7IENhbGVuZGFyUmVzcG9uc2UgfSBmcm9tICdAYm9vZ2JlL3NoYXJlZCc7XG5pbXBvcnQgeyBDYWxlbmRhckdyaWQgfSBmcm9tICcuL0NhbGVuZGFyR3JpZCc7XG5pbXBvcnQgeyBsYXlvdXRCYXJzIH0gZnJvbSAnLi9sYXlvdXQnO1xuXG5jb25zdCBkYXRhOiBDYWxlbmRhclJlc3BvbnNlID0ge1xuICBmcm9tOiAnMjAyNi0xMS0wMScsXG4gIHRvOiAnMjAyNi0xMS0xNScsXG4gIHRvZGF5OiAnMjAyNi0xMS0wMicsXG4gIHByb3BlcnRpZXM6IFtcbiAgICB7XG4gICAgICBpZDogJ3AnLFxuICAgICAgbmFtZTogJ1RoZSBSb2NrJyxcbiAgICAgIHVuaXRzOiBbeyBpZDogJ3UxJywgbmFtZTogJ0thaXJvJywgYmVkcm9vbXM6IDIsIG1heEd1ZXN0czogNCwgbmlnaHRseVJhdGVLb2JvOiAyMF8wMDBfMDAwIH1dLFxuICAgIH0sXG4gIF0sXG4gIGl0ZW1zOiBbXG4gICAgeyBraW5kOiAnYmxvY2snLCBpZDogJ2IxJywgdW5pdElkOiAndTEnLCBzdGFydDogJzIwMjYtMTEtMDMnLCBlbmQ6ICcyMDI2LTExLTA1Jywgc291cmNlOiAnbWFudWFsJywgcmVhc29uOiAnbWFpbnRlbmFuY2UnLCBsYWJlbDogJ01haW50ZW5hbmNlJyB9LFxuICBdLFxufTtcblxuZGVzY3JpYmUoJ0NhbGVuZGFyR3JpZCcsICgpID0+IHtcbiAgaXQoJ3JlbmRlcnMgdW5pdHMsIHRvZGF5IG1hcmtlciBhbmQgYmFycycsICgpID0+IHtcbiAgICByZW5kZXIoPENhbGVuZGFyR3JpZCBkYXRhPXtkYXRhfSBvbkVtcHR5U2VsZWN0PXt2aS5mbigpfSBvbkl0ZW1DbGljaz17dmkuZm4oKX0gLz4pO1xuICAgIGV4cGVjdChzY3JlZW4uZ2V0QnlSb2xlKCdyb3doZWFkZXInLCB7IG5hbWU6IC9LYWlyby8gfSkpLnRvQmVJblRoZURvY3VtZW50KCk7XG4gICAgZXhwZWN0KHNjcmVlbi5nZXRCeVJvbGUoJ2J1dHRvbicsIHsgbmFtZTogL01haW50ZW5hbmNlLCAzIE5vdiDigJMgNSBOb3YvIH0pKS50b0JlSW5UaGVEb2N1bWVudCgpO1xuICAgIGV4cGVjdChzY3JlZW4uZ2V0QnlSb2xlKCdjb2x1bW5oZWFkZXInLCB7IG5hbWU6IC8yIE5vdi4qdG9kYXkvaSB9KSkudG9CZUluVGhlRG9jdW1lbnQoKTtcbiAgfSk7XG4gIGl0KCdkcmFnLXNlbGVjdHMgZW1wdHkgY2VsbHMgaW50byBhIHJhbmdlJywgKCkgPT4ge1xuICAgIGNvbnN0IG9uRW1wdHlTZWxlY3QgPSB2aS5mbigpO1xuICAgIHJlbmRlcig8Q2FsZW5kYXJHcmlkIGRhdGE9e2RhdGF9IG9uRW1wdHlTZWxlY3Q9e29uRW1wdHlTZWxlY3R9IG9uSXRlbUNsaWNrPXt2aS5mbigpfSAvPik7XG4gICAgZmlyZUV2ZW50Lm1vdXNlRG93bihzY3JlZW4uZ2V0QnlUZXN0SWQoJ2NlbGwtdTEtMjAyNi0xMS0wNicpKTtcbiAgICBmaXJlRXZlbnQubW91c2VFbnRlcihzY3JlZW4uZ2V0QnlUZXN0SWQoJ2NlbGwtdTEtMjAyNi0xMS0wOCcpKTtcbiAgICBmaXJlRXZlbnQubW91c2VVcChzY3JlZW4uZ2V0QnlUZXN0SWQoJ2NlbGwtdTEtMjAyNi0xMS0wOCcpKTtcbiAgICBleHBlY3Qob25FbXB0eVNlbGVjdCkudG9IYXZlQmVlbkNhbGxlZFdpdGgoJ3UxJywgJzIwMjYtMTEtMDYnLCAnMjAyNi0xMS0wOScpO1xuICB9KTtcbn0pO1xuXG5kZXNjcmliZSgnbmFycm93IChtb2JpbGUpIHdpbmRvdycsICgpID0+IHtcbiAgaXQoJ2luY2x1ZGVzIGEgc3RheSBkZXBhcnRpbmcgdG9kYXkgd2hlbiB0aGUgd2luZG93IHN0YXJ0cyB0aGUgZGF5IGJlZm9yZScsICgpID0+IHtcbiAgICAvLyBDYWxlbmRhclBhZ2UgZmV0Y2hlcyBbZGF5LTEsIGRheSsyKSBpbiBuYXJyb3cgbW9kZTsgdGhlIGNoZWNrb3V0LXRvZGF5IGl0ZW0gbXVzdCBzdXJ2aXZlXG4gICAgLy8gdGhlIEFQSSBvdmVybGFwIGZpbHRlciAoc3RhcnQgPCB0byAmJiBlbmQgPiBmcm9tKSwgd2hpY2ggbGF5b3V0QmFycyBtaXJyb3JzLlxuICAgIGNvbnN0IGRlcGFydGluZyA9IHsga2luZDogJ2Jsb2NrJyBhcyBjb25zdCwgaWQ6ICdzdCcsIHVuaXRJZDogJ3UxJywgc3RhcnQ6ICcyMDI2LTEwLTMwJywgZW5kOiAnMjAyNi0xMS0wMScsIHNvdXJjZTogJ21hbnVhbCcgYXMgY29uc3QsIHJlYXNvbjogJ21haW50ZW5hbmNlJywgbGFiZWw6ICdTdGF5JyB9O1xuICAgIGNvbnN0IGJhcnMgPSBsYXlvdXRCYXJzKFtkZXBhcnRpbmddLCAnMjAyNi0xMC0zMScsIDMpO1xuICAgIGV4cGVjdChiYXJzKS50b0hhdmVMZW5ndGgoMSk7XG4gICAgZXhwZWN0KGJhcnNbMF0hLmNvbCkudG9CZSgwKTtcbiAgICBleHBlY3QoYmFyc1swXSEuc3BhbikudG9CZSgxKTtcbiAgfSk7XG59KTtcbiJdLCJmaWxlIjoiL1VzZXJzL29sYWxla2FuL1Byb2plY3RzL2Jvb2diZS8ud29ya3RyZWVzL3QtbTMtMDQvYXBwcy9hcHAvc3JjL2ZlYXR1cmVzL2NhbGVuZGFyL0NhbGVuZGFyR3JpZC50ZXN0LnRzeCJ9

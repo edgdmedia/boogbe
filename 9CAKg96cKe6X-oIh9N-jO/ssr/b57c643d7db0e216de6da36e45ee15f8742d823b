@@ -1,0 +1,160 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("@nestjs/common", {"importedNames":["Body","Controller","Get","HttpCode","Param","Post","Res"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("nestjs-zod", {"importedNames":["createZodDto"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m4-02-ical-schema/packages/shared/src/index.ts", {"importedNames":["CancelBookingInput","RecordEntryInput","VoidInput"]});
+const __vite_ssr_import_3__ = await __vite_ssr_import__("/src/common/auth/decorators.ts", {"importedNames":["Ctx","Permission"]});
+const __vite_ssr_import_4__ = await __vite_ssr_import__("/src/common/auth/request-ctx.ts", {"importedNames":["requireOrg"]});
+const __vite_ssr_import_5__ = await __vite_ssr_import__("/src/modules/payments/payments.service.ts", {"importedNames":["PaymentsService"]});
+function _ts_decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
+        r = Reflect.decorate(decorators, target, key, desc);
+    } else {
+        for(var i = decorators.length - 1; i >= 0; i--){
+            if (d = decorators[i]) {
+                r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+            }
+        }
+    }
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+function _ts_metadata(metadataKey, metadataValue) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") {
+        return Reflect.metadata(metadataKey, metadataValue);
+    }
+}
+function _ts_param(paramIndex, decorator) {
+    return function(target, key) {
+        decorator(target, key, paramIndex);
+    };
+}
+
+
+
+
+
+
+let RecordDto = class RecordDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.RecordEntryInput) {
+};
+let VoidDto = class VoidDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.VoidInput) {
+};
+let CancelDto = class CancelDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.CancelBookingInput) {
+};
+class PaymentsController {
+    svc;
+    constructor(svc){
+        this.svc = svc;
+    }
+    ledger(c, id) {
+        return this.svc.ledger(__vite_ssr_import_4__.requireOrg(c), id);
+    }
+    record(c, id, b) {
+        return this.svc.record(__vite_ssr_import_4__.requireOrg(c), id, b);
+    }
+    void(c, id, b) {
+        return this.svc.void(__vite_ssr_import_4__.requireOrg(c), id, b);
+    }
+    /** Lives here, not in BookingsController: the optional refund needs PaymentsService (BookingsModule can't import it). */ cancel(c, id, b) {
+        return this.svc.cancelWithRefund(__vite_ssr_import_4__.requireOrg(c), id, b);
+    }
+}
+Object.defineProperty(__vite_ssr_exports__, "PaymentsController", { enumerable: true, configurable: true, get(){ return PaymentsController }});
+_ts_decorate([
+    __vite_ssr_import_0__.Get('ledger'),
+    __vite_ssr_import_3__.Permission('payments.read'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PaymentsController.prototype, "ledger", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post('payments'),
+    __vite_ssr_import_3__.Permission('payments.write'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_param(2, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String,
+        typeof RecordDto === "undefined" ? Object : RecordDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PaymentsController.prototype, "record", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post('payments/void'),
+    __vite_ssr_import_0__.HttpCode(200),
+    __vite_ssr_import_3__.Permission('payments.void'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_param(2, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String,
+        typeof VoidDto === "undefined" ? Object : VoidDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PaymentsController.prototype, "void", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post('cancel'),
+    __vite_ssr_import_0__.HttpCode(200),
+    __vite_ssr_import_3__.Permission('bookings.write'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_param(2, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String,
+        typeof CancelDto === "undefined" ? Object : CancelDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PaymentsController.prototype, "cancel", null);
+PaymentsController = _ts_decorate([
+    __vite_ssr_import_0__.Controller('bookings/:id'),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof __vite_ssr_import_5__.PaymentsService === "undefined" ? Object : __vite_ssr_import_5__.PaymentsService
+    ])
+], PaymentsController);
+class ReceiptsController {
+    svc;
+    constructor(svc){
+        this.svc = svc;
+    }
+    async receipt(c, id, res) {
+        const { filename, pdf } = await this.svc.receipt(__vite_ssr_import_4__.requireOrg(c), id);
+        res.setHeader('content-type', 'application/pdf');
+        res.setHeader('content-disposition', `attachment; filename="${filename}"`);
+        res.send(pdf);
+    }
+}
+Object.defineProperty(__vite_ssr_exports__, "ReceiptsController", { enumerable: true, configurable: true, get(){ return ReceiptsController }});
+_ts_decorate([
+    __vite_ssr_import_0__.Get(':id/receipt.pdf'),
+    __vite_ssr_import_3__.Permission('payments.read'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_param(2, __vite_ssr_import_0__.Res()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String,
+        typeof Response === "undefined" ? Object : Response
+    ]),
+    _ts_metadata("design:returntype", Promise)
+], ReceiptsController.prototype, "receipt", null);
+ReceiptsController = _ts_decorate([
+    __vite_ssr_import_0__.Controller('payments'),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof __vite_ssr_import_5__.PaymentsService === "undefined" ? Object : __vite_ssr_import_5__.PaymentsService
+    ])
+], ReceiptsController);
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QUFBbUY7QUFFekM7QUFDdUM7QUFDbEI7QUFDYTtBQUN2QjtBQUVyRCxhQUFNQSxHQUFOLE1BQU1BLGtCQUFrQkMsbUNBQWFDO0FBQW1CO0FBQ3hELFdBQU1DLEdBQU4sTUFBTUEsZ0JBQWdCRixtQ0FBYUc7QUFBWTtBQUMvQyxhQUFNQyxHQUFOLE1BQU1BLGtCQUFrQkosbUNBQWFLO0FBQXFCO0FBR25ELE1BQU1DOztJQUNYLFlBQVksR0FBcUMsQ0FBRTthQUF0QkM7SUFBdUI7SUFJcERDLE9BQU8sQ0FBb0IsRUFBRSxFQUF1QixFQUFFO1FBQ3BELE9BQU8sSUFBSSxDQUFDRCxHQUFHLENBQUNDLE1BQU0sQ0FBQ0MsaUNBQVdDLElBQUlDO0lBQ3hDO0lBSUFDLE9BQU8sQ0FBb0IsRUFBRSxFQUF1QixFQUFFLENBQW9CLEVBQUU7UUFDMUUsT0FBTyxJQUFJLENBQUNMLEdBQUcsQ0FBQ0ssTUFBTSxDQUFDSCxpQ0FBV0MsSUFBSUMsSUFBSUU7SUFDNUM7SUFLQUMsS0FBSyxDQUFvQixFQUFFLEVBQXVCLEVBQUUsQ0FBa0IsRUFBRTtRQUN0RSxPQUFPLElBQUksQ0FBQ1AsR0FBRyxDQUFDTyxJQUFJLENBQUNMLGlDQUFXQyxJQUFJQyxJQUFJRTtJQUMxQztJQUVBLHVIQUF1SCxHQUN2SCxNQUdBRSxDQUFPLENBQW9CLEVBQUUsRUFBdUIsRUFBRSxDQUFvQixFQUFFO1FBQzFFLE9BQU8sSUFBSSxDQUFDUixHQUFHLENBQUNTLGdCQUFnQixDQUFDUCxpQ0FBV0MsSUFBSUMsSUFBSUU7SUFDdEQ7QUFDRjsrSUFBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQUdPLE1BQU1JOztJQUNYLFlBQVksR0FBcUMsQ0FBRTthQUF0QlY7SUFBdUI7SUFFcEQsTUFFTVcsUUFBUSxDQUFvQixFQUFFLEVBQXVCLEVBQUUsR0FBb0IsRUFBRTtRQUNqRixNQUFNLEVBQUVDLFFBQVEsRUFBRUMsR0FBRyxFQUFFLEdBQUcsTUFBTSxJQUFJLENBQUNiLEdBQUcsQ0FBQ1csT0FBTyxDQUFDVCxpQ0FBV0MsSUFBSUM7UUFDaEVVLElBQUlDLFNBQVMsQ0FBQyxnQkFBZ0I7UUFDOUJELElBQUlDLFNBQVMsQ0FBQyx1QkFBdUIsQ0FBQyxzQkFBc0IsRUFBRUgsU0FBUyxDQUFDLENBQUM7UUFDekVFLElBQUlFLElBQUksQ0FBQ0g7SUFDWDtBQUNGOytJQUFBIiwibmFtZXMiOlsiUmVjb3JkRHRvIiwiY3JlYXRlWm9kRHRvIiwiUmVjb3JkRW50cnlJbnB1dCIsIlZvaWREdG8iLCJWb2lkSW5wdXQiLCJDYW5jZWxEdG8iLCJDYW5jZWxCb29raW5nSW5wdXQiLCJQYXltZW50c0NvbnRyb2xsZXIiLCJzdmMiLCJsZWRnZXIiLCJyZXF1aXJlT3JnIiwiYyIsImlkIiwicmVjb3JkIiwiYiIsInZvaWQiLCJjYW5jZWwiLCJjYW5jZWxXaXRoUmVmdW5kIiwiUmVjZWlwdHNDb250cm9sbGVyIiwicmVjZWlwdCIsImZpbGVuYW1lIiwicGRmIiwicmVzIiwic2V0SGVhZGVyIiwic2VuZCJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJwYXltZW50cy5jb250cm9sbGVyLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEJvZHksIENvbnRyb2xsZXIsIEdldCwgSHR0cENvZGUsIFBhcmFtLCBQb3N0LCBSZXMgfSBmcm9tICdAbmVzdGpzL2NvbW1vbic7XG5pbXBvcnQgdHlwZSB7IFJlc3BvbnNlIH0gZnJvbSAnZXhwcmVzcyc7XG5pbXBvcnQgeyBjcmVhdGVab2REdG8gfSBmcm9tICduZXN0anMtem9kJztcbmltcG9ydCB7IENhbmNlbEJvb2tpbmdJbnB1dCwgUmVjb3JkRW50cnlJbnB1dCwgVm9pZElucHV0IH0gZnJvbSAnQGJvb2diZS9zaGFyZWQnO1xuaW1wb3J0IHsgQ3R4LCBQZXJtaXNzaW9uIH0gZnJvbSAnLi4vLi4vY29tbW9uL2F1dGgvZGVjb3JhdG9ycyc7XG5pbXBvcnQgeyByZXF1aXJlT3JnLCB0eXBlIFJlcXVlc3RDdHggfSBmcm9tICcuLi8uLi9jb21tb24vYXV0aC9yZXF1ZXN0LWN0eCc7XG5pbXBvcnQgeyBQYXltZW50c1NlcnZpY2UgfSBmcm9tICcuL3BheW1lbnRzLnNlcnZpY2UnO1xuXG5jbGFzcyBSZWNvcmREdG8gZXh0ZW5kcyBjcmVhdGVab2REdG8oUmVjb3JkRW50cnlJbnB1dCkge31cbmNsYXNzIFZvaWREdG8gZXh0ZW5kcyBjcmVhdGVab2REdG8oVm9pZElucHV0KSB7fVxuY2xhc3MgQ2FuY2VsRHRvIGV4dGVuZHMgY3JlYXRlWm9kRHRvKENhbmNlbEJvb2tpbmdJbnB1dCkge31cblxuQENvbnRyb2xsZXIoJ2Jvb2tpbmdzLzppZCcpXG5leHBvcnQgY2xhc3MgUGF5bWVudHNDb250cm9sbGVyIHtcbiAgY29uc3RydWN0b3IocHJpdmF0ZSByZWFkb25seSBzdmM6IFBheW1lbnRzU2VydmljZSkge31cblxuICBAR2V0KCdsZWRnZXInKVxuICBAUGVybWlzc2lvbigncGF5bWVudHMucmVhZCcpXG4gIGxlZGdlcihAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcpIHtcbiAgICByZXR1cm4gdGhpcy5zdmMubGVkZ2VyKHJlcXVpcmVPcmcoYyksIGlkKTtcbiAgfVxuXG4gIEBQb3N0KCdwYXltZW50cycpXG4gIEBQZXJtaXNzaW9uKCdwYXltZW50cy53cml0ZScpXG4gIHJlY29yZChAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcsIEBCb2R5KCkgYjogUmVjb3JkRHRvKSB7XG4gICAgcmV0dXJuIHRoaXMuc3ZjLnJlY29yZChyZXF1aXJlT3JnKGMpLCBpZCwgYik7XG4gIH1cblxuICBAUG9zdCgncGF5bWVudHMvdm9pZCcpXG4gIEBIdHRwQ29kZSgyMDApXG4gIEBQZXJtaXNzaW9uKCdwYXltZW50cy52b2lkJylcbiAgdm9pZChAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcsIEBCb2R5KCkgYjogVm9pZER0bykge1xuICAgIHJldHVybiB0aGlzLnN2Yy52b2lkKHJlcXVpcmVPcmcoYyksIGlkLCBiKTtcbiAgfVxuXG4gIC8qKiBMaXZlcyBoZXJlLCBub3QgaW4gQm9va2luZ3NDb250cm9sbGVyOiB0aGUgb3B0aW9uYWwgcmVmdW5kIG5lZWRzIFBheW1lbnRzU2VydmljZSAoQm9va2luZ3NNb2R1bGUgY2FuJ3QgaW1wb3J0IGl0KS4gKi9cbiAgQFBvc3QoJ2NhbmNlbCcpXG4gIEBIdHRwQ29kZSgyMDApXG4gIEBQZXJtaXNzaW9uKCdib29raW5ncy53cml0ZScpXG4gIGNhbmNlbChAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcsIEBCb2R5KCkgYjogQ2FuY2VsRHRvKSB7XG4gICAgcmV0dXJuIHRoaXMuc3ZjLmNhbmNlbFdpdGhSZWZ1bmQocmVxdWlyZU9yZyhjKSwgaWQsIGIpO1xuICB9XG59XG5cbkBDb250cm9sbGVyKCdwYXltZW50cycpXG5leHBvcnQgY2xhc3MgUmVjZWlwdHNDb250cm9sbGVyIHtcbiAgY29uc3RydWN0b3IocHJpdmF0ZSByZWFkb25seSBzdmM6IFBheW1lbnRzU2VydmljZSkge31cblxuICBAR2V0KCc6aWQvcmVjZWlwdC5wZGYnKVxuICBAUGVybWlzc2lvbigncGF5bWVudHMucmVhZCcpXG4gIGFzeW5jIHJlY2VpcHQoQEN0eCgpIGM6IFJlcXVlc3RDdHgsIEBQYXJhbSgnaWQnKSBpZDogc3RyaW5nLCBAUmVzKCkgcmVzOiBSZXNwb25zZSkge1xuICAgIGNvbnN0IHsgZmlsZW5hbWUsIHBkZiB9ID0gYXdhaXQgdGhpcy5zdmMucmVjZWlwdChyZXF1aXJlT3JnKGMpLCBpZCk7XG4gICAgcmVzLnNldEhlYWRlcignY29udGVudC10eXBlJywgJ2FwcGxpY2F0aW9uL3BkZicpO1xuICAgIHJlcy5zZXRIZWFkZXIoJ2NvbnRlbnQtZGlzcG9zaXRpb24nLCBgYXR0YWNobWVudDsgZmlsZW5hbWU9XCIke2ZpbGVuYW1lfVwiYCk7XG4gICAgcmVzLnNlbmQocGRmKTtcbiAgfVxufVxuIl0sImZpbGUiOiIvc3JjL21vZHVsZXMvcGF5bWVudHMvcGF5bWVudHMuY29udHJvbGxlci50cyJ9

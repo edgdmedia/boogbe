@@ -1,0 +1,185 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("@nestjs/common", {"importedNames":["Body","Controller","Get","HttpCode","Param","Patch","Post","Query"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("nestjs-zod", {"importedNames":["createZodDto"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m4-02-ical-schema/packages/shared/src/index.ts", {"importedNames":["BookingListQuery","CreateBookingInput","QuoteRequest","TransitionInput","UpdateBookingInput"]});
+const __vite_ssr_import_3__ = await __vite_ssr_import__("/src/common/auth/decorators.ts", {"importedNames":["Ctx","Permission"]});
+const __vite_ssr_import_4__ = await __vite_ssr_import__("/src/common/auth/request-ctx.ts", {"importedNames":["requireOrg"]});
+const __vite_ssr_import_5__ = await __vite_ssr_import__("/src/modules/guests/guests.service.ts", {"importedNames":["GuestsService"]});
+const __vite_ssr_import_6__ = await __vite_ssr_import__("/src/modules/bookings/bookings.service.ts", {"importedNames":["BookingsService"]});
+function _ts_decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
+        r = Reflect.decorate(decorators, target, key, desc);
+    } else {
+        for(var i = decorators.length - 1; i >= 0; i--){
+            if (d = decorators[i]) {
+                r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+            }
+        }
+    }
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+function _ts_metadata(metadataKey, metadataValue) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") {
+        return Reflect.metadata(metadataKey, metadataValue);
+    }
+}
+function _ts_param(paramIndex, decorator) {
+    return function(target, key) {
+        decorator(target, key, paramIndex);
+    };
+}
+
+
+
+
+
+
+
+let QuoteDto = class QuoteDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.QuoteRequest) {
+};
+let CreateDto = class CreateDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.CreateBookingInput) {
+};
+let ListQ = class ListQ extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.BookingListQuery) {
+};
+let UpdateDto = class UpdateDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.UpdateBookingInput) {
+};
+let TransitionDto = class TransitionDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.TransitionInput) {
+};
+class BookingsController {
+    svc;
+    guests;
+    constructor(svc, guests){
+        this.svc = svc;
+        this.guests = guests;
+    }
+    quote(c, b) {
+        return this.svc.quote(__vite_ssr_import_4__.requireOrg(c), b);
+    }
+    create(c, b) {
+        return this.svc.create(__vite_ssr_import_4__.requireOrg(c), b);
+    }
+    list(c, q) {
+        return this.svc.list(__vite_ssr_import_4__.requireOrg(c), q);
+    }
+    get(c, id) {
+        return this.svc.get(__vite_ssr_import_4__.requireOrg(c), id);
+    }
+    async forGuest(c, id) {
+        const ctx = __vite_ssr_import_4__.requireOrg(c);
+        await this.guests.get(ctx, id); // 404 for unknown or other-operator guests, not an empty list
+        return {
+            items: (await this.svc.list(ctx, {
+                guestId: id,
+                limit: 100
+            })).items
+        };
+    }
+    update(c, id, b) {
+        return this.svc.update(__vite_ssr_import_4__.requireOrg(c), id, b);
+    }
+    transition(c, id, b) {
+        return this.svc.transition(__vite_ssr_import_4__.requireOrg(c), id, b);
+    }
+}
+Object.defineProperty(__vite_ssr_exports__, "BookingsController", { enumerable: true, configurable: true, get(){ return BookingsController }});
+_ts_decorate([
+    __vite_ssr_import_0__.Post('bookings/quote'),
+    __vite_ssr_import_0__.HttpCode(200),
+    __vite_ssr_import_3__.Permission('bookings.read'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        typeof QuoteDto === "undefined" ? Object : QuoteDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], BookingsController.prototype, "quote", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post('bookings'),
+    __vite_ssr_import_3__.Permission('bookings.write'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        typeof CreateDto === "undefined" ? Object : CreateDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], BookingsController.prototype, "create", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Get('bookings'),
+    __vite_ssr_import_3__.Permission('bookings.read'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Query()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        typeof ListQ === "undefined" ? Object : ListQ
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], BookingsController.prototype, "list", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Get('bookings/:id'),
+    __vite_ssr_import_3__.Permission('bookings.read'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], BookingsController.prototype, "get", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Get('guests/:id/bookings'),
+    __vite_ssr_import_3__.Permission('bookings.read'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String
+    ]),
+    _ts_metadata("design:returntype", Promise)
+], BookingsController.prototype, "forGuest", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Patch('bookings/:id'),
+    __vite_ssr_import_3__.Permission('bookings.write'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_param(2, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String,
+        typeof UpdateDto === "undefined" ? Object : UpdateDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], BookingsController.prototype, "update", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post('bookings/:id/transition'),
+    __vite_ssr_import_0__.HttpCode(200),
+    __vite_ssr_import_3__.Permission('bookings.write'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Param('id')),
+    _ts_param(2, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        String,
+        typeof TransitionDto === "undefined" ? Object : TransitionDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], BookingsController.prototype, "transition", null);
+BookingsController = _ts_decorate([
+    __vite_ssr_import_0__.Controller(),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof __vite_ssr_import_6__.BookingsService === "undefined" ? Object : __vite_ssr_import_6__.BookingsService,
+        typeof __vite_ssr_import_5__.GuestsService === "undefined" ? Object : __vite_ssr_import_5__.GuestsService
+    ])
+], BookingsController);
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBQTRGO0FBQ2xEO0FBT2xCO0FBQ3VDO0FBQ2E7QUFDbkI7QUFDSjtBQUVyRCxZQUFNQSxHQUFOLE1BQU1BLGlCQUFpQkMsbUNBQWFDO0FBQWU7QUFDbkQsYUFBTUMsR0FBTixNQUFNQSxrQkFBa0JGLG1DQUFhRztBQUFxQjtBQUMxRCxTQUFNQyxHQUFOLE1BQU1BLGNBQWNKLG1DQUFhSztBQUFtQjtBQUNwRCxhQUFNQyxHQUFOLE1BQU1BLGtCQUFrQk4sbUNBQWFPO0FBQXFCO0FBQzFELGlCQUFNQyxHQUFOLE1BQU1BLHNCQUFzQlIsbUNBQWFTO0FBQWtCO0FBR3BELE1BQU1DOzs7SUFDWCxZQUNFLEdBQXFDLEVBQ3JDLE1BQXNDLENBQ3RDO2FBRmlCQzthQUNBQztJQUNoQjtJQUtIQyxNQUFNLENBQW9CLEVBQUUsQ0FBbUIsRUFBRTtRQUMvQyxPQUFPLElBQUksQ0FBQ0YsR0FBRyxDQUFDRSxLQUFLLENBQUNDLGlDQUFXQyxJQUFJQztJQUN2QztJQUlBQyxPQUFPLENBQW9CLEVBQUUsQ0FBb0IsRUFBRTtRQUNqRCxPQUFPLElBQUksQ0FBQ04sR0FBRyxDQUFDTSxNQUFNLENBQUNILGlDQUFXQyxJQUFJQztJQUN4QztJQUlBRSxLQUFLLENBQW9CLEVBQUUsQ0FBaUIsRUFBRTtRQUM1QyxPQUFPLElBQUksQ0FBQ1AsR0FBRyxDQUFDTyxJQUFJLENBQUNKLGlDQUFXQyxJQUFJSTtJQUN0QztJQUlBQyxJQUFJLENBQW9CLEVBQUUsRUFBdUIsRUFBRTtRQUNqRCxPQUFPLElBQUksQ0FBQ1QsR0FBRyxDQUFDUyxHQUFHLENBQUNOLGlDQUFXQyxJQUFJTTtJQUNyQztJQUVBLE1BRU1DLFNBQVMsQ0FBb0IsRUFBRSxFQUF1QixFQUFFO1FBQzVELE1BQU1DLE1BQU1ULGlDQUFXQztRQUN2QixNQUFNLElBQUksQ0FBQ0gsTUFBTSxDQUFDUSxHQUFHLENBQUNHLEtBQUtGLEtBQUssOERBQThEO1FBQzlGLE9BQU87WUFBRUcsT0FBTyxDQUFDLE1BQU0sSUFBSSxDQUFDYixHQUFHLENBQUNPLElBQUksQ0FBQ0ssS0FBSztnQkFBRUUsU0FBU0o7Z0JBQUlLLE9BQU87WUFBSSxFQUFDLEVBQUdGLEtBQUs7UUFBQztJQUNoRjtJQUlBRyxPQUFPLENBQW9CLEVBQUUsRUFBdUIsRUFBRSxDQUFvQixFQUFFO1FBQzFFLE9BQU8sSUFBSSxDQUFDaEIsR0FBRyxDQUFDZ0IsTUFBTSxDQUFDYixpQ0FBV0MsSUFBSU0sSUFBSUw7SUFDNUM7SUFLQVksV0FBVyxDQUFvQixFQUFFLEVBQXVCLEVBQUUsQ0FBd0IsRUFBRTtRQUNsRixPQUFPLElBQUksQ0FBQ2pCLEdBQUcsQ0FBQ2lCLFVBQVUsQ0FBQ2QsaUNBQVdDLElBQUlNLElBQUlMO0lBQ2hEO0FBQ0Y7K0lBQUEiLCJuYW1lcyI6WyJRdW90ZUR0byIsImNyZWF0ZVpvZER0byIsIlF1b3RlUmVxdWVzdCIsIkNyZWF0ZUR0byIsIkNyZWF0ZUJvb2tpbmdJbnB1dCIsIkxpc3RRIiwiQm9va2luZ0xpc3RRdWVyeSIsIlVwZGF0ZUR0byIsIlVwZGF0ZUJvb2tpbmdJbnB1dCIsIlRyYW5zaXRpb25EdG8iLCJUcmFuc2l0aW9uSW5wdXQiLCJCb29raW5nc0NvbnRyb2xsZXIiLCJzdmMiLCJndWVzdHMiLCJxdW90ZSIsInJlcXVpcmVPcmciLCJjIiwiYiIsImNyZWF0ZSIsImxpc3QiLCJxIiwiZ2V0IiwiaWQiLCJmb3JHdWVzdCIsImN0eCIsIml0ZW1zIiwiZ3Vlc3RJZCIsImxpbWl0IiwidXBkYXRlIiwidHJhbnNpdGlvbiJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJib29raW5ncy5jb250cm9sbGVyLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEJvZHksIENvbnRyb2xsZXIsIEdldCwgSHR0cENvZGUsIFBhcmFtLCBQYXRjaCwgUG9zdCwgUXVlcnkgfSBmcm9tICdAbmVzdGpzL2NvbW1vbic7XG5pbXBvcnQgeyBjcmVhdGVab2REdG8gfSBmcm9tICduZXN0anMtem9kJztcbmltcG9ydCB7XG4gIEJvb2tpbmdMaXN0UXVlcnksXG4gIENyZWF0ZUJvb2tpbmdJbnB1dCxcbiAgUXVvdGVSZXF1ZXN0LFxuICBUcmFuc2l0aW9uSW5wdXQsXG4gIFVwZGF0ZUJvb2tpbmdJbnB1dCxcbn0gZnJvbSAnQGJvb2diZS9zaGFyZWQnO1xuaW1wb3J0IHsgQ3R4LCBQZXJtaXNzaW9uIH0gZnJvbSAnLi4vLi4vY29tbW9uL2F1dGgvZGVjb3JhdG9ycyc7XG5pbXBvcnQgeyByZXF1aXJlT3JnLCB0eXBlIFJlcXVlc3RDdHggfSBmcm9tICcuLi8uLi9jb21tb24vYXV0aC9yZXF1ZXN0LWN0eCc7XG5pbXBvcnQgeyBHdWVzdHNTZXJ2aWNlIH0gZnJvbSAnLi4vZ3Vlc3RzL2d1ZXN0cy5zZXJ2aWNlJztcbmltcG9ydCB7IEJvb2tpbmdzU2VydmljZSB9IGZyb20gJy4vYm9va2luZ3Muc2VydmljZSc7XG5cbmNsYXNzIFF1b3RlRHRvIGV4dGVuZHMgY3JlYXRlWm9kRHRvKFF1b3RlUmVxdWVzdCkge31cbmNsYXNzIENyZWF0ZUR0byBleHRlbmRzIGNyZWF0ZVpvZER0byhDcmVhdGVCb29raW5nSW5wdXQpIHt9XG5jbGFzcyBMaXN0USBleHRlbmRzIGNyZWF0ZVpvZER0byhCb29raW5nTGlzdFF1ZXJ5KSB7fVxuY2xhc3MgVXBkYXRlRHRvIGV4dGVuZHMgY3JlYXRlWm9kRHRvKFVwZGF0ZUJvb2tpbmdJbnB1dCkge31cbmNsYXNzIFRyYW5zaXRpb25EdG8gZXh0ZW5kcyBjcmVhdGVab2REdG8oVHJhbnNpdGlvbklucHV0KSB7fVxuXG5AQ29udHJvbGxlcigpXG5leHBvcnQgY2xhc3MgQm9va2luZ3NDb250cm9sbGVyIHtcbiAgY29uc3RydWN0b3IoXG4gICAgcHJpdmF0ZSByZWFkb25seSBzdmM6IEJvb2tpbmdzU2VydmljZSxcbiAgICBwcml2YXRlIHJlYWRvbmx5IGd1ZXN0czogR3Vlc3RzU2VydmljZSxcbiAgKSB7fVxuXG4gIEBQb3N0KCdib29raW5ncy9xdW90ZScpXG4gIEBIdHRwQ29kZSgyMDApXG4gIEBQZXJtaXNzaW9uKCdib29raW5ncy5yZWFkJylcbiAgcXVvdGUoQEN0eCgpIGM6IFJlcXVlc3RDdHgsIEBCb2R5KCkgYjogUXVvdGVEdG8pIHtcbiAgICByZXR1cm4gdGhpcy5zdmMucXVvdGUocmVxdWlyZU9yZyhjKSwgYik7XG4gIH1cblxuICBAUG9zdCgnYm9va2luZ3MnKVxuICBAUGVybWlzc2lvbignYm9va2luZ3Mud3JpdGUnKVxuICBjcmVhdGUoQEN0eCgpIGM6IFJlcXVlc3RDdHgsIEBCb2R5KCkgYjogQ3JlYXRlRHRvKSB7XG4gICAgcmV0dXJuIHRoaXMuc3ZjLmNyZWF0ZShyZXF1aXJlT3JnKGMpLCBiKTtcbiAgfVxuXG4gIEBHZXQoJ2Jvb2tpbmdzJylcbiAgQFBlcm1pc3Npb24oJ2Jvb2tpbmdzLnJlYWQnKVxuICBsaXN0KEBDdHgoKSBjOiBSZXF1ZXN0Q3R4LCBAUXVlcnkoKSBxOiBMaXN0USkge1xuICAgIHJldHVybiB0aGlzLnN2Yy5saXN0KHJlcXVpcmVPcmcoYyksIHEpO1xuICB9XG5cbiAgQEdldCgnYm9va2luZ3MvOmlkJylcbiAgQFBlcm1pc3Npb24oJ2Jvb2tpbmdzLnJlYWQnKVxuICBnZXQoQEN0eCgpIGM6IFJlcXVlc3RDdHgsIEBQYXJhbSgnaWQnKSBpZDogc3RyaW5nKSB7XG4gICAgcmV0dXJuIHRoaXMuc3ZjLmdldChyZXF1aXJlT3JnKGMpLCBpZCk7XG4gIH1cblxuICBAR2V0KCdndWVzdHMvOmlkL2Jvb2tpbmdzJylcbiAgQFBlcm1pc3Npb24oJ2Jvb2tpbmdzLnJlYWQnKVxuICBhc3luYyBmb3JHdWVzdChAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcpIHtcbiAgICBjb25zdCBjdHggPSByZXF1aXJlT3JnKGMpO1xuICAgIGF3YWl0IHRoaXMuZ3Vlc3RzLmdldChjdHgsIGlkKTsgLy8gNDA0IGZvciB1bmtub3duIG9yIG90aGVyLW9wZXJhdG9yIGd1ZXN0cywgbm90IGFuIGVtcHR5IGxpc3RcbiAgICByZXR1cm4geyBpdGVtczogKGF3YWl0IHRoaXMuc3ZjLmxpc3QoY3R4LCB7IGd1ZXN0SWQ6IGlkLCBsaW1pdDogMTAwIH0pKS5pdGVtcyB9O1xuICB9XG5cbiAgQFBhdGNoKCdib29raW5ncy86aWQnKVxuICBAUGVybWlzc2lvbignYm9va2luZ3Mud3JpdGUnKVxuICB1cGRhdGUoQEN0eCgpIGM6IFJlcXVlc3RDdHgsIEBQYXJhbSgnaWQnKSBpZDogc3RyaW5nLCBAQm9keSgpIGI6IFVwZGF0ZUR0bykge1xuICAgIHJldHVybiB0aGlzLnN2Yy51cGRhdGUocmVxdWlyZU9yZyhjKSwgaWQsIGIpO1xuICB9XG5cbiAgQFBvc3QoJ2Jvb2tpbmdzLzppZC90cmFuc2l0aW9uJylcbiAgQEh0dHBDb2RlKDIwMClcbiAgQFBlcm1pc3Npb24oJ2Jvb2tpbmdzLndyaXRlJylcbiAgdHJhbnNpdGlvbihAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcsIEBCb2R5KCkgYjogVHJhbnNpdGlvbkR0bykge1xuICAgIHJldHVybiB0aGlzLnN2Yy50cmFuc2l0aW9uKHJlcXVpcmVPcmcoYyksIGlkLCBiKTtcbiAgfVxufVxuIl0sImZpbGUiOiIvc3JjL21vZHVsZXMvYm9va2luZ3MvYm9va2luZ3MuY29udHJvbGxlci50cyJ9

@@ -1,0 +1,29 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m4-02-ical-schema/packages/shared/src/index.ts", {"importedNames":["ROLE_LABELS"]});
+
+const esc = (s)=>s.replace(/[&<>"']/g, (c)=>`&#${c.charCodeAt(0)};`);
+const layout = (body)=>`<div style="font-family:system-ui,sans-serif;max-width:520px;margin:auto;color:#182d32">${body}<p style="color:#6b7b80;font-size:12px">Boogbe by EDGD Media</p></div>`;
+function inviteEmail(p) {
+    const subject = `You're invited to ${p.orgName} on Boogbe`;
+    const text = `You've been invited to join ${p.orgName} on Boogbe as ${__vite_ssr_import_0__.ROLE_LABELS[p.role]}.\n\nAccept the invitation: ${p.url}\n\nThis link expires in 7 days.`;
+    const html = layout(`<p>You've been invited to join <strong>${esc(p.orgName)}</strong> on Boogbe as ${esc(__vite_ssr_import_0__.ROLE_LABELS[p.role])}.</p><p><a href="${esc(p.url)}">Accept the invitation</a></p><p>This link expires in 7 days.</p>`);
+    return {
+        subject,
+        text,
+        html
+    };
+}
+Object.defineProperty(__vite_ssr_exports__, "inviteEmail", { enumerable: true, configurable: true, get(){ return inviteEmail }});
+function resetPasswordEmail(p) {
+    const subject = 'Reset your Boogbe password';
+    const text = `Use this link to set a new password: ${p.url}\n\nIt expires in 1 hour. If you didn't ask for this, ignore this email.`;
+    const html = layout(`<p><a href="${esc(p.url)}">Set a new password</a></p><p>It expires in 1 hour. If you didn't ask for this, ignore this email.</p>`);
+    return {
+        subject,
+        text,
+        html
+    };
+}
+Object.defineProperty(__vite_ssr_exports__, "resetPasswordEmail", { enumerable: true, configurable: true, get(){ return resetPasswordEmail }});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTtBQUEyRDtBQUUzRCxNQUFNQSxNQUFNLENBQUNDLElBQWNBLEVBQUVDLE9BQU8sQ0FBQyxZQUFZLENBQUNDLElBQU0sQ0FBQyxFQUFFLEVBQUVBLEVBQUVDLFVBQVUsQ0FBQyxHQUFHLENBQUMsQ0FBQztBQUMvRSxNQUFNQyxTQUFTLENBQUNDLE9BQ2QsQ0FBQyx3RkFBd0YsRUFBRUEsS0FBSyxzRUFBc0UsQ0FBQztBQUVsSyxTQUFTQyxZQUFZQyxDQUFrRDtJQUM1RSxNQUFNQyxVQUFVLENBQUMsa0JBQWtCLEVBQUVELEVBQUVFLE9BQU8sQ0FBQyxVQUFVLENBQUM7SUFDMUQsTUFBTUMsT0FBTyxDQUFDLDRCQUE0QixFQUFFSCxFQUFFRSxPQUFPLENBQUMsY0FBYyxFQUFFRSxpQ0FBVyxDQUFDSixFQUFFSyxJQUFJLENBQUMsQ0FBQyw0QkFBNEIsRUFBRUwsRUFBRU0sR0FBRyxDQUFDLGdDQUFnQyxDQUFDO0lBQy9KLE1BQU1DLE9BQU9WLE9BQ1gsQ0FBQyx1Q0FBdUMsRUFBRUwsSUFBSVEsRUFBRUUsT0FBTyxFQUFFLHVCQUF1QixFQUFFVixJQUFJWSxpQ0FBVyxDQUFDSixFQUFFSyxJQUFJLENBQUMsRUFBRSxpQkFBaUIsRUFBRWIsSUFBSVEsRUFBRU0sR0FBRyxFQUFFLGtFQUFrRSxDQUFDO0lBRTlNLE9BQU87UUFBRUw7UUFBU0U7UUFBTUk7SUFBSztBQUMvQjtpSUFBQTtBQUVPLFNBQVNDLG1CQUFtQlIsQ0FBa0I7SUFDbkQsTUFBTUMsVUFBVTtJQUNoQixNQUFNRSxPQUFPLENBQUMscUNBQXFDLEVBQUVILEVBQUVNLEdBQUcsQ0FBQyx3RUFBd0UsQ0FBQztJQUNwSSxNQUFNQyxPQUFPVixPQUNYLENBQUMsWUFBWSxFQUFFTCxJQUFJUSxFQUFFTSxHQUFHLEVBQUUsdUdBQXVHLENBQUM7SUFFcEksT0FBTztRQUFFTDtRQUFTRTtRQUFNSTtJQUFLO0FBQy9COytJQUFBIiwibmFtZXMiOlsiZXNjIiwicyIsInJlcGxhY2UiLCJjIiwiY2hhckNvZGVBdCIsImxheW91dCIsImJvZHkiLCJpbnZpdGVFbWFpbCIsInAiLCJzdWJqZWN0Iiwib3JnTmFtZSIsInRleHQiLCJST0xFX0xBQkVMUyIsInJvbGUiLCJ1cmwiLCJodG1sIiwicmVzZXRQYXNzd29yZEVtYWlsIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbInRlbXBsYXRlcy50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBST0xFX0xBQkVMUywgdHlwZSBPcmdSb2xlIH0gZnJvbSAnQGJvb2diZS9zaGFyZWQnO1xuXG5jb25zdCBlc2MgPSAoczogc3RyaW5nKSA9PiBzLnJlcGxhY2UoL1smPD5cIiddL2csIChjKSA9PiBgJiMke2MuY2hhckNvZGVBdCgwKX07YCk7XG5jb25zdCBsYXlvdXQgPSAoYm9keTogc3RyaW5nKSA9PlxuICBgPGRpdiBzdHlsZT1cImZvbnQtZmFtaWx5OnN5c3RlbS11aSxzYW5zLXNlcmlmO21heC13aWR0aDo1MjBweDttYXJnaW46YXV0bztjb2xvcjojMTgyZDMyXCI+JHtib2R5fTxwIHN0eWxlPVwiY29sb3I6IzZiN2I4MDtmb250LXNpemU6MTJweFwiPkJvb2diZSBieSBFREdEIE1lZGlhPC9wPjwvZGl2PmA7XG5cbmV4cG9ydCBmdW5jdGlvbiBpbnZpdGVFbWFpbChwOiB7IG9yZ05hbWU6IHN0cmluZzsgcm9sZTogT3JnUm9sZTsgdXJsOiBzdHJpbmcgfSkge1xuICBjb25zdCBzdWJqZWN0ID0gYFlvdSdyZSBpbnZpdGVkIHRvICR7cC5vcmdOYW1lfSBvbiBCb29nYmVgO1xuICBjb25zdCB0ZXh0ID0gYFlvdSd2ZSBiZWVuIGludml0ZWQgdG8gam9pbiAke3Aub3JnTmFtZX0gb24gQm9vZ2JlIGFzICR7Uk9MRV9MQUJFTFNbcC5yb2xlXX0uXFxuXFxuQWNjZXB0IHRoZSBpbnZpdGF0aW9uOiAke3AudXJsfVxcblxcblRoaXMgbGluayBleHBpcmVzIGluIDcgZGF5cy5gO1xuICBjb25zdCBodG1sID0gbGF5b3V0KFxuICAgIGA8cD5Zb3UndmUgYmVlbiBpbnZpdGVkIHRvIGpvaW4gPHN0cm9uZz4ke2VzYyhwLm9yZ05hbWUpfTwvc3Ryb25nPiBvbiBCb29nYmUgYXMgJHtlc2MoUk9MRV9MQUJFTFNbcC5yb2xlXSl9LjwvcD48cD48YSBocmVmPVwiJHtlc2MocC51cmwpfVwiPkFjY2VwdCB0aGUgaW52aXRhdGlvbjwvYT48L3A+PHA+VGhpcyBsaW5rIGV4cGlyZXMgaW4gNyBkYXlzLjwvcD5gLFxuICApO1xuICByZXR1cm4geyBzdWJqZWN0LCB0ZXh0LCBodG1sIH07XG59XG5cbmV4cG9ydCBmdW5jdGlvbiByZXNldFBhc3N3b3JkRW1haWwocDogeyB1cmw6IHN0cmluZyB9KSB7XG4gIGNvbnN0IHN1YmplY3QgPSAnUmVzZXQgeW91ciBCb29nYmUgcGFzc3dvcmQnO1xuICBjb25zdCB0ZXh0ID0gYFVzZSB0aGlzIGxpbmsgdG8gc2V0IGEgbmV3IHBhc3N3b3JkOiAke3AudXJsfVxcblxcbkl0IGV4cGlyZXMgaW4gMSBob3VyLiBJZiB5b3UgZGlkbid0IGFzayBmb3IgdGhpcywgaWdub3JlIHRoaXMgZW1haWwuYDtcbiAgY29uc3QgaHRtbCA9IGxheW91dChcbiAgICBgPHA+PGEgaHJlZj1cIiR7ZXNjKHAudXJsKX1cIj5TZXQgYSBuZXcgcGFzc3dvcmQ8L2E+PC9wPjxwPkl0IGV4cGlyZXMgaW4gMSBob3VyLiBJZiB5b3UgZGlkbid0IGFzayBmb3IgdGhpcywgaWdub3JlIHRoaXMgZW1haWwuPC9wPmAsXG4gICk7XG4gIHJldHVybiB7IHN1YmplY3QsIHRleHQsIGh0bWwgfTtcbn1cbiJdLCJmaWxlIjoiL3NyYy9jb21tb24vbWFpbC90ZW1wbGF0ZXMudHMifQ==

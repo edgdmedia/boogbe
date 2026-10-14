@@ -1,0 +1,85 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/node_modules/.pnpm/react@18.3.1/node_modules/react/jsx-dev-runtime.js", {"importedNames":["jsxDEV"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("/src/lib/format.ts", {"importedNames":["formatNaira"]});
+
+
+function PriceBreakdown({ lines, totalKobo, depositKobo }) {
+  const charges = lines.filter((l) => l.kind !== "deposit");
+  const deposits = lines.filter((l) => l.kind === "deposit");
+  return /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("dl", { className: "flex flex-col gap-1 text-sm", children: [
+    charges.map((l, i) => /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("div", { className: "flex justify-between", children: [
+      /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("dt", { children: l.label }, void 0, false, {
+        fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+        lineNumber: 11,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("dd", { className: l.amountKobo < 0 ? "text-success" : "", children: __vite_ssr_import_1__.formatNaira(l.amountKobo) }, void 0, false, {
+        fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+        lineNumber: 12,
+        columnNumber: 11
+      }, this)
+    ] }, i, true, {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+      lineNumber: 10,
+      columnNumber: 9
+    }, this)),
+    /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("div", { className: "mt-1 flex justify-between border-t border-line pt-1 font-semibold", children: [
+      /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("dt", { children: "Total" }, void 0, false, {
+        fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+        lineNumber: 16,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("dd", { children: __vite_ssr_import_1__.formatNaira(totalKobo) }, void 0, false, {
+        fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+        lineNumber: 17,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+      lineNumber: 15,
+      columnNumber: 7
+    }, this),
+    deposits.map((l, i) => /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("div", { className: "flex justify-between text-ink-muted", children: [
+      /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("dt", { children: [
+        l.label,
+        " (refundable)"
+      ] }, void 0, true, {
+        fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+        lineNumber: 21,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("dd", { children: __vite_ssr_import_1__.formatNaira(l.amountKobo) }, void 0, false, {
+        fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+        lineNumber: 22,
+        columnNumber: 11
+      }, this)
+    ] }, `d${i}`, true, {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+      lineNumber: 20,
+      columnNumber: 9
+    }, this)),
+    depositKobo > 0 && /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("div", { className: "flex justify-between text-ink-muted", children: [
+      /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("dt", { children: "Guest pays now" }, void 0, false, {
+        fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+        lineNumber: 27,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV("dd", { children: __vite_ssr_import_1__.formatNaira(totalKobo + depositKobo) }, void 0, false, {
+        fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+        lineNumber: 28,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+      lineNumber: 26,
+      columnNumber: 9
+    }, this)
+  ] }, void 0, true, {
+    fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/bookings/PriceBreakdown.tsx",
+    lineNumber: 8,
+    columnNumber: 5
+  }, this);
+}
+Object.defineProperty(__vite_ssr_exports__, "PriceBreakdown", { enumerable: true, configurable: true, get(){ return PriceBreakdown }});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7QUFVVTtBQVRrQjtBQUVyQixTQUFTLGVBQWUsRUFBRSxPQUFPLFdBQVcsWUFBWSxHQUFtRTtBQUNoSSxRQUFNLFVBQVUsTUFBTSxPQUFPLENBQUMsTUFBTSxFQUFFLFNBQVMsU0FBUztBQUN4RCxRQUFNLFdBQVcsTUFBTSxPQUFPLENBQUMsTUFBTSxFQUFFLFNBQVMsU0FBUztBQUN6RCxTQUNFLDZDQUFDLFFBQUcsV0FBVSwrQkFDWDtBQUFBLFlBQVEsSUFBSSxDQUFDLEdBQUcsTUFDZiw2Q0FBQyxTQUFZLFdBQVUsd0JBQ3JCO0FBQUEsbURBQUMsUUFBSSxZQUFFLFNBQVA7QUFBQTtBQUFBO0FBQUE7QUFBQSxhQUFhO0FBQUEsTUFDYiw2Q0FBQyxRQUFHLFdBQVcsRUFBRSxhQUFhLElBQUksaUJBQWlCLElBQUssNENBQVksRUFBRSxVQUFVLEtBQWhGO0FBQUE7QUFBQTtBQUFBO0FBQUEsYUFBa0Y7QUFBQSxTQUYxRSxHQUFWO0FBQUE7QUFBQTtBQUFBO0FBQUEsV0FHQSxDQUNEO0FBQUEsSUFDRCw2Q0FBQyxTQUFJLFdBQVUscUVBQ2I7QUFBQSxtREFBQyxRQUFHLHFCQUFKO0FBQUE7QUFBQTtBQUFBO0FBQUEsYUFBUztBQUFBLE1BQ1QsNkNBQUMsUUFBSSw0Q0FBWSxTQUFTLEtBQTFCO0FBQUE7QUFBQTtBQUFBO0FBQUEsYUFBNEI7QUFBQSxTQUY5QjtBQUFBO0FBQUE7QUFBQTtBQUFBLFdBR0E7QUFBQSxJQUNDLFNBQVMsSUFBSSxDQUFDLEdBQUcsTUFDaEIsNkNBQUMsU0FBa0IsV0FBVSx1Q0FDM0I7QUFBQSxtREFBQyxRQUFJO0FBQUEsVUFBRTtBQUFBLFFBQU07QUFBQSxXQUFiO0FBQUE7QUFBQTtBQUFBO0FBQUEsYUFBMEI7QUFBQSxNQUMxQiw2Q0FBQyxRQUFJLDRDQUFZLEVBQUUsVUFBVSxLQUE3QjtBQUFBO0FBQUE7QUFBQTtBQUFBLGFBQStCO0FBQUEsU0FGdkIsSUFBSSxDQUFDLElBQWY7QUFBQTtBQUFBO0FBQUE7QUFBQSxXQUdBLENBQ0Q7QUFBQSxJQUNBLGNBQWMsS0FDYiw2Q0FBQyxTQUFJLFdBQVUsdUNBQ2I7QUFBQSxtREFBQyxRQUFHLDhCQUFKO0FBQUE7QUFBQTtBQUFBO0FBQUEsYUFBa0I7QUFBQSxNQUNsQiw2Q0FBQyxRQUFJLDRDQUFZLFlBQVksV0FBVyxLQUF4QztBQUFBO0FBQUE7QUFBQTtBQUFBLGFBQTBDO0FBQUEsU0FGNUM7QUFBQTtBQUFBO0FBQUE7QUFBQSxXQUdBO0FBQUEsT0FyQko7QUFBQTtBQUFBO0FBQUE7QUFBQSxTQXVCQTtBQUVKO3VJQUFBIiwibmFtZXMiOltdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJQcmljZUJyZWFrZG93bi50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHR5cGUgeyBQcmljZUxpbmUgfSBmcm9tICdAYm9vZ2JlL3NoYXJlZCc7XG5pbXBvcnQgeyBmb3JtYXROYWlyYSB9IGZyb20gJy4uLy4uL2xpYi9mb3JtYXQnO1xuXG5leHBvcnQgZnVuY3Rpb24gUHJpY2VCcmVha2Rvd24oeyBsaW5lcywgdG90YWxLb2JvLCBkZXBvc2l0S29ibyB9OiB7IGxpbmVzOiBQcmljZUxpbmVbXTsgdG90YWxLb2JvOiBudW1iZXI7IGRlcG9zaXRLb2JvOiBudW1iZXIgfSkge1xuICBjb25zdCBjaGFyZ2VzID0gbGluZXMuZmlsdGVyKChsKSA9PiBsLmtpbmQgIT09ICdkZXBvc2l0Jyk7XG4gIGNvbnN0IGRlcG9zaXRzID0gbGluZXMuZmlsdGVyKChsKSA9PiBsLmtpbmQgPT09ICdkZXBvc2l0Jyk7XG4gIHJldHVybiAoXG4gICAgPGRsIGNsYXNzTmFtZT1cImZsZXggZmxleC1jb2wgZ2FwLTEgdGV4dC1zbVwiPlxuICAgICAge2NoYXJnZXMubWFwKChsLCBpKSA9PiAoXG4gICAgICAgIDxkaXYga2V5PXtpfSBjbGFzc05hbWU9XCJmbGV4IGp1c3RpZnktYmV0d2VlblwiPlxuICAgICAgICAgIDxkdD57bC5sYWJlbH08L2R0PlxuICAgICAgICAgIDxkZCBjbGFzc05hbWU9e2wuYW1vdW50S29ibyA8IDAgPyAndGV4dC1zdWNjZXNzJyA6ICcnfT57Zm9ybWF0TmFpcmEobC5hbW91bnRLb2JvKX08L2RkPlxuICAgICAgICA8L2Rpdj5cbiAgICAgICkpfVxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJtdC0xIGZsZXgganVzdGlmeS1iZXR3ZWVuIGJvcmRlci10IGJvcmRlci1saW5lIHB0LTEgZm9udC1zZW1pYm9sZFwiPlxuICAgICAgICA8ZHQ+VG90YWw8L2R0PlxuICAgICAgICA8ZGQ+e2Zvcm1hdE5haXJhKHRvdGFsS29ibyl9PC9kZD5cbiAgICAgIDwvZGl2PlxuICAgICAge2RlcG9zaXRzLm1hcCgobCwgaSkgPT4gKFxuICAgICAgICA8ZGl2IGtleT17YGQke2l9YH0gY2xhc3NOYW1lPVwiZmxleCBqdXN0aWZ5LWJldHdlZW4gdGV4dC1pbmstbXV0ZWRcIj5cbiAgICAgICAgICA8ZHQ+e2wubGFiZWx9IChyZWZ1bmRhYmxlKTwvZHQ+XG4gICAgICAgICAgPGRkPntmb3JtYXROYWlyYShsLmFtb3VudEtvYm8pfTwvZGQ+XG4gICAgICAgIDwvZGl2PlxuICAgICAgKSl9XG4gICAgICB7ZGVwb3NpdEtvYm8gPiAwICYmIChcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGp1c3RpZnktYmV0d2VlbiB0ZXh0LWluay1tdXRlZFwiPlxuICAgICAgICAgIDxkdD5HdWVzdCBwYXlzIG5vdzwvZHQ+XG4gICAgICAgICAgPGRkPntmb3JtYXROYWlyYSh0b3RhbEtvYm8gKyBkZXBvc2l0S29ibyl9PC9kZD5cbiAgICAgICAgPC9kaXY+XG4gICAgICApfVxuICAgIDwvZGw+XG4gICk7XG59XG4iXSwiZmlsZSI6Ii9zcmMvZmVhdHVyZXMvYm9va2luZ3MvUHJpY2VCcmVha2Rvd24udHN4In0=

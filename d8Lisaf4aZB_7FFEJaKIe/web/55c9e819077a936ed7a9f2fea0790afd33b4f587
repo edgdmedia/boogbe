@@ -1,0 +1,74 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/node_modules/.pnpm/react@18.3.1/node_modules/react/jsx-dev-runtime.js", {"importedNames":["jsxDEV"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/node_modules/.pnpm/@testing-library+react@16.3.3_@testing-library+dom@10.4.2_@types+react-dom@18.3.7_@types+reac_aeftit5ke2xxaf4nxeo4zj4kvi/node_modules/@testing-library/react/dist/index.js", {"importedNames":["render","screen"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/node_modules/.pnpm/@testing-library+user-event@14.6.7_@testing-library+dom@10.4.2/node_modules/@testing-library/user-event/dist/esm/index.js", {"importedNames":["default"]});
+const __vite_ssr_import_3__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/node_modules/.pnpm/react@18.3.1/node_modules/react/index.js", {"importedNames":["useState"]});
+const __vite_ssr_import_4__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/node_modules/.pnpm/vitest@2.1.9_@types+node@22.20.5_jsdom@25.0.1_lightningcss@1.32.0_terser@5.51.2/node_modules/vitest/dist/index.js", {"importedNames":["describe","expect","it"]});
+const __vite_ssr_import_5__ = await __vite_ssr_import__("/src/features/inventory/money-input.tsx", {"importedNames":["MoneyInput","PercentInput"]});
+
+
+
+
+
+
+function Harness({ onValue }) {
+  const [v, setV] = __vite_ssr_import_3__.useState(0);
+  return /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_5__.MoneyInput, { "aria-label": "Rate", value: v, onChange: (k) => {
+    setV(k);
+    onValue(k);
+  } }, void 0, false, {
+    fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/apps/app/src/features/inventory/money-input.test.tsx",
+    lineNumber: 9,
+    columnNumber: 10
+  }, this);
+}
+__vite_ssr_import_4__.describe("MoneyInput", () => {
+  __vite_ssr_import_4__.it("turns typed naira into kobo and shows grouping on blur", async () => {
+    let last = -1;
+    __vite_ssr_import_1__.render(/* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(Harness, { onValue: (v) => last = v }, void 0, false, {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/apps/app/src/features/inventory/money-input.test.tsx",
+      lineNumber: 15,
+      columnNumber: 12
+    }, this));
+    const input = __vite_ssr_import_1__.screen.getByLabelText("Rate");
+    await __vite_ssr_import_2__.default.type(input, "200000.5");
+    __vite_ssr_import_4__.expect(last).toBe(20000050);
+    await __vite_ssr_import_2__.default.tab();
+    __vite_ssr_import_4__.expect(input).toHaveValue("200,000.50");
+  });
+  __vite_ssr_import_4__.it("ignores letters", async () => {
+    let last = -1;
+    __vite_ssr_import_1__.render(/* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(Harness, { onValue: (v) => last = v }, void 0, false, {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/apps/app/src/features/inventory/money-input.test.tsx",
+      lineNumber: 24,
+      columnNumber: 12
+    }, this));
+    await __vite_ssr_import_2__.default.type(__vite_ssr_import_1__.screen.getByLabelText("Rate"), "abc");
+    __vite_ssr_import_4__.expect(last).toBe(0);
+  });
+});
+__vite_ssr_import_4__.describe("PercentInput", () => {
+  __vite_ssr_import_4__.it("emits basis points", async () => {
+    let last = -1;
+    function H() {
+      const [v, setV] = __vite_ssr_import_3__.useState(0);
+      return /* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(__vite_ssr_import_5__.PercentInput, { "aria-label": "Fee", valueBps: v, onChange: (b) => {
+        setV(b);
+        last = b;
+      } }, void 0, false, {
+        fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/apps/app/src/features/inventory/money-input.test.tsx",
+        lineNumber: 35,
+        columnNumber: 14
+      }, this);
+    }
+    __vite_ssr_import_1__.render(/* @__PURE__ */ __vite_ssr_import_0__.jsxDEV(H, {}, void 0, false, {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-04/apps/app/src/features/inventory/money-input.test.tsx",
+      lineNumber: 37,
+      columnNumber: 12
+    }, this));
+    await __vite_ssr_import_2__.default.type(__vite_ssr_import_1__.screen.getByLabelText("Fee"), "12.5");
+    __vite_ssr_import_4__.expect(last).toBe(1250);
+  });
+});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7Ozs7O0FBUVM7QUFSc0I7QUFDVDtBQUNHO0FBQ1k7QUFDSTtBQUV6QyxTQUFTLFFBQVEsRUFBRSxRQUFRLEdBQXFDO0FBQzlELFFBQU0sQ0FBQyxHQUFHLElBQUksSUFBSSwrQkFBUyxDQUFDO0FBQzVCLFNBQU8sNkNBQUMsb0NBQVcsY0FBVyxRQUFPLE9BQU8sR0FBRyxVQUFVLENBQUMsTUFBTTtBQUFFLFNBQUssQ0FBQztBQUFHLFlBQVEsQ0FBQztBQUFBLEVBQUcsS0FBaEY7QUFBQTtBQUFBO0FBQUE7QUFBQSxTQUFtRjtBQUM1RjtBQUVBLCtCQUFTLGNBQWMsTUFBTTtBQUMzQiwyQkFBRywwREFBMEQsWUFBWTtBQUN2RSxRQUFJLE9BQU87QUFDWCxpQ0FBTyw2Q0FBQyxXQUFRLFNBQVMsQ0FBQyxNQUFPLE9BQU8sS0FBakM7QUFBQTtBQUFBO0FBQUE7QUFBQSxXQUFxQyxDQUFFO0FBQzlDLFVBQU0sUUFBUSw2QkFBTyxlQUFlLE1BQU07QUFDMUMsVUFBTSw4QkFBVSxLQUFLLE9BQU8sVUFBVTtBQUN0QyxpQ0FBTyxJQUFJLEVBQUUsS0FBSyxRQUFVO0FBQzVCLFVBQU0sOEJBQVUsSUFBSTtBQUNwQixpQ0FBTyxLQUFLLEVBQUUsWUFBWSxZQUFZO0FBQUEsRUFDeEMsQ0FBQztBQUNELDJCQUFHLG1CQUFtQixZQUFZO0FBQ2hDLFFBQUksT0FBTztBQUNYLGlDQUFPLDZDQUFDLFdBQVEsU0FBUyxDQUFDLE1BQU8sT0FBTyxLQUFqQztBQUFBO0FBQUE7QUFBQTtBQUFBLFdBQXFDLENBQUU7QUFDOUMsVUFBTSw4QkFBVSxLQUFLLDZCQUFPLGVBQWUsTUFBTSxHQUFHLEtBQUs7QUFDekQsaUNBQU8sSUFBSSxFQUFFLEtBQUssQ0FBQztBQUFBLEVBQ3JCLENBQUM7QUFDSCxDQUFDO0FBRUQsK0JBQVMsZ0JBQWdCLE1BQU07QUFDN0IsMkJBQUcsc0JBQXNCLFlBQVk7QUFDbkMsUUFBSSxPQUFPO0FBQ1gsYUFBUyxJQUFJO0FBQ1gsWUFBTSxDQUFDLEdBQUcsSUFBSSxJQUFJLCtCQUFTLENBQUM7QUFDNUIsYUFBTyw2Q0FBQyxzQ0FBYSxjQUFXLE9BQU0sVUFBVSxHQUFHLFVBQVUsQ0FBQyxNQUFNO0FBQUUsYUFBSyxDQUFDO0FBQUcsZUFBTztBQUFBLE1BQUcsS0FBbEY7QUFBQTtBQUFBO0FBQUE7QUFBQSxhQUFxRjtBQUFBLElBQzlGO0FBQ0EsaUNBQU8sNkNBQUMsT0FBRDtBQUFBO0FBQUE7QUFBQTtBQUFBLFdBQUcsQ0FBRTtBQUNaLFVBQU0sOEJBQVUsS0FBSyw2QkFBTyxlQUFlLEtBQUssR0FBRyxNQUFNO0FBQ3pELGlDQUFPLElBQUksRUFBRSxLQUFLLElBQUk7QUFBQSxFQUN4QixDQUFDO0FBQ0gsQ0FBQyIsIm5hbWVzIjpbXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsibW9uZXktaW5wdXQudGVzdC50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgcmVuZGVyLCBzY3JlZW4gfSBmcm9tICdAdGVzdGluZy1saWJyYXJ5L3JlYWN0JztcbmltcG9ydCB1c2VyRXZlbnQgZnJvbSAnQHRlc3RpbmctbGlicmFyeS91c2VyLWV2ZW50JztcbmltcG9ydCB7IHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnO1xuaW1wb3J0IHsgZGVzY3JpYmUsIGV4cGVjdCwgaXQgfSBmcm9tICd2aXRlc3QnO1xuaW1wb3J0IHsgTW9uZXlJbnB1dCwgUGVyY2VudElucHV0IH0gZnJvbSAnLi9tb25leS1pbnB1dCc7XG5cbmZ1bmN0aW9uIEhhcm5lc3MoeyBvblZhbHVlIH06IHsgb25WYWx1ZTogKHY6IG51bWJlcikgPT4gdm9pZCB9KSB7XG4gIGNvbnN0IFt2LCBzZXRWXSA9IHVzZVN0YXRlKDApO1xuICByZXR1cm4gPE1vbmV5SW5wdXQgYXJpYS1sYWJlbD1cIlJhdGVcIiB2YWx1ZT17dn0gb25DaGFuZ2U9eyhrKSA9PiB7IHNldFYoayk7IG9uVmFsdWUoayk7IH19IC8+O1xufVxuXG5kZXNjcmliZSgnTW9uZXlJbnB1dCcsICgpID0+IHtcbiAgaXQoJ3R1cm5zIHR5cGVkIG5haXJhIGludG8ga29ibyBhbmQgc2hvd3MgZ3JvdXBpbmcgb24gYmx1cicsIGFzeW5jICgpID0+IHtcbiAgICBsZXQgbGFzdCA9IC0xO1xuICAgIHJlbmRlcig8SGFybmVzcyBvblZhbHVlPXsodikgPT4gKGxhc3QgPSB2KX0gLz4pO1xuICAgIGNvbnN0IGlucHV0ID0gc2NyZWVuLmdldEJ5TGFiZWxUZXh0KCdSYXRlJyk7XG4gICAgYXdhaXQgdXNlckV2ZW50LnR5cGUoaW5wdXQsICcyMDAwMDAuNScpO1xuICAgIGV4cGVjdChsYXN0KS50b0JlKDIwXzAwMF8wNTApO1xuICAgIGF3YWl0IHVzZXJFdmVudC50YWIoKTtcbiAgICBleHBlY3QoaW5wdXQpLnRvSGF2ZVZhbHVlKCcyMDAsMDAwLjUwJyk7XG4gIH0pO1xuICBpdCgnaWdub3JlcyBsZXR0ZXJzJywgYXN5bmMgKCkgPT4ge1xuICAgIGxldCBsYXN0ID0gLTE7XG4gICAgcmVuZGVyKDxIYXJuZXNzIG9uVmFsdWU9eyh2KSA9PiAobGFzdCA9IHYpfSAvPik7XG4gICAgYXdhaXQgdXNlckV2ZW50LnR5cGUoc2NyZWVuLmdldEJ5TGFiZWxUZXh0KCdSYXRlJyksICdhYmMnKTtcbiAgICBleHBlY3QobGFzdCkudG9CZSgwKTtcbiAgfSk7XG59KTtcblxuZGVzY3JpYmUoJ1BlcmNlbnRJbnB1dCcsICgpID0+IHtcbiAgaXQoJ2VtaXRzIGJhc2lzIHBvaW50cycsIGFzeW5jICgpID0+IHtcbiAgICBsZXQgbGFzdCA9IC0xO1xuICAgIGZ1bmN0aW9uIEgoKSB7XG4gICAgICBjb25zdCBbdiwgc2V0Vl0gPSB1c2VTdGF0ZSgwKTtcbiAgICAgIHJldHVybiA8UGVyY2VudElucHV0IGFyaWEtbGFiZWw9XCJGZWVcIiB2YWx1ZUJwcz17dn0gb25DaGFuZ2U9eyhiKSA9PiB7IHNldFYoYik7IGxhc3QgPSBiOyB9fSAvPjtcbiAgICB9XG4gICAgcmVuZGVyKDxIIC8+KTtcbiAgICBhd2FpdCB1c2VyRXZlbnQudHlwZShzY3JlZW4uZ2V0QnlMYWJlbFRleHQoJ0ZlZScpLCAnMTIuNScpO1xuICAgIGV4cGVjdChsYXN0KS50b0JlKDEyNTApO1xuICB9KTtcbn0pO1xuIl0sImZpbGUiOiIvVXNlcnMvb2xhbGVrYW4vUHJvamVjdHMvYm9vZ2JlLy53b3JrdHJlZXMvdC1tMy0wNC9hcHBzL2FwcC9zcmMvZmVhdHVyZXMvaW52ZW50b3J5L21vbmV5LWlucHV0LnRlc3QudHN4In0=

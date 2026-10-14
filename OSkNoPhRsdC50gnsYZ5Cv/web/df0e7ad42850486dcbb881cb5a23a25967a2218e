@@ -1,0 +1,12 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/packages/shared/src/index.ts", {"importedNames":["MeResponse"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("/src/lib/api.ts", {"importedNames":["useApi"]});
+
+
+function useMe() {
+  const { data, isLoading, mutate, error } = __vite_ssr_import_1__.useApi("/v1/me", __vite_ssr_import_0__.MeResponse);
+  return { me: data, isLoading, mutate, error };
+}
+Object.defineProperty(__vite_ssr_exports__, "useMe", { enumerable: true, configurable: true, get(){ return useMe }});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7QUFBMkI7QUFDSjtBQUVoQixTQUFTLFFBQVE7QUFDdEIsUUFBTSxFQUFFLE1BQU0sV0FBVyxRQUFRLE1BQU0sSUFBSSw2QkFBTyxVQUFVLGdDQUFVO0FBQ3RFLFNBQU8sRUFBRSxJQUFJLE1BQU0sV0FBVyxRQUFRLE1BQU07QUFDOUM7cUhBQUEiLCJuYW1lcyI6W10sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbInVzZS1tZS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBNZVJlc3BvbnNlIH0gZnJvbSAnQGJvb2diZS9zaGFyZWQnO1xuaW1wb3J0IHsgdXNlQXBpIH0gZnJvbSAnLi9hcGknO1xuXG5leHBvcnQgZnVuY3Rpb24gdXNlTWUoKSB7XG4gIGNvbnN0IHsgZGF0YSwgaXNMb2FkaW5nLCBtdXRhdGUsIGVycm9yIH0gPSB1c2VBcGkoJy92MS9tZScsIE1lUmVzcG9uc2UpO1xuICByZXR1cm4geyBtZTogZGF0YSwgaXNMb2FkaW5nLCBtdXRhdGUsIGVycm9yIH07XG59XG4iXSwiZmlsZSI6Ii9zcmMvbGliL3VzZS1tZS50cyJ9

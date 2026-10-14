@@ -1,0 +1,39 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("@nestjs/common", {"importedNames":["Global","Module"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("/src/modules/notifications/notifications.controller.ts", {"importedNames":["NotificationsController"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/src/modules/notifications/notifications.service.ts", {"importedNames":["NotificationsService"]});
+function _ts_decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
+        r = Reflect.decorate(decorators, target, key, desc);
+    } else {
+        for(var i = decorators.length - 1; i >= 0; i--){
+            if (d = decorators[i]) {
+                r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+            }
+        }
+    }
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+
+
+
+class NotificationsModule {
+}
+Object.defineProperty(__vite_ssr_exports__, "NotificationsModule", { enumerable: true, configurable: true, get(){ return NotificationsModule }});
+NotificationsModule = _ts_decorate([
+    __vite_ssr_import_0__.Global(),
+    __vite_ssr_import_0__.Module({
+        controllers: [
+            __vite_ssr_import_1__.NotificationsController
+        ],
+        providers: [
+            __vite_ssr_import_2__.NotificationsService
+        ],
+        exports: [
+            __vite_ssr_import_2__.NotificationsService
+        ]
+    })
+], NotificationsModule);
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7Ozs7Ozs7Ozs7Ozs7OztBQUFnRDtBQUNxQjtBQUNOO0FBUXhELE1BQU1BO0FBQXFCO2lKQUFBOzs7O1FBSmhDQyxhQUFhO1lBQUNDO1NBQXdCO1FBQ3RDQyxXQUFXO1lBQUNDO1NBQXFCO1FBQ2pDQyxTQUFTO1lBQUNEO1NBQXFCIiwibmFtZXMiOlsiTm90aWZpY2F0aW9uc01vZHVsZSIsImNvbnRyb2xsZXJzIiwiTm90aWZpY2F0aW9uc0NvbnRyb2xsZXIiLCJwcm92aWRlcnMiLCJOb3RpZmljYXRpb25zU2VydmljZSIsImV4cG9ydHMiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsibm90aWZpY2F0aW9ucy5tb2R1bGUudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgR2xvYmFsLCBNb2R1bGUgfSBmcm9tICdAbmVzdGpzL2NvbW1vbic7XG5pbXBvcnQgeyBOb3RpZmljYXRpb25zQ29udHJvbGxlciB9IGZyb20gJy4vbm90aWZpY2F0aW9ucy5jb250cm9sbGVyJztcbmltcG9ydCB7IE5vdGlmaWNhdGlvbnNTZXJ2aWNlIH0gZnJvbSAnLi9ub3RpZmljYXRpb25zLnNlcnZpY2UnO1xuXG5AR2xvYmFsKClcbkBNb2R1bGUoe1xuICBjb250cm9sbGVyczogW05vdGlmaWNhdGlvbnNDb250cm9sbGVyXSxcbiAgcHJvdmlkZXJzOiBbTm90aWZpY2F0aW9uc1NlcnZpY2VdLFxuICBleHBvcnRzOiBbTm90aWZpY2F0aW9uc1NlcnZpY2VdLFxufSlcbmV4cG9ydCBjbGFzcyBOb3RpZmljYXRpb25zTW9kdWxlIHt9XG4iXSwiZmlsZSI6Ii9zcmMvbW9kdWxlcy9ub3RpZmljYXRpb25zL25vdGlmaWNhdGlvbnMubW9kdWxlLnRzIn0=

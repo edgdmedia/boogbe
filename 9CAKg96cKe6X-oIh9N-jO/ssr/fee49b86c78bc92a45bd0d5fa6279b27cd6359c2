@@ -1,0 +1,164 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("@nestjs/common", {"importedNames":["Body","Controller","Get","HttpCode","Param","Post"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("nestjs-zod", {"importedNames":["createZodDto"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m4-02-ical-schema/packages/shared/src/index.ts", {"importedNames":["CreateOperatorInput","InviteFirstAdminInput"]});
+const __vite_ssr_import_3__ = await __vite_ssr_import__("/src/common/auth/decorators.ts", {"importedNames":["Ctx","PlatformAdmin"]});
+const __vite_ssr_import_4__ = await __vite_ssr_import__("/src/modules/platform/platform.service.ts", {"importedNames":["PlatformService"]});
+function _ts_decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
+        r = Reflect.decorate(decorators, target, key, desc);
+    } else {
+        for(var i = decorators.length - 1; i >= 0; i--){
+            if (d = decorators[i]) {
+                r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+            }
+        }
+    }
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+function _ts_metadata(metadataKey, metadataValue) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") {
+        return Reflect.metadata(metadataKey, metadataValue);
+    }
+}
+function _ts_param(paramIndex, decorator) {
+    return function(target, key) {
+        decorator(target, key, paramIndex);
+    };
+}
+
+
+
+
+
+let CreateOperatorDto = class CreateOperatorDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.CreateOperatorInput) {
+};
+let InviteDto = class InviteDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.InviteFirstAdminInput) {
+};
+class PlatformController {
+    svc;
+    constructor(svc){
+        this.svc = svc;
+    }
+    async list() {
+        return {
+            items: await this.svc.list()
+        };
+    }
+    create(b, c) {
+        return this.svc.createOperator(b, c.userId);
+    }
+    get(id) {
+        return this.svc.get(id);
+    }
+    suspend(id, c) {
+        return this.svc.setStatus(id, 'suspended', c.userId);
+    }
+    reactivate(id, c) {
+        return this.svc.setStatus(id, 'active', c.userId);
+    }
+    invite(id, b, c) {
+        return this.svc.inviteAdmin(id, b.email, c.userId);
+    }
+    resend(id) {
+        return this.svc.resend(id);
+    }
+    revoke(id) {
+        return this.svc.revoke(id);
+    }
+}
+Object.defineProperty(__vite_ssr_exports__, "PlatformController", { enumerable: true, configurable: true, get(){ return PlatformController }});
+_ts_decorate([
+    __vite_ssr_import_0__.Get('operators'),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", []),
+    _ts_metadata("design:returntype", Promise)
+], PlatformController.prototype, "list", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post('operators'),
+    _ts_param(0, __vite_ssr_import_0__.Body()),
+    _ts_param(1, __vite_ssr_import_3__.Ctx()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof CreateOperatorDto === "undefined" ? Object : CreateOperatorDto,
+        typeof RequestCtx === "undefined" ? Object : RequestCtx
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PlatformController.prototype, "create", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Get('operators/:id'),
+    _ts_param(0, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PlatformController.prototype, "get", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post('operators/:id/suspend'),
+    __vite_ssr_import_0__.HttpCode(200),
+    _ts_param(0, __vite_ssr_import_0__.Param('id')),
+    _ts_param(1, __vite_ssr_import_3__.Ctx()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String,
+        typeof RequestCtx === "undefined" ? Object : RequestCtx
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PlatformController.prototype, "suspend", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post('operators/:id/reactivate'),
+    __vite_ssr_import_0__.HttpCode(200),
+    _ts_param(0, __vite_ssr_import_0__.Param('id')),
+    _ts_param(1, __vite_ssr_import_3__.Ctx()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String,
+        typeof RequestCtx === "undefined" ? Object : RequestCtx
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PlatformController.prototype, "reactivate", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post('operators/:id/invite-admin'),
+    _ts_param(0, __vite_ssr_import_0__.Param('id')),
+    _ts_param(1, __vite_ssr_import_0__.Body()),
+    _ts_param(2, __vite_ssr_import_3__.Ctx()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String,
+        typeof InviteDto === "undefined" ? Object : InviteDto,
+        typeof RequestCtx === "undefined" ? Object : RequestCtx
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PlatformController.prototype, "invite", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post('invitations/:id/resend'),
+    __vite_ssr_import_0__.HttpCode(200),
+    _ts_param(0, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PlatformController.prototype, "resend", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Post('invitations/:id/revoke'),
+    __vite_ssr_import_0__.HttpCode(200),
+    _ts_param(0, __vite_ssr_import_0__.Param('id')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], PlatformController.prototype, "revoke", null);
+PlatformController = _ts_decorate([
+    __vite_ssr_import_0__.Controller('platform'),
+    __vite_ssr_import_3__.PlatformAdmin(),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof __vite_ssr_import_4__.PlatformService === "undefined" ? Object : __vite_ssr_import_4__.PlatformService
+    ])
+], PlatformController);
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQUE4RTtBQUNwQztBQUNrQztBQUNWO0FBRWI7QUFFckQscUJBQU1BLEdBQU4sTUFBTUEsMEJBQTBCQyxtQ0FBYUM7QUFBc0I7QUFDbkUsYUFBTUMsR0FBTixNQUFNQSxrQkFBa0JGLG1DQUFhRztBQUF3QjtBQUl0RCxNQUFNQzs7SUFDWCxZQUFZLEdBQXFDLENBQUU7YUFBdEJDO0lBQXVCO0lBRXBELE1BQ01DLE9BQU87UUFDWCxPQUFPO1lBQUVDLE9BQU8sTUFBTSxJQUFJLENBQUNGLEdBQUcsQ0FBQ0MsSUFBSTtRQUFHO0lBQ3hDO0lBR0FFLE9BQU8sQ0FBNEIsRUFBRSxDQUFvQixFQUFFO1FBQ3pELE9BQU8sSUFBSSxDQUFDSCxHQUFHLENBQUNJLGNBQWMsQ0FBQ0MsR0FBR0MsRUFBRUMsTUFBTTtJQUM1QztJQUdBQyxJQUFJLEVBQXVCLEVBQUU7UUFDM0IsT0FBTyxJQUFJLENBQUNSLEdBQUcsQ0FBQ1EsR0FBRyxDQUFDQztJQUN0QjtJQUlBQyxRQUFRLEVBQXVCLEVBQUUsQ0FBb0IsRUFBRTtRQUNyRCxPQUFPLElBQUksQ0FBQ1YsR0FBRyxDQUFDVyxTQUFTLENBQUNGLElBQUksYUFBYUgsRUFBRUMsTUFBTTtJQUNyRDtJQUlBSyxXQUFXLEVBQXVCLEVBQUUsQ0FBb0IsRUFBRTtRQUN4RCxPQUFPLElBQUksQ0FBQ1osR0FBRyxDQUFDVyxTQUFTLENBQUNGLElBQUksVUFBVUgsRUFBRUMsTUFBTTtJQUNsRDtJQUdBTSxPQUFPLEVBQXVCLEVBQUUsQ0FBb0IsRUFBRSxDQUFvQixFQUFFO1FBQzFFLE9BQU8sSUFBSSxDQUFDYixHQUFHLENBQUNjLFdBQVcsQ0FBQ0wsSUFBSUosRUFBRVUsS0FBSyxFQUFFVCxFQUFFQyxNQUFNO0lBQ25EO0lBSUFTLE9BQU8sRUFBdUIsRUFBRTtRQUM5QixPQUFPLElBQUksQ0FBQ2hCLEdBQUcsQ0FBQ2dCLE1BQU0sQ0FBQ1A7SUFDekI7SUFJQVEsT0FBTyxFQUF1QixFQUFFO1FBQzlCLE9BQU8sSUFBSSxDQUFDakIsR0FBRyxDQUFDaUIsTUFBTSxDQUFDUjtJQUN6QjtBQUNGOytJQUFBIiwibmFtZXMiOlsiQ3JlYXRlT3BlcmF0b3JEdG8iLCJjcmVhdGVab2REdG8iLCJDcmVhdGVPcGVyYXRvcklucHV0IiwiSW52aXRlRHRvIiwiSW52aXRlRmlyc3RBZG1pbklucHV0IiwiUGxhdGZvcm1Db250cm9sbGVyIiwic3ZjIiwibGlzdCIsIml0ZW1zIiwiY3JlYXRlIiwiY3JlYXRlT3BlcmF0b3IiLCJiIiwiYyIsInVzZXJJZCIsImdldCIsImlkIiwic3VzcGVuZCIsInNldFN0YXR1cyIsInJlYWN0aXZhdGUiLCJpbnZpdGUiLCJpbnZpdGVBZG1pbiIsImVtYWlsIiwicmVzZW5kIiwicmV2b2tlIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbInBsYXRmb3JtLmNvbnRyb2xsZXIudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgQm9keSwgQ29udHJvbGxlciwgR2V0LCBIdHRwQ29kZSwgUGFyYW0sIFBvc3QgfSBmcm9tICdAbmVzdGpzL2NvbW1vbic7XG5pbXBvcnQgeyBjcmVhdGVab2REdG8gfSBmcm9tICduZXN0anMtem9kJztcbmltcG9ydCB7IENyZWF0ZU9wZXJhdG9ySW5wdXQsIEludml0ZUZpcnN0QWRtaW5JbnB1dCB9IGZyb20gJ0Bib29nYmUvc2hhcmVkJztcbmltcG9ydCB7IEN0eCwgUGxhdGZvcm1BZG1pbiB9IGZyb20gJy4uLy4uL2NvbW1vbi9hdXRoL2RlY29yYXRvcnMnO1xuaW1wb3J0IHR5cGUgeyBSZXF1ZXN0Q3R4IH0gZnJvbSAnLi4vLi4vY29tbW9uL2F1dGgvcmVxdWVzdC1jdHgnO1xuaW1wb3J0IHsgUGxhdGZvcm1TZXJ2aWNlIH0gZnJvbSAnLi9wbGF0Zm9ybS5zZXJ2aWNlJztcblxuY2xhc3MgQ3JlYXRlT3BlcmF0b3JEdG8gZXh0ZW5kcyBjcmVhdGVab2REdG8oQ3JlYXRlT3BlcmF0b3JJbnB1dCkge31cbmNsYXNzIEludml0ZUR0byBleHRlbmRzIGNyZWF0ZVpvZER0byhJbnZpdGVGaXJzdEFkbWluSW5wdXQpIHt9XG5cbkBDb250cm9sbGVyKCdwbGF0Zm9ybScpXG5AUGxhdGZvcm1BZG1pbigpXG5leHBvcnQgY2xhc3MgUGxhdGZvcm1Db250cm9sbGVyIHtcbiAgY29uc3RydWN0b3IocHJpdmF0ZSByZWFkb25seSBzdmM6IFBsYXRmb3JtU2VydmljZSkge31cblxuICBAR2V0KCdvcGVyYXRvcnMnKVxuICBhc3luYyBsaXN0KCkge1xuICAgIHJldHVybiB7IGl0ZW1zOiBhd2FpdCB0aGlzLnN2Yy5saXN0KCkgfTtcbiAgfVxuXG4gIEBQb3N0KCdvcGVyYXRvcnMnKVxuICBjcmVhdGUoQEJvZHkoKSBiOiBDcmVhdGVPcGVyYXRvckR0bywgQEN0eCgpIGM6IFJlcXVlc3RDdHgpIHtcbiAgICByZXR1cm4gdGhpcy5zdmMuY3JlYXRlT3BlcmF0b3IoYiwgYy51c2VySWQpO1xuICB9XG5cbiAgQEdldCgnb3BlcmF0b3JzLzppZCcpXG4gIGdldChAUGFyYW0oJ2lkJykgaWQ6IHN0cmluZykge1xuICAgIHJldHVybiB0aGlzLnN2Yy5nZXQoaWQpO1xuICB9XG5cbiAgQFBvc3QoJ29wZXJhdG9ycy86aWQvc3VzcGVuZCcpXG4gIEBIdHRwQ29kZSgyMDApXG4gIHN1c3BlbmQoQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcsIEBDdHgoKSBjOiBSZXF1ZXN0Q3R4KSB7XG4gICAgcmV0dXJuIHRoaXMuc3ZjLnNldFN0YXR1cyhpZCwgJ3N1c3BlbmRlZCcsIGMudXNlcklkKTtcbiAgfVxuXG4gIEBQb3N0KCdvcGVyYXRvcnMvOmlkL3JlYWN0aXZhdGUnKVxuICBASHR0cENvZGUoMjAwKVxuICByZWFjdGl2YXRlKEBQYXJhbSgnaWQnKSBpZDogc3RyaW5nLCBAQ3R4KCkgYzogUmVxdWVzdEN0eCkge1xuICAgIHJldHVybiB0aGlzLnN2Yy5zZXRTdGF0dXMoaWQsICdhY3RpdmUnLCBjLnVzZXJJZCk7XG4gIH1cblxuICBAUG9zdCgnb3BlcmF0b3JzLzppZC9pbnZpdGUtYWRtaW4nKVxuICBpbnZpdGUoQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcsIEBCb2R5KCkgYjogSW52aXRlRHRvLCBAQ3R4KCkgYzogUmVxdWVzdEN0eCkge1xuICAgIHJldHVybiB0aGlzLnN2Yy5pbnZpdGVBZG1pbihpZCwgYi5lbWFpbCwgYy51c2VySWQpO1xuICB9XG5cbiAgQFBvc3QoJ2ludml0YXRpb25zLzppZC9yZXNlbmQnKVxuICBASHR0cENvZGUoMjAwKVxuICByZXNlbmQoQFBhcmFtKCdpZCcpIGlkOiBzdHJpbmcpIHtcbiAgICByZXR1cm4gdGhpcy5zdmMucmVzZW5kKGlkKTtcbiAgfVxuXG4gIEBQb3N0KCdpbnZpdGF0aW9ucy86aWQvcmV2b2tlJylcbiAgQEh0dHBDb2RlKDIwMClcbiAgcmV2b2tlKEBQYXJhbSgnaWQnKSBpZDogc3RyaW5nKSB7XG4gICAgcmV0dXJuIHRoaXMuc3ZjLnJldm9rZShpZCk7XG4gIH1cbn1cbiJdLCJmaWxlIjoiL3NyYy9tb2R1bGVzL3BsYXRmb3JtL3BsYXRmb3JtLmNvbnRyb2xsZXIudHMifQ==

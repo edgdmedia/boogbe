@@ -1,0 +1,50 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("@nestjs/common", {"importedNames":["Global","Module"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("/src/common/db/member-names.ts", {"importedNames":["MemberNames"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/src/common/db/org-info.ts", {"importedNames":["OrgInfo"]});
+const __vite_ssr_import_3__ = await __vite_ssr_import__("/src/common/db/org-db.service.ts", {"importedNames":["OrgDb"]});
+const __vite_ssr_import_4__ = await __vite_ssr_import__("/src/common/db/prisma.service.ts", {"importedNames":["PrismaService"]});
+const __vite_ssr_import_5__ = await __vite_ssr_import__("/src/common/db/user-names.ts", {"importedNames":["UserNames"]});
+function _ts_decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
+        r = Reflect.decorate(decorators, target, key, desc);
+    } else {
+        for(var i = decorators.length - 1; i >= 0; i--){
+            if (d = decorators[i]) {
+                r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+            }
+        }
+    }
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+
+
+
+
+
+
+class DbModule {
+}
+Object.defineProperty(__vite_ssr_exports__, "DbModule", { enumerable: true, configurable: true, get(){ return DbModule }});
+DbModule = _ts_decorate([
+    __vite_ssr_import_0__.Global(),
+    __vite_ssr_import_0__.Module({
+        providers: [
+            __vite_ssr_import_4__.PrismaService,
+            __vite_ssr_import_3__.OrgDb,
+            __vite_ssr_import_1__.MemberNames,
+            __vite_ssr_import_5__.UserNames,
+            __vite_ssr_import_2__.OrgInfo
+        ],
+        exports: [
+            __vite_ssr_import_4__.PrismaService,
+            __vite_ssr_import_3__.OrgDb,
+            __vite_ssr_import_1__.MemberNames,
+            __vite_ssr_import_5__.UserNames,
+            __vite_ssr_import_2__.OrgInfo
+        ]
+    })
+], DbModule);
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQUFnRDtBQUNIO0FBQ1I7QUFDSTtBQUNRO0FBQ1I7QUFPbEMsTUFBTUE7QUFBVTsySEFBQTs7OztRQUhyQkMsV0FBVztZQUFDQztZQUFlQztZQUFPQztZQUFhQztZQUFXQztTQUFRO1FBQ2xFQyxTQUFTO1lBQUNMO1lBQWVDO1lBQU9DO1lBQWFDO1lBQVdDO1NBQVEiLCJuYW1lcyI6WyJEYk1vZHVsZSIsInByb3ZpZGVycyIsIlByaXNtYVNlcnZpY2UiLCJPcmdEYiIsIk1lbWJlck5hbWVzIiwiVXNlck5hbWVzIiwiT3JnSW5mbyIsImV4cG9ydHMiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiZGIubW9kdWxlLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEdsb2JhbCwgTW9kdWxlIH0gZnJvbSAnQG5lc3Rqcy9jb21tb24nO1xuaW1wb3J0IHsgTWVtYmVyTmFtZXMgfSBmcm9tICcuL21lbWJlci1uYW1lcyc7XG5pbXBvcnQgeyBPcmdJbmZvIH0gZnJvbSAnLi9vcmctaW5mbyc7XG5pbXBvcnQgeyBPcmdEYiB9IGZyb20gJy4vb3JnLWRiLnNlcnZpY2UnO1xuaW1wb3J0IHsgUHJpc21hU2VydmljZSB9IGZyb20gJy4vcHJpc21hLnNlcnZpY2UnO1xuaW1wb3J0IHsgVXNlck5hbWVzIH0gZnJvbSAnLi91c2VyLW5hbWVzJztcblxuQEdsb2JhbCgpXG5ATW9kdWxlKHtcbiAgcHJvdmlkZXJzOiBbUHJpc21hU2VydmljZSwgT3JnRGIsIE1lbWJlck5hbWVzLCBVc2VyTmFtZXMsIE9yZ0luZm9dLFxuICBleHBvcnRzOiBbUHJpc21hU2VydmljZSwgT3JnRGIsIE1lbWJlck5hbWVzLCBVc2VyTmFtZXMsIE9yZ0luZm9dLFxufSlcbmV4cG9ydCBjbGFzcyBEYk1vZHVsZSB7fVxuIl0sImZpbGUiOiIvc3JjL2NvbW1vbi9kYi9kYi5tb2R1bGUudHMifQ==

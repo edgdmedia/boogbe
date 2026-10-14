@@ -1,0 +1,62 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/node_modules/.pnpm/vitest@2.1.9_@types+node@22.20.5_jsdom@25.0.1_lightningcss@1.32.0_terser@5.51.2/node_modules/vitest/dist/index.js", {"importedNames":["describe","expect","it","vi"]});
+__vite_ssr_import_0__.vi.mock("../../lib/api", () => ({
+  api: __vite_ssr_import_0__.vi.fn(async (path) => path.startsWith("/v1/guests/match") ? { items: [ada] } : ada),
+  ApiError: class extends Error {
+    code = "INTERNAL";
+    status = 0;
+  },
+  useApi: () => ({ data: void 0, mutate: __vite_ssr_import_0__.vi.fn() })
+}));
+__vite_ssr_import_0__.vi.mock("./hooks", () => ({
+  useGuests: (q) => ({
+    data: { items: q && "ada".includes(q.toLowerCase().slice(0, 3)) ? [ada] : [ada], nextCursor: null },
+    mutate: __vite_ssr_import_0__.vi.fn(),
+    isLoading: false
+  })
+}));
+const __vi_import_0__ = await __vite_ssr_dynamic_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/node_modules/.pnpm/react@18.3.1/node_modules/react/jsx-dev-runtime.js")
+const __vi_import_1__ = await __vite_ssr_dynamic_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/node_modules/.pnpm/@testing-library+react@16.3.3_@testing-library+dom@10.4.2_@types+react-dom@18.3.7_@types+reac_aeftit5ke2xxaf4nxeo4zj4kvi/node_modules/@testing-library/react/dist/index.js")
+const __vi_import_2__ = await __vite_ssr_dynamic_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/node_modules/.pnpm/@testing-library+user-event@14.6.7_@testing-library+dom@10.4.2/node_modules/@testing-library/user-event/dist/esm/index.js")
+const __vi_import_3__ = await __vite_ssr_dynamic_import__("/src/features/guests/GuestPicker.tsx")
+
+
+
+
+
+const ada = {
+  id: "g1",
+  fullName: "Adaeze Okafor",
+  phoneE164: "+2348031234567",
+  email: null,
+  notes: null,
+  bookingCount: 2,
+  lifetimeValueKobo: 0,
+  lastStayAt: null
+};
+__vite_ssr_import_0__.describe("GuestPicker", () => {
+  __vite_ssr_import_0__.it("finds an existing guest by search", async () => {
+    const onChange = __vite_ssr_import_0__.vi.fn();
+    __vi_import_1__.render(/* @__PURE__ */ __vi_import_0__.jsxDEV(__vi_import_3__.GuestPicker, { value: null, onChange }, void 0, false, {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestPicker.test.tsx",
+      lineNumber: 38,
+      columnNumber: 12
+    }, this));
+    await __vi_import_2__.default.type(__vi_import_1__.screen.getByLabelText(/find guest/i), "ada");
+    await __vi_import_2__.default.click(await __vi_import_1__.screen.findByRole("option", { name: /Adaeze Okafor/ }));
+    __vite_ssr_import_0__.expect(onChange).toHaveBeenCalledWith(ada);
+  });
+  __vite_ssr_import_0__.it("suggests an existing guest when the new phone matches [GST-03]", async () => {
+    __vi_import_1__.render(/* @__PURE__ */ __vi_import_0__.jsxDEV(__vi_import_3__.GuestPicker, { value: null, onChange: __vite_ssr_import_0__.vi.fn() }, void 0, false, {
+      fileName: "/Users/olalekan/Projects/boogbe/.worktrees/t-m3-05-money/apps/app/src/features/guests/GuestPicker.test.tsx",
+      lineNumber: 44,
+      columnNumber: 12
+    }, this));
+    await __vi_import_2__.default.click(__vi_import_1__.screen.getByRole("button", { name: /new guest/i }));
+    await __vi_import_2__.default.type(__vi_import_1__.screen.getByLabelText(/^phone/i), "08031234567");
+    await __vi_import_2__.default.tab();
+    __vite_ssr_import_0__.expect(await __vi_import_1__.screen.findByText(/This looks like Adaeze Okafor/)).toBeInTheDocument();
+  });
+});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QUFFeUM7O0FBR3pDLE1BQU0sTUFBTTtBQUFBLEVBQ1YsSUFBSTtBQUFBLEVBQ0osVUFBVTtBQUFBLEVBQ1YsV0FBVztBQUFBLEVBQ1gsT0FBTztBQUFBLEVBQ1AsT0FBTztBQUFBLEVBQ1AsY0FBYztBQUFBLEVBQ2QsbUJBQW1CO0FBQUEsRUFDbkIsWUFBWTtBQUNkO0FBb0JBLCtCQUFTLGVBQWUsTUFBTTtBQUM1QiwyQkFBRyxxQ0FBcUMsWUFBWTtBQUNsRCxVQUFNLFdBQVcseUJBQUcsR0FBRztBQUN2QiwyQkFBTyx1Q0FBQywrQkFBWSxPQUFPLE1BQU0sWUFBMUI7QUFBQTtBQUFBO0FBQUE7QUFBQSxXQUE4QyxDQUFFO0FBQ3ZELFVBQU0sd0JBQVUsS0FBSyx1QkFBTyxlQUFlLGFBQWEsR0FBRyxLQUFLO0FBQ2hFLFVBQU0sd0JBQVUsTUFBTSxNQUFNLHVCQUFPLFdBQVcsVUFBVSxFQUFFLE1BQU0sZ0JBQWdCLENBQUMsQ0FBQztBQUNsRixpQ0FBTyxRQUFRLEVBQUUscUJBQXFCLEdBQUc7QUFBQSxFQUMzQyxDQUFDO0FBQ0QsMkJBQUcsa0VBQWtFLFlBQVk7QUFDL0UsMkJBQU8sdUNBQUMsK0JBQVksT0FBTyxNQUFNLFVBQVUseUJBQUcsR0FBRyxLQUExQztBQUFBO0FBQUE7QUFBQTtBQUFBLFdBQTZDLENBQUU7QUFDdEQsVUFBTSx3QkFBVSxNQUFNLHVCQUFPLFVBQVUsVUFBVSxFQUFFLE1BQU0sYUFBYSxDQUFDLENBQUM7QUFDeEUsVUFBTSx3QkFBVSxLQUFLLHVCQUFPLGVBQWUsU0FBUyxHQUFHLGFBQWE7QUFDcEUsVUFBTSx3QkFBVSxJQUFJO0FBQ3BCLGlDQUFPLE1BQU0sdUJBQU8sV0FBVywrQkFBK0IsQ0FBQyxFQUFFLGtCQUFrQjtBQUFBLEVBQ3JGLENBQUM7QUFDSCxDQUFDIiwibmFtZXMiOltdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJHdWVzdFBpY2tlci50ZXN0LnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyByZW5kZXIsIHNjcmVlbiB9IGZyb20gJ0B0ZXN0aW5nLWxpYnJhcnkvcmVhY3QnO1xuaW1wb3J0IHVzZXJFdmVudCBmcm9tICdAdGVzdGluZy1saWJyYXJ5L3VzZXItZXZlbnQnO1xuaW1wb3J0IHsgZGVzY3JpYmUsIGV4cGVjdCwgaXQsIHZpIH0gZnJvbSAndml0ZXN0JztcbmltcG9ydCB7IEd1ZXN0UGlja2VyIH0gZnJvbSAnLi9HdWVzdFBpY2tlcic7XG5cbmNvbnN0IGFkYSA9IHtcbiAgaWQ6ICdnMScsXG4gIGZ1bGxOYW1lOiAnQWRhZXplIE9rYWZvcicsXG4gIHBob25lRTE2NDogJysyMzQ4MDMxMjM0NTY3JyxcbiAgZW1haWw6IG51bGwsXG4gIG5vdGVzOiBudWxsLFxuICBib29raW5nQ291bnQ6IDIsXG4gIGxpZmV0aW1lVmFsdWVLb2JvOiAwLFxuICBsYXN0U3RheUF0OiBudWxsLFxufTtcblxuLy8gdXNlR3Vlc3RzIGlzIHRoZSBzZWFtIHRoZSBwaWNrZXIgY29uc3VtZXMgKHVzZUFwaSBjbG9zZXMgb3ZlciB0aGUgbW9kdWxlJ3Mgb3duIGZldGNoZXIpO1xuLy8gR3Vlc3RGb3JtIGNhbGxzIGFwaSgpIGRpcmVjdGx5LCBzbyB0aGUgbWF0Y2ggbG9va3VwIGlzIGV4ZXJjaXNlZCB0aHJvdWdoIHRoZSBtb2NrIGhlcmUuXG52aS5tb2NrKCcuLi8uLi9saWIvYXBpJywgKCkgPT4gKHtcbiAgYXBpOiB2aS5mbihhc3luYyAocGF0aDogc3RyaW5nKSA9PiAocGF0aC5zdGFydHNXaXRoKCcvdjEvZ3Vlc3RzL21hdGNoJykgPyB7IGl0ZW1zOiBbYWRhXSB9IDogYWRhKSksXG4gIEFwaUVycm9yOiBjbGFzcyBleHRlbmRzIEVycm9yIHtcbiAgICBjb2RlID0gJ0lOVEVSTkFMJztcbiAgICBzdGF0dXMgPSAwO1xuICB9LFxuICB1c2VBcGk6ICgpID0+ICh7IGRhdGE6IHVuZGVmaW5lZCwgbXV0YXRlOiB2aS5mbigpIH0pLFxufSkpO1xudmkubW9jaygnLi9ob29rcycsICgpID0+ICh7XG4gIHVzZUd1ZXN0czogKHE6IHN0cmluZykgPT4gKHtcbiAgICBkYXRhOiB7IGl0ZW1zOiBxICYmICdhZGEnLmluY2x1ZGVzKHEudG9Mb3dlckNhc2UoKS5zbGljZSgwLCAzKSkgPyBbYWRhXSA6IFthZGFdLCBuZXh0Q3Vyc29yOiBudWxsIH0sXG4gICAgbXV0YXRlOiB2aS5mbigpLFxuICAgIGlzTG9hZGluZzogZmFsc2UsXG4gIH0pLFxufSkpO1xuXG5kZXNjcmliZSgnR3Vlc3RQaWNrZXInLCAoKSA9PiB7XG4gIGl0KCdmaW5kcyBhbiBleGlzdGluZyBndWVzdCBieSBzZWFyY2gnLCBhc3luYyAoKSA9PiB7XG4gICAgY29uc3Qgb25DaGFuZ2UgPSB2aS5mbigpO1xuICAgIHJlbmRlcig8R3Vlc3RQaWNrZXIgdmFsdWU9e251bGx9IG9uQ2hhbmdlPXtvbkNoYW5nZX0gLz4pO1xuICAgIGF3YWl0IHVzZXJFdmVudC50eXBlKHNjcmVlbi5nZXRCeUxhYmVsVGV4dCgvZmluZCBndWVzdC9pKSwgJ2FkYScpO1xuICAgIGF3YWl0IHVzZXJFdmVudC5jbGljayhhd2FpdCBzY3JlZW4uZmluZEJ5Um9sZSgnb3B0aW9uJywgeyBuYW1lOiAvQWRhZXplIE9rYWZvci8gfSkpO1xuICAgIGV4cGVjdChvbkNoYW5nZSkudG9IYXZlQmVlbkNhbGxlZFdpdGgoYWRhKTtcbiAgfSk7XG4gIGl0KCdzdWdnZXN0cyBhbiBleGlzdGluZyBndWVzdCB3aGVuIHRoZSBuZXcgcGhvbmUgbWF0Y2hlcyBbR1NULTAzXScsIGFzeW5jICgpID0+IHtcbiAgICByZW5kZXIoPEd1ZXN0UGlja2VyIHZhbHVlPXtudWxsfSBvbkNoYW5nZT17dmkuZm4oKX0gLz4pO1xuICAgIGF3YWl0IHVzZXJFdmVudC5jbGljayhzY3JlZW4uZ2V0QnlSb2xlKCdidXR0b24nLCB7IG5hbWU6IC9uZXcgZ3Vlc3QvaSB9KSk7XG4gICAgYXdhaXQgdXNlckV2ZW50LnR5cGUoc2NyZWVuLmdldEJ5TGFiZWxUZXh0KC9ecGhvbmUvaSksICcwODAzMTIzNDU2NycpO1xuICAgIGF3YWl0IHVzZXJFdmVudC50YWIoKTtcbiAgICBleHBlY3QoYXdhaXQgc2NyZWVuLmZpbmRCeVRleHQoL1RoaXMgbG9va3MgbGlrZSBBZGFlemUgT2thZm9yLykpLnRvQmVJblRoZURvY3VtZW50KCk7XG4gIH0pO1xufSk7XG4iXSwiZmlsZSI6Ii9Vc2Vycy9vbGFsZWthbi9Qcm9qZWN0cy9ib29nYmUvLndvcmt0cmVlcy90LW0zLTA1LW1vbmV5L2FwcHMvYXBwL3NyYy9mZWF0dXJlcy9ndWVzdHMvR3Vlc3RQaWNrZXIudGVzdC50c3gifQ==

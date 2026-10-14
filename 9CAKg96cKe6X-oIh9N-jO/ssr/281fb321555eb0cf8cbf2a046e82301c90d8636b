@@ -1,0 +1,82 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("@nestjs/common", {"importedNames":["Body","Controller","Get","Patch"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("nestjs-zod", {"importedNames":["createZodDto"]});
+const __vite_ssr_import_2__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m4-02-ical-schema/packages/shared/src/index.ts", {"importedNames":["UpdateOrgSettingsInput"]});
+const __vite_ssr_import_3__ = await __vite_ssr_import__("/src/common/auth/decorators.ts", {"importedNames":["Ctx","Permission"]});
+const __vite_ssr_import_4__ = await __vite_ssr_import__("/src/common/auth/request-ctx.ts", {"importedNames":["requireOrg"]});
+const __vite_ssr_import_5__ = await __vite_ssr_import__("/src/modules/org/org.service.ts", {"importedNames":["OrgService"]});
+function _ts_decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
+        r = Reflect.decorate(decorators, target, key, desc);
+    } else {
+        for(var i = decorators.length - 1; i >= 0; i--){
+            if (d = decorators[i]) {
+                r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+            }
+        }
+    }
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+function _ts_metadata(metadataKey, metadataValue) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") {
+        return Reflect.metadata(metadataKey, metadataValue);
+    }
+}
+function _ts_param(paramIndex, decorator) {
+    return function(target, key) {
+        decorator(target, key, paramIndex);
+    };
+}
+
+
+
+
+
+
+let UpdateDto = class UpdateDto extends __vite_ssr_import_1__.createZodDto(__vite_ssr_import_2__.UpdateOrgSettingsInput) {
+};
+class OrgController {
+    svc;
+    constructor(svc){
+        this.svc = svc;
+    }
+    get(c) {
+        return this.svc.get(__vite_ssr_import_4__.requireOrg(c));
+    }
+    update(c, b) {
+        return this.svc.update(__vite_ssr_import_4__.requireOrg(c), b);
+    }
+}
+Object.defineProperty(__vite_ssr_exports__, "OrgController", { enumerable: true, configurable: true, get(){ return OrgController }});
+_ts_decorate([
+    __vite_ssr_import_0__.Get('settings'),
+    __vite_ssr_import_3__.Permission('org.settings.read'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], OrgController.prototype, "get", null);
+_ts_decorate([
+    __vite_ssr_import_0__.Patch('settings'),
+    __vite_ssr_import_3__.Permission('org.settings.write'),
+    _ts_param(0, __vite_ssr_import_3__.Ctx()),
+    _ts_param(1, __vite_ssr_import_0__.Body()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof RequestCtx === "undefined" ? Object : RequestCtx,
+        typeof UpdateDto === "undefined" ? Object : UpdateDto
+    ]),
+    _ts_metadata("design:returntype", void 0)
+], OrgController.prototype, "update", null);
+OrgController = _ts_decorate([
+    __vite_ssr_import_0__.Controller('org'),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof __vite_ssr_import_5__.OrgService === "undefined" ? Object : __vite_ssr_import_5__.OrgService
+    ])
+], OrgController);
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QUFBOEQ7QUFDcEI7QUFDYztBQUNPO0FBQ2E7QUFDakM7QUFFM0MsYUFBTUEsR0FBTixNQUFNQSxrQkFBa0JDLG1DQUFhQztBQUF5QjtBQUd2RCxNQUFNQzs7SUFDWCxZQUFZLEdBQWdDLENBQUU7YUFBakJDO0lBQWtCO0lBSS9DQyxJQUFJLENBQW9CLEVBQUU7UUFDeEIsT0FBTyxJQUFJLENBQUNELEdBQUcsQ0FBQ0MsR0FBRyxDQUFDQyxpQ0FBV0M7SUFDakM7SUFJQUMsT0FBTyxDQUFvQixFQUFFLENBQW9CLEVBQUU7UUFDakQsT0FBTyxJQUFJLENBQUNKLEdBQUcsQ0FBQ0ksTUFBTSxDQUFDRixpQ0FBV0MsSUFBSUU7SUFDeEM7QUFDRjtxSUFBQSIsIm5hbWVzIjpbIlVwZGF0ZUR0byIsImNyZWF0ZVpvZER0byIsIlVwZGF0ZU9yZ1NldHRpbmdzSW5wdXQiLCJPcmdDb250cm9sbGVyIiwic3ZjIiwiZ2V0IiwicmVxdWlyZU9yZyIsImMiLCJ1cGRhdGUiLCJiIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbIm9yZy5jb250cm9sbGVyLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEJvZHksIENvbnRyb2xsZXIsIEdldCwgUGF0Y2ggfSBmcm9tICdAbmVzdGpzL2NvbW1vbic7XG5pbXBvcnQgeyBjcmVhdGVab2REdG8gfSBmcm9tICduZXN0anMtem9kJztcbmltcG9ydCB7IFVwZGF0ZU9yZ1NldHRpbmdzSW5wdXQgfSBmcm9tICdAYm9vZ2JlL3NoYXJlZCc7XG5pbXBvcnQgeyBDdHgsIFBlcm1pc3Npb24gfSBmcm9tICcuLi8uLi9jb21tb24vYXV0aC9kZWNvcmF0b3JzJztcbmltcG9ydCB7IHJlcXVpcmVPcmcsIHR5cGUgUmVxdWVzdEN0eCB9IGZyb20gJy4uLy4uL2NvbW1vbi9hdXRoL3JlcXVlc3QtY3R4JztcbmltcG9ydCB7IE9yZ1NlcnZpY2UgfSBmcm9tICcuL29yZy5zZXJ2aWNlJztcblxuY2xhc3MgVXBkYXRlRHRvIGV4dGVuZHMgY3JlYXRlWm9kRHRvKFVwZGF0ZU9yZ1NldHRpbmdzSW5wdXQpIHt9XG5cbkBDb250cm9sbGVyKCdvcmcnKVxuZXhwb3J0IGNsYXNzIE9yZ0NvbnRyb2xsZXIge1xuICBjb25zdHJ1Y3Rvcihwcml2YXRlIHJlYWRvbmx5IHN2YzogT3JnU2VydmljZSkge31cblxuICBAR2V0KCdzZXR0aW5ncycpXG4gIEBQZXJtaXNzaW9uKCdvcmcuc2V0dGluZ3MucmVhZCcpXG4gIGdldChAQ3R4KCkgYzogUmVxdWVzdEN0eCkge1xuICAgIHJldHVybiB0aGlzLnN2Yy5nZXQocmVxdWlyZU9yZyhjKSk7XG4gIH1cblxuICBAUGF0Y2goJ3NldHRpbmdzJylcbiAgQFBlcm1pc3Npb24oJ29yZy5zZXR0aW5ncy53cml0ZScpXG4gIHVwZGF0ZShAQ3R4KCkgYzogUmVxdWVzdEN0eCwgQEJvZHkoKSBiOiBVcGRhdGVEdG8pIHtcbiAgICByZXR1cm4gdGhpcy5zdmMudXBkYXRlKHJlcXVpcmVPcmcoYyksIGIpO1xuICB9XG59XG4iXSwiZmlsZSI6Ii9zcmMvbW9kdWxlcy9vcmcvb3JnLmNvbnRyb2xsZXIudHMifQ==

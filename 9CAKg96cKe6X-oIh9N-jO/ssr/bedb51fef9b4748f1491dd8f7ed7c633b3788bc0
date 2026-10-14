@@ -1,0 +1,51 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("zod", {"importedNames":["z"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("/@fs/Users/olalekan/Projects/boogbe/.worktrees/t-m4-02-ical-schema/packages/shared/src/contracts/common.ts", {"importedNames":["E164"]});
+
+
+const Time = __vite_ssr_import_0__.z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM (24-hour)');
+const Prefix = __vite_ssr_import_0__.z.string().regex(/^[A-Z0-9]{2,6}$/, '2–6 capital letters or digits');
+const OrgSettingsResponse = __vite_ssr_import_0__.z.object({
+    org: __vite_ssr_import_0__.z.object({
+        id: __vite_ssr_import_0__.z.string(),
+        name: __vite_ssr_import_0__.z.string(),
+        slug: __vite_ssr_import_0__.z.string(),
+        timezone: __vite_ssr_import_0__.z.string(),
+        currency: __vite_ssr_import_0__.z.string(),
+        contactEmail: __vite_ssr_import_0__.z.string().nullable(),
+        contactPhone: __vite_ssr_import_0__.z.string().nullable(),
+        whatsappPhone: __vite_ssr_import_0__.z.string().nullable(),
+        address: __vite_ssr_import_0__.z.string().nullable()
+    }),
+    settings: __vite_ssr_import_0__.z.object({
+        checkInTime: Time,
+        checkOutTime: Time,
+        holdHours: __vite_ssr_import_0__.z.number().int(),
+        autoConfirmOnPayment: __vite_ssr_import_0__.z.boolean(),
+        ownerSeesGuestNames: __vite_ssr_import_0__.z.boolean(),
+        receiptPrefix: Prefix,
+        statementPrefix: Prefix,
+        bookingPrefix: Prefix,
+        logoUrl: __vite_ssr_import_0__.z.string().url().nullable()
+    })
+});
+Object.defineProperty(__vite_ssr_exports__, "OrgSettingsResponse", { enumerable: true, configurable: true, get(){ return OrgSettingsResponse }});
+const UpdateOrgSettingsInput = __vite_ssr_import_0__.z.object({
+    name: __vite_ssr_import_0__.z.string().trim().min(2).max(80).optional(),
+    contactEmail: __vite_ssr_import_0__.z.string().email().nullable().optional(),
+    contactPhone: __vite_ssr_import_1__.E164.nullable().optional(),
+    whatsappPhone: __vite_ssr_import_1__.E164.nullable().optional(),
+    address: __vite_ssr_import_0__.z.string().max(300).nullable().optional(),
+    checkInTime: Time.optional(),
+    checkOutTime: Time.optional(),
+    holdHours: __vite_ssr_import_0__.z.number().int().min(1).max(168).optional(),
+    autoConfirmOnPayment: __vite_ssr_import_0__.z.boolean().optional(),
+    ownerSeesGuestNames: __vite_ssr_import_0__.z.boolean().optional(),
+    receiptPrefix: Prefix.optional(),
+    statementPrefix: Prefix.optional(),
+    bookingPrefix: Prefix.optional(),
+    logoFileId: __vite_ssr_import_0__.z.string().nullable().optional()
+}).strict();
+Object.defineProperty(__vite_ssr_exports__, "UpdateOrgSettingsInput", { enumerable: true, configurable: true, get(){ return UpdateOrgSettingsInput }});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7QUFBd0I7QUFDUTtBQUVoQyxNQUFNQSxPQUFPQyx3QkFBRUMsTUFBTSxHQUFHQyxLQUFLLENBQUMsNkJBQTZCO0FBQzNELE1BQU1DLFNBQVNILHdCQUFFQyxNQUFNLEdBQUdDLEtBQUssQ0FBQyxtQkFBbUI7QUFFNUMsTUFBTUUsc0JBQXNCSix3QkFBRUssTUFBTSxDQUFDO0lBQzFDQyxLQUFLTix3QkFBRUssTUFBTSxDQUFDO1FBQ1pFLElBQUlQLHdCQUFFQyxNQUFNO1FBQ1pPLE1BQU1SLHdCQUFFQyxNQUFNO1FBQ2RRLE1BQU1ULHdCQUFFQyxNQUFNO1FBQ2RTLFVBQVVWLHdCQUFFQyxNQUFNO1FBQ2xCVSxVQUFVWCx3QkFBRUMsTUFBTTtRQUNsQlcsY0FBY1osd0JBQUVDLE1BQU0sR0FBR1ksUUFBUTtRQUNqQ0MsY0FBY2Qsd0JBQUVDLE1BQU0sR0FBR1ksUUFBUTtRQUNqQ0UsZUFBZWYsd0JBQUVDLE1BQU0sR0FBR1ksUUFBUTtRQUNsQ0csU0FBU2hCLHdCQUFFQyxNQUFNLEdBQUdZLFFBQVE7SUFDOUI7SUFDQUksVUFBVWpCLHdCQUFFSyxNQUFNLENBQUM7UUFDakJhLGFBQWFuQjtRQUNib0IsY0FBY3BCO1FBQ2RxQixXQUFXcEIsd0JBQUVxQixNQUFNLEdBQUdDLEdBQUc7UUFDekJDLHNCQUFzQnZCLHdCQUFFd0IsT0FBTztRQUMvQkMscUJBQXFCekIsd0JBQUV3QixPQUFPO1FBQzlCRSxlQUFldkI7UUFDZndCLGlCQUFpQnhCO1FBQ2pCeUIsZUFBZXpCO1FBQ2YwQixTQUFTN0Isd0JBQUVDLE1BQU0sR0FBRzZCLEdBQUcsR0FBR2pCLFFBQVE7SUFDcEM7QUFDRjtpSkFBRztBQUdJLE1BQU1rQix5QkFBeUIvQix3QkFDbkNLLE1BQU0sQ0FBQztJQUNORyxNQUFNUix3QkFBRUMsTUFBTSxHQUFHK0IsSUFBSSxHQUFHQyxHQUFHLENBQUMsR0FBR0MsR0FBRyxDQUFDLElBQUlDLFFBQVE7SUFDL0N2QixjQUFjWix3QkFBRUMsTUFBTSxHQUFHbUMsS0FBSyxHQUFHdkIsUUFBUSxHQUFHc0IsUUFBUTtJQUNwRHJCLGNBQWN1QiwyQkFBS3hCLFFBQVEsR0FBR3NCLFFBQVE7SUFDdENwQixlQUFlc0IsMkJBQUt4QixRQUFRLEdBQUdzQixRQUFRO0lBQ3ZDbkIsU0FBU2hCLHdCQUFFQyxNQUFNLEdBQUdpQyxHQUFHLENBQUMsS0FBS3JCLFFBQVEsR0FBR3NCLFFBQVE7SUFDaERqQixhQUFhbkIsS0FBS29DLFFBQVE7SUFDMUJoQixjQUFjcEIsS0FBS29DLFFBQVE7SUFDM0JmLFdBQVdwQix3QkFBRXFCLE1BQU0sR0FBR0MsR0FBRyxHQUFHVyxHQUFHLENBQUMsR0FBR0MsR0FBRyxDQUFDLEtBQUtDLFFBQVE7SUFDcERaLHNCQUFzQnZCLHdCQUFFd0IsT0FBTyxHQUFHVyxRQUFRO0lBQzFDVixxQkFBcUJ6Qix3QkFBRXdCLE9BQU8sR0FBR1csUUFBUTtJQUN6Q1QsZUFBZXZCLE9BQU9nQyxRQUFRO0lBQzlCUixpQkFBaUJ4QixPQUFPZ0MsUUFBUTtJQUNoQ1AsZUFBZXpCLE9BQU9nQyxRQUFRO0lBQzlCRyxZQUFZdEMsd0JBQUVDLE1BQU0sR0FBR1ksUUFBUSxHQUFHc0IsUUFBUTtBQUM1QyxHQUNDSSxNQUFNO3VKQUFHIiwibmFtZXMiOlsiVGltZSIsInoiLCJzdHJpbmciLCJyZWdleCIsIlByZWZpeCIsIk9yZ1NldHRpbmdzUmVzcG9uc2UiLCJvYmplY3QiLCJvcmciLCJpZCIsIm5hbWUiLCJzbHVnIiwidGltZXpvbmUiLCJjdXJyZW5jeSIsImNvbnRhY3RFbWFpbCIsIm51bGxhYmxlIiwiY29udGFjdFBob25lIiwid2hhdHNhcHBQaG9uZSIsImFkZHJlc3MiLCJzZXR0aW5ncyIsImNoZWNrSW5UaW1lIiwiY2hlY2tPdXRUaW1lIiwiaG9sZEhvdXJzIiwibnVtYmVyIiwiaW50IiwiYXV0b0NvbmZpcm1PblBheW1lbnQiLCJib29sZWFuIiwib3duZXJTZWVzR3Vlc3ROYW1lcyIsInJlY2VpcHRQcmVmaXgiLCJzdGF0ZW1lbnRQcmVmaXgiLCJib29raW5nUHJlZml4IiwibG9nb1VybCIsInVybCIsIlVwZGF0ZU9yZ1NldHRpbmdzSW5wdXQiLCJ0cmltIiwibWluIiwibWF4Iiwib3B0aW9uYWwiLCJlbWFpbCIsIkUxNjQiLCJsb2dvRmlsZUlkIiwic3RyaWN0Il0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbIm9yZy50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyB6IH0gZnJvbSAnem9kJztcbmltcG9ydCB7IEUxNjQgfSBmcm9tICcuL2NvbW1vbic7XG5cbmNvbnN0IFRpbWUgPSB6LnN0cmluZygpLnJlZ2V4KC9eKFswMV1cXGR8MlswLTNdKTpbMC01XVxcZCQvLCAnVXNlIEhIOk1NICgyNC1ob3VyKScpO1xuY29uc3QgUHJlZml4ID0gei5zdHJpbmcoKS5yZWdleCgvXltBLVowLTldezIsNn0kLywgJzLigJM2IGNhcGl0YWwgbGV0dGVycyBvciBkaWdpdHMnKTtcblxuZXhwb3J0IGNvbnN0IE9yZ1NldHRpbmdzUmVzcG9uc2UgPSB6Lm9iamVjdCh7XG4gIG9yZzogei5vYmplY3Qoe1xuICAgIGlkOiB6LnN0cmluZygpLFxuICAgIG5hbWU6IHouc3RyaW5nKCksXG4gICAgc2x1Zzogei5zdHJpbmcoKSxcbiAgICB0aW1lem9uZTogei5zdHJpbmcoKSxcbiAgICBjdXJyZW5jeTogei5zdHJpbmcoKSxcbiAgICBjb250YWN0RW1haWw6IHouc3RyaW5nKCkubnVsbGFibGUoKSxcbiAgICBjb250YWN0UGhvbmU6IHouc3RyaW5nKCkubnVsbGFibGUoKSxcbiAgICB3aGF0c2FwcFBob25lOiB6LnN0cmluZygpLm51bGxhYmxlKCksXG4gICAgYWRkcmVzczogei5zdHJpbmcoKS5udWxsYWJsZSgpLFxuICB9KSxcbiAgc2V0dGluZ3M6IHoub2JqZWN0KHtcbiAgICBjaGVja0luVGltZTogVGltZSxcbiAgICBjaGVja091dFRpbWU6IFRpbWUsXG4gICAgaG9sZEhvdXJzOiB6Lm51bWJlcigpLmludCgpLFxuICAgIGF1dG9Db25maXJtT25QYXltZW50OiB6LmJvb2xlYW4oKSxcbiAgICBvd25lclNlZXNHdWVzdE5hbWVzOiB6LmJvb2xlYW4oKSxcbiAgICByZWNlaXB0UHJlZml4OiBQcmVmaXgsXG4gICAgc3RhdGVtZW50UHJlZml4OiBQcmVmaXgsXG4gICAgYm9va2luZ1ByZWZpeDogUHJlZml4LFxuICAgIGxvZ29Vcmw6IHouc3RyaW5nKCkudXJsKCkubnVsbGFibGUoKSxcbiAgfSksXG59KTtcbmV4cG9ydCB0eXBlIE9yZ1NldHRpbmdzUmVzcG9uc2UgPSB6LmluZmVyPHR5cGVvZiBPcmdTZXR0aW5nc1Jlc3BvbnNlPjtcblxuZXhwb3J0IGNvbnN0IFVwZGF0ZU9yZ1NldHRpbmdzSW5wdXQgPSB6XG4gIC5vYmplY3Qoe1xuICAgIG5hbWU6IHouc3RyaW5nKCkudHJpbSgpLm1pbigyKS5tYXgoODApLm9wdGlvbmFsKCksXG4gICAgY29udGFjdEVtYWlsOiB6LnN0cmluZygpLmVtYWlsKCkubnVsbGFibGUoKS5vcHRpb25hbCgpLFxuICAgIGNvbnRhY3RQaG9uZTogRTE2NC5udWxsYWJsZSgpLm9wdGlvbmFsKCksXG4gICAgd2hhdHNhcHBQaG9uZTogRTE2NC5udWxsYWJsZSgpLm9wdGlvbmFsKCksXG4gICAgYWRkcmVzczogei5zdHJpbmcoKS5tYXgoMzAwKS5udWxsYWJsZSgpLm9wdGlvbmFsKCksXG4gICAgY2hlY2tJblRpbWU6IFRpbWUub3B0aW9uYWwoKSxcbiAgICBjaGVja091dFRpbWU6IFRpbWUub3B0aW9uYWwoKSxcbiAgICBob2xkSG91cnM6IHoubnVtYmVyKCkuaW50KCkubWluKDEpLm1heCgxNjgpLm9wdGlvbmFsKCksXG4gICAgYXV0b0NvbmZpcm1PblBheW1lbnQ6IHouYm9vbGVhbigpLm9wdGlvbmFsKCksXG4gICAgb3duZXJTZWVzR3Vlc3ROYW1lczogei5ib29sZWFuKCkub3B0aW9uYWwoKSxcbiAgICByZWNlaXB0UHJlZml4OiBQcmVmaXgub3B0aW9uYWwoKSxcbiAgICBzdGF0ZW1lbnRQcmVmaXg6IFByZWZpeC5vcHRpb25hbCgpLFxuICAgIGJvb2tpbmdQcmVmaXg6IFByZWZpeC5vcHRpb25hbCgpLFxuICAgIGxvZ29GaWxlSWQ6IHouc3RyaW5nKCkubnVsbGFibGUoKS5vcHRpb25hbCgpLFxuICB9KVxuICAuc3RyaWN0KCk7XG5leHBvcnQgdHlwZSBVcGRhdGVPcmdTZXR0aW5nc0lucHV0ID0gei5pbmZlcjx0eXBlb2YgVXBkYXRlT3JnU2V0dGluZ3NJbnB1dD47XG4iXSwiZmlsZSI6Ii9Vc2Vycy9vbGFsZWthbi9Qcm9qZWN0cy9ib29nYmUvLndvcmt0cmVlcy90LW00LTAyLWljYWwtc2NoZW1hL3BhY2thZ2VzL3NoYXJlZC9zcmMvY29udHJhY3RzL29yZy50cyJ9

@@ -1,0 +1,38 @@
+const __vite_ssr_import_0__ = await __vite_ssr_import__("pdfkit", {"importedNames":["default"]});
+const __vite_ssr_import_1__ = await __vite_ssr_import__("node:path", {"importedNames":["resolve"]});
+
+
+// Standard PDF fonts have no ₦, so documents embed Noto Sans (OFL). Same relative path from src/ and dist/.
+const FONTS = __vite_ssr_import_1__.resolve(__dirname, '../../../assets/fonts');
+/**
+ * `subject` goes into the PDF info dictionary, which stays plain text when `compress: false` and the
+ * string is ASCII (pdfkit writes anything else as UTF-16). Embedded TrueType text is glyph ids, so the
+ * subject is what tests can search.
+ */ function renderPdf(draw, opts = {}) {
+    return new Promise((ok, fail)=>{
+        const doc = new __vite_ssr_import_0__.default({
+            size: 'A4',
+            margin: 48,
+            compress: opts.compress ?? true,
+            info: {
+                Producer: 'Boogbe',
+                ...opts.subject && {
+                    Subject: opts.subject
+                }
+            }
+        });
+        doc.registerFont('body', `${FONTS}/NotoSans-Regular.ttf`);
+        doc.registerFont('bold', `${FONTS}/NotoSans-Bold.ttf`);
+        doc.font('body');
+        const chunks = [];
+        doc.on('data', (c)=>chunks.push(c));
+        doc.on('end', ()=>ok(Buffer.concat(chunks)));
+        doc.on('error', fail);
+        draw(doc);
+        doc.end();
+    });
+}
+Object.defineProperty(__vite_ssr_exports__, "renderPdf", { enumerable: true, configurable: true, get(){ return renderPdf }});
+
+//# sourceMappingSource=vite-node
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsQ0FBQTs7QUFBaUM7QUFDRztBQUVwQyw0R0FBNEc7QUFDNUcsTUFBTUEsUUFBUUMsOEJBQVFDLFdBQVc7QUFFakM7Ozs7Q0FJQyxHQUNNLFNBQVNDLFVBQ2RDLElBQXVDLEVBQ3ZDQyxPQUFpRCxDQUFDLENBQUM7SUFFbkQsT0FBTyxJQUFJQyxRQUFRLENBQUNDLElBQUlDO1FBQ3RCLE1BQU1DLE1BQU0sSUFBSUMsOEJBQVk7WUFDMUJDLE1BQU07WUFDTkMsUUFBUTtZQUNSQyxVQUFVUixLQUFLUSxRQUFRLElBQUk7WUFDM0JDLE1BQU07Z0JBQUVDLFVBQVU7Z0JBQVUsR0FBSVYsS0FBS1csT0FBTyxJQUFJO29CQUFFQyxTQUFTWixLQUFLVyxPQUFPO2dCQUFDLENBQUM7WUFBRTtRQUM3RTtRQUNBUCxJQUFJUyxZQUFZLENBQUMsUUFBUSxHQUFHbEIsTUFBTSxxQkFBcUIsQ0FBQztRQUN4RFMsSUFBSVMsWUFBWSxDQUFDLFFBQVEsR0FBR2xCLE1BQU0sa0JBQWtCLENBQUM7UUFDckRTLElBQUlVLElBQUksQ0FBQztRQUNULE1BQU1DLFNBQW1CLEVBQUU7UUFDM0JYLElBQUlZLEVBQUUsQ0FBQyxRQUFRLENBQUNDLElBQWNGLE9BQU9HLElBQUksQ0FBQ0Q7UUFDMUNiLElBQUlZLEVBQUUsQ0FBQyxPQUFPLElBQU1kLEdBQUdpQixPQUFPQyxNQUFNLENBQUNMO1FBQ3JDWCxJQUFJWSxFQUFFLENBQUMsU0FBU2I7UUFDaEJKLEtBQUtLO1FBQ0xBLElBQUlpQixHQUFHO0lBQ1Q7QUFDRjs2SEFBQSIsIm5hbWVzIjpbIkZPTlRTIiwicmVzb2x2ZSIsIl9fZGlybmFtZSIsInJlbmRlclBkZiIsImRyYXciLCJvcHRzIiwiUHJvbWlzZSIsIm9rIiwiZmFpbCIsImRvYyIsIlBERkRvY3VtZW50Iiwic2l6ZSIsIm1hcmdpbiIsImNvbXByZXNzIiwiaW5mbyIsIlByb2R1Y2VyIiwic3ViamVjdCIsIlN1YmplY3QiLCJyZWdpc3RlckZvbnQiLCJmb250IiwiY2h1bmtzIiwib24iLCJjIiwicHVzaCIsIkJ1ZmZlciIsImNvbmNhdCIsImVuZCJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJwZGYudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFBERkRvY3VtZW50IGZyb20gJ3BkZmtpdCc7XG5pbXBvcnQgeyByZXNvbHZlIH0gZnJvbSAnbm9kZTpwYXRoJztcblxuLy8gU3RhbmRhcmQgUERGIGZvbnRzIGhhdmUgbm8g4oKmLCBzbyBkb2N1bWVudHMgZW1iZWQgTm90byBTYW5zIChPRkwpLiBTYW1lIHJlbGF0aXZlIHBhdGggZnJvbSBzcmMvIGFuZCBkaXN0Ly5cbmNvbnN0IEZPTlRTID0gcmVzb2x2ZShfX2Rpcm5hbWUsICcuLi8uLi8uLi9hc3NldHMvZm9udHMnKTtcblxuLyoqXG4gKiBgc3ViamVjdGAgZ29lcyBpbnRvIHRoZSBQREYgaW5mbyBkaWN0aW9uYXJ5LCB3aGljaCBzdGF5cyBwbGFpbiB0ZXh0IHdoZW4gYGNvbXByZXNzOiBmYWxzZWAgYW5kIHRoZVxuICogc3RyaW5nIGlzIEFTQ0lJIChwZGZraXQgd3JpdGVzIGFueXRoaW5nIGVsc2UgYXMgVVRGLTE2KS4gRW1iZWRkZWQgVHJ1ZVR5cGUgdGV4dCBpcyBnbHlwaCBpZHMsIHNvIHRoZVxuICogc3ViamVjdCBpcyB3aGF0IHRlc3RzIGNhbiBzZWFyY2guXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiByZW5kZXJQZGYoXG4gIGRyYXc6IChkb2M6IFBERktpdC5QREZEb2N1bWVudCkgPT4gdm9pZCxcbiAgb3B0czogeyBjb21wcmVzcz86IGJvb2xlYW47IHN1YmplY3Q/OiBzdHJpbmcgfSA9IHt9LFxuKTogUHJvbWlzZTxCdWZmZXI+IHtcbiAgcmV0dXJuIG5ldyBQcm9taXNlKChvaywgZmFpbCkgPT4ge1xuICAgIGNvbnN0IGRvYyA9IG5ldyBQREZEb2N1bWVudCh7XG4gICAgICBzaXplOiAnQTQnLFxuICAgICAgbWFyZ2luOiA0OCxcbiAgICAgIGNvbXByZXNzOiBvcHRzLmNvbXByZXNzID8/IHRydWUsXG4gICAgICBpbmZvOiB7IFByb2R1Y2VyOiAnQm9vZ2JlJywgLi4uKG9wdHMuc3ViamVjdCAmJiB7IFN1YmplY3Q6IG9wdHMuc3ViamVjdCB9KSB9LFxuICAgIH0pO1xuICAgIGRvYy5yZWdpc3RlckZvbnQoJ2JvZHknLCBgJHtGT05UU30vTm90b1NhbnMtUmVndWxhci50dGZgKTtcbiAgICBkb2MucmVnaXN0ZXJGb250KCdib2xkJywgYCR7Rk9OVFN9L05vdG9TYW5zLUJvbGQudHRmYCk7XG4gICAgZG9jLmZvbnQoJ2JvZHknKTtcbiAgICBjb25zdCBjaHVua3M6IEJ1ZmZlcltdID0gW107XG4gICAgZG9jLm9uKCdkYXRhJywgKGM6IEJ1ZmZlcikgPT4gY2h1bmtzLnB1c2goYykpO1xuICAgIGRvYy5vbignZW5kJywgKCkgPT4gb2soQnVmZmVyLmNvbmNhdChjaHVua3MpKSk7XG4gICAgZG9jLm9uKCdlcnJvcicsIGZhaWwpO1xuICAgIGRyYXcoZG9jKTtcbiAgICBkb2MuZW5kKCk7XG4gIH0pO1xufVxuIl0sImZpbGUiOiIvc3JjL2NvbW1vbi9wZGYvcGRmLnRzIn0=
