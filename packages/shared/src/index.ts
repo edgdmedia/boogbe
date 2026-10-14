@@ -28,3 +28,5 @@ export * from './contracts/messages';
 export * from './domain/revenue';
 export * from './domain/allocation';
 export * from './domain/statement';
+export * from './domain/turnover';
+export * from './contracts/tasks';
