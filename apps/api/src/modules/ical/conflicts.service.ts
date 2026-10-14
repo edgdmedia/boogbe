@@ -77,9 +77,10 @@ export class ConflictsService implements OnModuleInit {
     const handled = new Set(known.filter((c) => c.blockId).map((c) => pairKey(c.bookingId, c.blockId)));
     for (const p of pairs) {
       if (handled.has(pairKey(p.booking_id, p.block_id))) continue;
+      const conflictId = newId();
       await tx.syncConflict.create({
         data: {
-          id: newId(),
+          id: conflictId,
           unitId,
           bookingId: p.booking_id,
           blockId: p.block_id,
@@ -98,7 +99,8 @@ export class ConflictsService implements OnModuleInit {
           title: `Possible double booking: ${p.ref}`,
           body: `${channelLabel(p.channel)} shows ${iso(p.start)} – ${iso(p.end)} as taken, which overlaps ${p.ref}. Check both and resolve it.`,
           link: '/conflicts',
-          dedupeKey: `conflict-${p.booking_id}-${p.block_id}`,
+          // One alert per episode: a pair that clears and later overlaps again is a new conflict row, so it alerts again.
+          dedupeKey: `conflict-${conflictId}`,
         },
         { email: true },
       );
