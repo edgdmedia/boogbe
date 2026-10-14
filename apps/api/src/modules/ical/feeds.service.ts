@@ -113,6 +113,7 @@ export class FeedsService {
       if (!f) throw notFound('Feed');
       await tx.icalFeed.deleteMany({ where: { id } }); // its blocks go with it (block_feed_fk cascade)
       await this.exports.relink(tx, f.unitId); // another feed of the same channel may take over the exclusion
+      await this.sync.afterSync(tx, ctx.orgId, f.unitId); // conflicts with those blocks clear (T-M4-05)
       await this.audit.record(tx, {
         actor: ctx,
         action: 'ical_feed.delete',

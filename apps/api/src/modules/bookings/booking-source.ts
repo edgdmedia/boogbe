@@ -36,6 +36,13 @@ export class BookingSourceImpl implements CalendarSource, OnModuleInit {
           SELECT booking_id, balance_kobo FROM booking_money WHERE booking_id = ANY(${rows.map((r) => r.id)})`
       : [];
     const bal = new Map(money.map((m) => [m.booking_id, Number(m.balance_kobo)]));
+    const conflicts = rows.length
+      ? await tx.syncConflict.findMany({
+          where: { bookingId: { in: rows.map((r) => r.id) }, status: 'open' },
+          select: { bookingId: true },
+        })
+      : [];
+    const flagged = new Set(conflicts.map((c) => c.bookingId));
     return rows.map((b) => ({
       kind: 'booking',
       id: b.id,
@@ -46,7 +53,7 @@ export class BookingSourceImpl implements CalendarSource, OnModuleInit {
       ref: b.ref,
       guestName: b.guest.fullName,
       balanceKobo: bal.get(b.id) ?? null,
-      hasConflict: false,
+      hasConflict: flagged.has(b.id), // an open channel conflict (T-M4-05)
     }));
   }
 

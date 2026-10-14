@@ -196,20 +196,23 @@ export class PaymentsService implements OnModuleInit {
 
   /** Cancel and refund in one transaction: a refund that fails validation rolls the cancel back (BKG-11). */
   cancelWithRefund(ctx: OrgCtx, bookingId: string, input: CancelBookingInput) {
-    return this.orgDb.run(ctx.orgId, async (tx) => {
-      await this.bookings.transitionIn(tx, ctx, ctx.orgId, bookingId, 'cancelled', input.reason);
-      if (input.refundKobo && input.refundKobo > 0) {
-        await this.recordIn(tx, ctx, bookingId, {
-          kind: 'refund',
-          amountKobo: input.refundKobo,
-          method: input.refundMethod!,
-          receivedOn: todayIn(ctx.timezone),
-          reference: input.refundReference ?? null,
-          note: input.reason,
-        } as RecordEntryInput);
-      }
-      return this.bookings.getIn(tx, ctx.orgId, bookingId);
-    });
+    return this.orgDb.run(ctx.orgId, (tx) => this.cancelWithRefundIn(tx, ctx, bookingId, input));
+  }
+
+  /** In the caller's transaction, so a conflict resolution and its cancel commit or roll back together (T-M4-05). */
+  async cancelWithRefundIn(tx: OrgTx, ctx: OrgCtx, bookingId: string, input: CancelBookingInput) {
+    await this.bookings.transitionIn(tx, ctx, ctx.orgId, bookingId, 'cancelled', input.reason);
+    if (input.refundKobo && input.refundKobo > 0) {
+      await this.recordIn(tx, ctx, bookingId, {
+        kind: 'refund',
+        amountKobo: input.refundKobo,
+        method: input.refundMethod!,
+        receivedOn: todayIn(ctx.timezone),
+        reference: input.refundReference ?? null,
+        note: input.reason,
+      } as RecordEntryInput);
+    }
+    return this.bookings.getIn(tx, ctx.orgId, bookingId);
   }
 
   /** Receipt PDF for one money-in entry; the balance shown is the balance right after that entry (PAY-06). */

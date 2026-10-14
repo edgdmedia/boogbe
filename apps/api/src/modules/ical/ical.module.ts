@@ -1,6 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { ExportsController } from './exports.controller';
 import { ExportsService } from './exports.service';
+import { ConflictsController } from './conflicts.controller';
+import { ConflictsService } from './conflicts.service';
 import { FeedsController } from './feeds.controller';
 import { FeedsService } from './feeds.service';
 import { IcalFetcher } from './fetcher';
@@ -11,8 +13,14 @@ import { ICAL_FETCHER } from './tokens';
 @Global()
 @Module({
   // PublicIcalController (`ical/:file`) must stay last so the specific `ical/...` routes match first.
-  controllers: [FeedsController, ExportsController, PublicIcalController],
-  providers: [FeedsService, ExportsService, IcalSyncService, { provide: ICAL_FETCHER, useFactory: () => new IcalFetcher() }],
+  controllers: [FeedsController, ExportsController, ConflictsController, PublicIcalController],
+  providers: [
+    FeedsService,
+    ExportsService,
+    ConflictsService,
+    IcalSyncService,
+    { provide: ICAL_FETCHER, useFactory: () => new IcalFetcher() },
+  ],
   exports: [IcalSyncService, ICAL_FETCHER],
 })
 export class IcalModule {}

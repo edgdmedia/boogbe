@@ -99,6 +99,19 @@ ISOLATION_FIXTURES.icalExport = async (orgId) => {
   return id;
 };
 ROUTE_FIXTURE.push({ match: /^\/v1\/ical\/exports\//, fixture: 'icalExport' });
+ISOLATION_FIXTURES.conflict = async (orgId) => {
+  const bookingId = await ISOLATION_FIXTURES.booking!(orgId);
+  const id = newId();
+  const c = await migratorClient();
+  await c.query(
+    `insert into sync_conflict(id, org_id, unit_id, booking_id, block_start, block_end, block_summary)
+     select $1, $2, unit_id, id, '2030-01-01', '2030-01-02', 'Reserved' from booking where id = $3`,
+    [id, orgId, bookingId],
+  );
+  await c.end();
+  return id;
+};
+ROUTE_FIXTURE.push({ match: /^\/v1\/ical\/conflicts\//, fixture: 'conflict' });
 ISOLATION_FIXTURES.notification = async (orgId) => {
   const m = await migratorClient();
   const userId = newId();
