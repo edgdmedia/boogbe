@@ -8,7 +8,8 @@ export const MAX_WINDOW_DAYS = 90;
 export const MAX_NIGHTS = 30;
 const Day = z.string().refine(isIsoDate, 'Use YYYY-MM-DD');
 // zod still runs object refinements after a field refinement fails, so these must not assume valid dates (nightsBetween throws).
-const span = (from: string, to: string, max: number) => isIsoDate(from) && isIsoDate(to) && to > from && nightsBetween(from, to) <= max;
+const span = (from: string, to: string, max: number) =>
+  isIsoDate(from) && isIsoDate(to) && to > from && nightsBetween(from, to) <= max;
 
 export const PublicUnit = z.object({
   id: z.string(),
@@ -40,7 +41,8 @@ export const AvailabilityResponse = z.object({
 });
 export type AvailabilityResponse = z.infer<typeof AvailabilityResponse>;
 
-const stay = <T extends { checkIn: string; checkOut: string }>(s: T) => span(s.checkIn, s.checkOut, MAX_NIGHTS);
+const stay = <T extends { checkIn: string; checkOut: string }>(s: T) =>
+  span(s.checkIn, s.checkOut, MAX_NIGHTS);
 export const PublicQuoteQuery = z
   .object({ checkIn: Day, checkOut: Day, guests: z.coerce.number().int().min(1).max(20) })
   .refine(stay, { message: `Stays are 1–${MAX_NIGHTS} nights`, path: ['checkOut'] });
@@ -70,7 +72,11 @@ export const BookingRequestInput = z
     phone: z
       .string()
       .max(32)
-      .transform((v, c) => normalizePhone(v) ?? (c.addIssue({ code: 'custom', message: 'Enter a valid phone number' }), z.NEVER)),
+      .transform(
+        (v, c) =>
+          normalizePhone(v) ??
+          (c.addIssue({ code: 'custom', message: 'Enter a valid phone number' }), z.NEVER),
+      ),
     // Web forms send "", whitespace or null for an empty optional field: all mean "no email".
     email: z.preprocess(
       (v) => (v == null ? undefined : typeof v === 'string' ? v.trim() || undefined : v),
@@ -81,5 +87,9 @@ export const BookingRequestInput = z
   })
   .refine(stay, { message: `Stays are 1–${MAX_NIGHTS} nights`, path: ['checkOut'] });
 export type BookingRequestInput = z.infer<typeof BookingRequestInput>;
-export const BookingRequestResponse = z.object({ ref: z.string(), holdUntil: z.string(), totalKobo: z.number().int() });
+export const BookingRequestResponse = z.object({
+  ref: z.string(),
+  holdUntil: z.string(),
+  totalKobo: z.number().int(),
+});
 export type BookingRequestResponse = z.infer<typeof BookingRequestResponse>;
