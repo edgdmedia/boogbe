@@ -50,6 +50,9 @@ export class VarsService {
       'checkIn.time': time(s.checkInTime),
       'checkOut.time': time(s.checkOutTime),
       'unit.checkInInstructions': unit.checkInInstructions ?? '',
+      // Filled for real in T-WB-03 (needs org_settings.public_site_url from 0008).
+      'booking.holdUntil': '',
+      'operator.website': '',
     };
   }
 }

@@ -1,15 +1,17 @@
 import { waDigits } from './phone';
 
-export const TEMPLATE_KEYS = ['booking_confirmation', 'payment_receipt', 'check_in_details', 'pre_arrival_reminder', 'post_checkout_thanks', 'deposit_returned'] as const;
+export const TEMPLATE_KEYS = ['booking_confirmation', 'payment_receipt', 'check_in_details', 'pre_arrival_reminder', 'post_checkout_thanks', 'deposit_returned', 'website_request_received', 'website_request_closed'] as const;
 export type TemplateKey = (typeof TEMPLATE_KEYS)[number];
 export const TEMPLATE_LABELS: Record<TemplateKey, string> = {
   booking_confirmation: 'Booking confirmation', payment_receipt: 'Payment receipt', check_in_details: 'Check-in details',
   pre_arrival_reminder: 'Pre-arrival reminder', post_checkout_thanks: 'Thank you after checkout', deposit_returned: 'Deposit returned',
+  website_request_received: 'Website request received', website_request_closed: 'Website request not confirmed',
 };
 export const PLACEHOLDERS = [
   'guest.firstName', 'guest.fullName', 'booking.ref', 'booking.checkIn', 'booking.checkOut', 'booking.nights', 'booking.guests',
   'unit.name', 'property.name', 'property.address', 'money.total', 'money.paid', 'money.balance', 'money.deposit', 'money.lastPayment',
   'operator.name', 'operator.phone', 'operator.email', 'checkIn.time', 'checkOut.time', 'unit.checkInInstructions',
+  'booking.holdUntil', 'operator.website',
 ] as const;
 export type Placeholder = (typeof PLACEHOLDERS)[number];
 export type TemplateVars = Record<Placeholder, string>;
@@ -58,5 +60,6 @@ export const SAMPLE_VARS: TemplateVars = {
   'money.total': '₦615,000', 'money.paid': '₦300,000', 'money.balance': '₦315,000', 'money.deposit': '₦100,000', 'money.lastPayment': '₦300,000',
   'operator.name': 'Tanuhomes', 'operator.phone': '+234 810 754 8559', 'operator.email': 'hello@tanuhomes.com', 'checkIn.time': '2:00 pm', 'checkOut.time': '12:00 pm',
   'unit.checkInInstructions': 'The gate code is 4821. Your key is in the lockbox by the door.',
+  'booking.holdUntil': '1 Nov 2026, 4:30 pm', 'operator.website': 'https://tanuhomes.com',
 };
 export { DEFAULT_TEMPLATES } from './template-defaults';

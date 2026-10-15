@@ -4,7 +4,7 @@ import { IsoDateSchema, Kobo } from './common';
 import { UnitFeeKind } from './inventory';
 
 // `BookingSource` is the API's calendar-source interface, so the channel enum is BookingSourceEnum.
-export const BookingSourceEnum = z.enum(['whatsapp', 'phone', 'walk_in', 'direct', 'airbnb', 'booking_com', 'other']);
+export const BookingSourceEnum = z.enum(['whatsapp', 'phone', 'walk_in', 'direct', 'airbnb', 'booking_com', 'website', 'other']);
 export type BookingSourceValue = z.infer<typeof BookingSourceEnum>;
 export const SOURCE_LABELS: Record<BookingSourceValue, string> = {
   whatsapp: 'WhatsApp',
@@ -13,6 +13,7 @@ export const SOURCE_LABELS: Record<BookingSourceValue, string> = {
   direct: 'Direct',
   airbnb: 'Airbnb',
   booking_com: 'Booking.com',
+  website: 'Website',
   other: 'Other',
 };
 
@@ -153,6 +154,7 @@ export const BookingSummary = z.object({
   source: BookingSourceEnum,
   finalTotalKobo: z.number().int(),
   balanceKobo: z.number().int().nullable(),
+  holdUntil: z.string().nullable(),
 });
 export type BookingSummary = z.infer<typeof BookingSummary>;
 
