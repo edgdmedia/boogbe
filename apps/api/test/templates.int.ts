@@ -28,7 +28,7 @@ describe('templates [MSG-01 MSG-02]', () => {
     admin = (await signInAs(t, 'admin', orgId)).agent;
   });
 
-  it('lists the six defaults on first use', async () => {
+  it('lists every default on first use, including the website request emails', async () => {
     const r = (await admin.get('/v1/templates').expect(200)).body.items;
     expect(r.map((x: { key: string }) => x.key)).toEqual([
       'booking_confirmation',
@@ -37,9 +37,11 @@ describe('templates [MSG-01 MSG-02]', () => {
       'pre_arrival_reminder',
       'post_checkout_thanks',
       'deposit_returned',
+      'website_request_received',
+      'website_request_closed',
     ]);
     // Listing twice doesn't duplicate the defaults.
-    expect((await admin.get('/v1/templates').expect(200)).body.items).toHaveLength(6);
+    expect((await admin.get('/v1/templates').expect(200)).body.items).toHaveLength(8);
   });
 
   it('rejects unknown placeholders and saves valid edits', async () => {

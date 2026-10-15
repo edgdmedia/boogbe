@@ -186,6 +186,11 @@ describe('bookings [BKG-01..06 BKG-12 BKG-13]', () => {
       .expect(201);
     const all = (await fd.get('/v1/bookings').expect(200)).body.items;
     expect(all.map((b: { ref: string }) => b.ref.slice(-4))).toEqual(['0002', '0001']);
+    // List rows carry the hold so the front desk can show countdowns without a detail fetch per row (WB).
+    const [confirmed, tentative] = all as { status: string; holdUntil: string | null }[];
+    expect(confirmed!.holdUntil).toBeNull();
+    expect(tentative!.status).toBe('tentative');
+    expect(new Date(tentative!.holdUntil!).getTime()).toBeGreaterThan(Date.now());
     expect((await fd.get('/v1/bookings?status=confirmed').expect(200)).body.items).toHaveLength(1);
     expect((await fd.get('/v1/bookings?source=whatsapp').expect(200)).body.items).toHaveLength(1);
     expect((await fd.get('/v1/bookings?from=2026-11-30&to=2026-12-31').expect(200)).body.items).toHaveLength(

@@ -37,4 +37,16 @@ export const DEFAULT_TEMPLATES: Record<TemplateKey, { emailSubject: string; emai
     whatsappBody: 'Hi {{guest.firstName}}, we have returned your caution deposit for {{booking.ref}}. – {{operator.name}}',
     autoEmail: true,
   },
+  website_request_received: {
+    emailSubject: 'We received your request – {{booking.ref}}',
+    emailBody: 'Hi {{guest.firstName}},\n\nThank you for your booking request.\n\n**{{unit.name}}**, {{property.name}}\n{{booking.checkIn}} – {{booking.checkOut}} ({{booking.nights}} nights, {{booking.guests}} guests)\n\nQuoted total: {{money.total}}\nRefundable caution deposit: {{money.deposit}}\n\nWe are holding these dates for you until {{booking.holdUntil}} while we confirm. We will contact you with payment details.\n\nReference: **{{booking.ref}}**\n\nQuestions? Call or WhatsApp {{operator.phone}}.\n\n{{operator.name}}',
+    whatsappBody: 'Hi {{guest.firstName}}, we received your request for {{unit.name}} ({{booking.checkIn}} – {{booking.checkOut}}). Ref {{booking.ref}}. Dates held until {{booking.holdUntil}}. – {{operator.name}}',
+    autoEmail: true,
+  },
+  website_request_closed: {
+    emailSubject: 'About your request – {{booking.ref}}',
+    emailBody: 'Hi {{guest.firstName}},\n\nWe could not confirm your request for {{unit.name}} ({{booking.checkIn}} – {{booking.checkOut}}), so the dates have been released.\n\nYou are welcome to choose other dates on our website: {{operator.website}}\n\nOr call or WhatsApp {{operator.phone}} and we will help.\n\n{{operator.name}}',
+    whatsappBody: 'Hi {{guest.firstName}}, we could not confirm your request {{booking.ref}} for {{unit.name}}. Call or WhatsApp {{operator.phone}} and we will help with other dates. – {{operator.name}}',
+    autoEmail: true,
+  },
 };

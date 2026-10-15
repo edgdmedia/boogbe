@@ -17,6 +17,7 @@ export * from './domain/booking-status';
 export * from './domain/phone';
 export * from './contracts/guests';
 export * from './contracts/bookings';
+export * from './contracts/public';
 export * from './contracts/notifications';
 export * from './contracts/audit';
 export * from './domain/ledger';

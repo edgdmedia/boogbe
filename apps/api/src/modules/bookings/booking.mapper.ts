@@ -76,5 +76,6 @@ export function toSummary(b: Booking): BookingSummary {
     source: b.source,
     finalTotalKobo: b.finalTotalKobo,
     balanceKobo: b.balanceKobo,
+    holdUntil: b.holdUntil,
   };
 }

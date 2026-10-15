@@ -16,6 +16,10 @@ export const ERROR_CODES = [
   'ICAL_OVERLAP',
   'CAPACITY_EXCEEDED',
   'UNSUPPORTED_MEDIA_TYPE',
+  'UNAVAILABLE',
+  'VERIFICATION_FAILED',
+  'TOO_MANY_GUESTS',
+  'INVALID_DATES',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 export interface ApiErrorBody {
