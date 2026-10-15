@@ -37,7 +37,9 @@ export class ResendMailer implements Mailer {
     this.client = new Resend(apiKey);
   }
   async send(m: MailMessage): Promise<MailResult> {
-    const from = m.fromName ? `${m.fromName} via Boogbe <${this.from.match(/<(.+)>/)?.[1] ?? this.from}>` : this.from;
+    const from = m.fromName
+      ? `${m.fromName} via Boogbe <${this.from.match(/<(.+)>/)?.[1] ?? this.from}>`
+      : this.from;
     const { data, error } = await this.client.emails.send(
       {
         from,

@@ -23,12 +23,18 @@ async function worker(mailer?: MemoryMailer) {
   if (mailer) b.overrideProvider(MAILER).useValue(mailer);
   const mod = await b.compile();
   await mod.init();
-  return { job: mod.get(MessageDispatchJob), mailer: mod.get<MemoryMailer>(MAILER), close: () => mod.close() };
+  return {
+    job: mod.get(MessageDispatchJob),
+    mailer: mod.get<MemoryMailer>(MAILER),
+    close: () => mod.close(),
+  };
 }
 
 async function outboxRows() {
   const m = await migratorClient();
-  const { rows } = await m.query(`select status, attempts, error, provider_id, sent_at from outbound_message`);
+  const { rows } = await m.query(
+    `select status, attempts, error, provider_id, sent_at from outbound_message`,
+  );
   await m.end();
   return rows;
 }
@@ -60,7 +66,10 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
     await m.query(`update organization set "contactEmail"='hello@tanuhomes.com' where id=$1`, [orgId]);
     await m.end();
     unitId = await seedUnit(orgId, await seedProperty(orgId));
-    bookingId = await seedBooking(orgId, unitId, await seedGuest(orgId), { checkIn: '2026-11-01', checkOut: '2026-11-03' });
+    bookingId = await seedBooking(orgId, unitId, await seedGuest(orgId), {
+      checkIn: '2026-11-01',
+      checkOut: '2026-11-03',
+    });
   });
   const queue = (extra: { dedupeKey?: string; paymentId?: string; bookingId?: string } = {}) =>
     t.app.get(OrgDb).run(orgId, (tx) =>
@@ -105,7 +114,9 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
     expect(m.html).toBe(
       '<p>Hello <strong>**Boss** [win](https://evil.example.com)</strong>, see <a href="https://maps.example.com">the map</a></p>',
     );
-    expect(m.text).toBe('Hello **Boss** [win](https://evil.example.com), see the map (https://maps.example.com)');
+    expect(m.text).toBe(
+      'Hello **Boss** [win](https://evil.example.com), see the map (https://maps.example.com)',
+    );
   });
 
   it('dedupe key prevents a second queue', async () => {
@@ -132,8 +143,15 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
       await w.job.run();
     }
     await m.end();
-    expect((await outboxRows())[0]).toMatchObject({ status: 'failed', attempts: 3, error: 'simulated outage' });
-    const items = (await admin.agent.get('/v1/notifications').expect(200)).body.items as { kind: string; link: string }[];
+    expect((await outboxRows())[0]).toMatchObject({
+      status: 'failed',
+      attempts: 3,
+      error: 'simulated outage',
+    });
+    const items = (await admin.agent.get('/v1/notifications').expect(200)).body.items as {
+      kind: string;
+      link: string;
+    }[];
     expect(items.find((n) => n.kind === 'message_failed')).toMatchObject({ link: `/bookings/${bookingId}` });
   });
 
@@ -224,7 +242,9 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
     } finally {
       busy.mockRestore();
     }
-    const { rows } = await m.query(`select status, error, extract(epoch from next_attempt_at - now()) as wait_s from outbound_message`);
+    const { rows } = await m.query(
+      `select status, error, extract(epoch from next_attempt_at - now()) as wait_s from outbound_message`,
+    );
     await m.end();
     expect(rows[0]).toMatchObject({ status: 'queued', error: null });
     expect(Number(rows[0].wait_s)).toBeGreaterThan(300); // still the 10-minute claim lease
@@ -275,7 +295,14 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
     const id = (
       await fd
         .post('/v1/bookings')
-        .send({ unitId, guestId, checkIn: '2026-12-01', checkOut: '2026-12-03', guestCount: 1, source: 'whatsapp' })
+        .send({
+          unitId,
+          guestId,
+          checkIn: '2026-12-01',
+          checkOut: '2026-12-03',
+          guestCount: 1,
+          source: 'whatsapp',
+        })
         .expect(201)
     ).body.id;
     const paid = (
@@ -307,7 +334,12 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
     const winnerMayCommit = new Promise<void>((r) => (releaseWinner = r));
     const inserted = new Promise<void>((r) => (winnerInserted = r));
     const winner = orgDb.run(orgId, async (tx) => {
-      const r = await outbox.queueEmail(tx, { to: 'ada@example.ng', subject: 'Hi', bodyMarkdown: 'x', dedupeKey: 'race' });
+      const r = await outbox.queueEmail(tx, {
+        to: 'ada@example.ng',
+        subject: 'Hi',
+        bodyMarkdown: 'x',
+        dedupeKey: 'race',
+      });
       winnerInserted();
       await winnerMayCommit;
       return r;
@@ -317,7 +349,12 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
       // Pre-check sees nothing: the winner hasn't committed yet.
       expect(await tx.outboundMessage.findFirst({ where: { dedupeKey: 'race' } })).toBeNull();
       setTimeout(releaseWinner, 200); // the loser's insert blocks on the index until the winner commits
-      const r = await outbox.queueEmail(tx, { to: 'ada@example.ng', subject: 'Hi', bodyMarkdown: 'x', dedupeKey: 'race' });
+      const r = await outbox.queueEmail(tx, {
+        to: 'ada@example.ng',
+        subject: 'Hi',
+        bodyMarkdown: 'x',
+        dedupeKey: 'race',
+      });
       // Postgres refuses any statement in an aborted transaction; this proves the savepoint kept it usable.
       await tx.$queryRaw`select 1`;
       return r;
@@ -334,7 +371,14 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
     const id = (
       await fd
         .post('/v1/bookings')
-        .send({ unitId, guestId, checkIn: '2026-12-01', checkOut: '2026-12-03', guestCount: 1, source: 'whatsapp' })
+        .send({
+          unitId,
+          guestId,
+          checkIn: '2026-12-01',
+          checkOut: '2026-12-03',
+          guestCount: 1,
+          source: 'whatsapp',
+        })
         .expect(201)
     ).body.id;
     const paid = (
@@ -370,9 +414,15 @@ describe('outbox without a real mailer [MSG-03]', () => {
     await t.app
       .get(OrgDb)
       .run(orgId, (tx) =>
-        t.app.get(OutboxService).queueEmail(tx, { to: 'ada@example.ng', subject: 'Hi', bodyMarkdown: 'Hello' }),
+        t.app
+          .get(OutboxService)
+          .queueEmail(tx, { to: 'ada@example.ng', subject: 'Hi', bodyMarkdown: 'Hello' }),
       );
     await w.job.run();
-    expect((await outboxRows())[0]).toMatchObject({ status: 'skipped_no_mailer', provider_id: null, sent_at: null });
+    expect((await outboxRows())[0]).toMatchObject({
+      status: 'skipped_no_mailer',
+      provider_id: null,
+      sent_at: null,
+    });
   });
 });

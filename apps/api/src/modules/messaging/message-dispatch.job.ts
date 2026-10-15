@@ -41,7 +41,9 @@ export class MessageDispatchJob {
   }
 
   async run() {
-    const claimed = await this.prisma.$queryRaw<{ id: string; org_id: string }[]>`SELECT * FROM claim_outbound(${BATCH}::int)`;
+    const claimed = await this.prisma.$queryRaw<
+      { id: string; org_id: string }[]
+    >`SELECT * FROM claim_outbound(${BATCH}::int)`;
     for (const c of claimed) await this.sendOne(c.org_id, c.id);
   }
 
@@ -51,7 +53,8 @@ export class MessageDispatchJob {
     let r: { id: string | null };
     try {
       const org = await this.orgInfo.get(orgId);
-      const attachments = msg.paymentId && this.mailer.delivers ? await this.receipt(orgId, msg.paymentId, id) : undefined;
+      const attachments =
+        msg.paymentId && this.mailer.delivers ? await this.receipt(orgId, msg.paymentId, id) : undefined;
       r = await withTimeout(
         this.mailer.send({
           to: msg.recipient,
@@ -68,7 +71,9 @@ export class MessageDispatchJob {
     } catch (e) {
       if (e instanceof MailInFlightError) {
         // An earlier attempt with this key is still with the provider: leave the row to its lease and look again then.
-        this.log.warn(`message ${id}: an earlier send is still in progress; will check again after the lease`);
+        this.log.warn(
+          `message ${id}: an earlier send is still in progress; will check again after the lease`,
+        );
         return;
       }
       await this.recordFailure(orgId, msg, e);
@@ -82,7 +87,9 @@ export class MessageDispatchJob {
       : { status: 'skipped_no_mailer', error: null };
     try {
       // `status: 'queued'`: a later tick that re-claimed this row may already have recorded it.
-      await this.orgDb.run(orgId, (tx) => tx.outboundMessage.updateMany({ where: { id, status: 'queued' }, data }));
+      await this.orgDb.run(orgId, (tx) =>
+        tx.outboundMessage.updateMany({ where: { id, status: 'queued' }, data }),
+      );
     } catch (e) {
       this.log.error(`message ${id} was handed to the mailer but its result was not recorded: ${String(e)}`);
     }
@@ -94,7 +101,9 @@ export class MessageDispatchJob {
       const r = await this.payments.receiptForOrg(orgId, paymentId);
       return [{ filename: r.filename, content: r.pdf }];
     } catch (e) {
-      this.log.warn(`message ${id}: receipt for payment ${paymentId} unavailable, sending without it: ${String(e)}`);
+      this.log.warn(
+        `message ${id}: receipt for payment ${paymentId} unavailable, sending without it: ${String(e)}`,
+      );
       return undefined;
     }
   }
@@ -108,7 +117,10 @@ export class MessageDispatchJob {
     const error = (e instanceof Error ? e.message : String(e)).slice(0, 500);
     await this.orgDb.run(orgId, async (tx) => {
       if (msg.attempts >= MAX_ATTEMPTS) {
-        const { count } = await tx.outboundMessage.updateMany({ where: { id, status: 'queued' }, data: { status: 'failed', error } });
+        const { count } = await tx.outboundMessage.updateMany({
+          where: { id, status: 'queued' },
+          data: { status: 'failed', error },
+        });
         if (!count) return; // another tick already recorded this message
         await this.notifications.notifyRoles(tx, orgId, ['admin', 'frontdesk'], {
           kind: 'message_failed',

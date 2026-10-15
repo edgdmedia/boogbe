@@ -17,14 +17,16 @@ export interface QueueEmail {
   actorMemberId?: string | null;
 }
 
-const toText = (md: string) => md.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\[([^\]\n]+)\]\((https:[^)\s]+)\)/g, '$1 ($2)');
+const toText = (md: string) =>
+  md.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\[([^\]\n]+)\]\((https:[^)\s]+)\)/g, '$1 ($2)');
 
 /** Transactional email goes through this table; MessageDispatchJob sends it. Queue inside the caller's transaction. */
 @Injectable()
 export class OutboxService {
   /** Null when `dedupeKey` was already queued for this org. */
   async queueEmail(tx: OrgTx, m: QueueEmail): Promise<{ id: string } | null> {
-    if (m.dedupeKey && (await tx.outboundMessage.findFirst({ where: { dedupeKey: m.dedupeKey } }))) return null;
+    if (m.dedupeKey && (await tx.outboundMessage.findFirst({ where: { dedupeKey: m.dedupeKey } })))
+      return null;
     const id = newId();
     // Strip the template's own Markdown first, then fill values, so values reach the text part untouched.
     const bodyText = m.vars ? render(toText(m.bodyMarkdown), m.vars) : toText(m.bodyMarkdown);
@@ -61,7 +63,13 @@ export class OutboxService {
 
   async logWhatsapp(
     tx: OrgTx,
-    m: { bookingId: string; templateKey: TemplateKey; to: string; text: string; actorMemberId: string | null },
+    m: {
+      bookingId: string;
+      templateKey: TemplateKey;
+      to: string;
+      text: string;
+      actorMemberId: string | null;
+    },
   ) {
     await tx.outboundMessage.create({
       data: {

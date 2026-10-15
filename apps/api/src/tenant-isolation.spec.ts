@@ -32,7 +32,9 @@ function files(dir: string, pred: (f: string) => boolean): string[] {
 
 function methods(src: string) {
   const out: { name: string; args: string; body: string }[] = [];
-  for (const m of src.matchAll(/ {2}(?:private |protected |public )?async (\w+)\(([\s\S]*?)\)\s*(?::[^{]*)?\{/g)) {
+  for (const m of src.matchAll(
+    / {2}(?:private |protected |public )?async (\w+)\(([\s\S]*?)\)\s*(?::[^{]*)?\{/g,
+  )) {
     let depth = 0;
     let body = '';
     for (let i = m.index! + m[0].length - 1; i < src.length; i++) {
@@ -77,8 +79,10 @@ describe('tenant isolation (static)', () => {
     const sample = `
   async ok(orgId: string, id: string) { return x({ where: { id, orgId } }); }
   async leaky(orgId: string, id: string) { return x({ where: { id } }); }`;
-    expect(methods(sample).filter((m) => m.args.includes('orgId') && !/\borgId\b/.test(m.body)).map((m) => m.name)).toEqual(
-      ['leaky'],
-    );
+    expect(
+      methods(sample)
+        .filter((m) => m.args.includes('orgId') && !/\borgId\b/.test(m.body))
+        .map((m) => m.name),
+    ).toEqual(['leaky']);
   });
 });

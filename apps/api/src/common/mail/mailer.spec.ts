@@ -18,12 +18,18 @@ describe('ResendMailer', () => {
   });
 
   it('a key Resend already accepted (409 invalid_idempotent_request) counts as delivered, not failed', async () => {
-    const { m } = mailer({ data: null, error: { name: 'invalid_idempotent_request', message: 'payload changed' } });
+    const { m } = mailer({
+      data: null,
+      error: { name: 'invalid_idempotent_request', message: 'payload changed' },
+    });
     expect(await m.send(MSG)).toEqual({ id: null, alreadyAccepted: true });
   });
 
   it('a send still in flight with the same key (409 concurrent_idempotent_requests) is neither sent nor failed', async () => {
-    const { m } = mailer({ data: null, error: { name: 'concurrent_idempotent_requests', message: 'in progress' } });
+    const { m } = mailer({
+      data: null,
+      error: { name: 'concurrent_idempotent_requests', message: 'in progress' },
+    });
     await expect(m.send(MSG)).rejects.toBeInstanceOf(MailInFlightError);
   });
 
