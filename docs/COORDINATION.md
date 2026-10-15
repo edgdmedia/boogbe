@@ -1,6 +1,6 @@
 # Boogbe — Agent Coordination
 
-Two AI builders work on this repo: **Claude Code** (`claude`) and **OpenCode** (`opencode`). The human owner (EDGD Media) approves plans and merges to `main`.
+**One builder** works on this repo: **Claude Code** (`claude`). OpenCode stopped building on 2026-10-15 (owner decision); rows marked `opencode` are history. The human owner (EDGD Media) approves plans and merges only `dev` → `main` releases.
 
 ## Ground rules
 
@@ -14,8 +14,8 @@ Two AI builders work on this repo: **Claude Code** (`claude`) and **OpenCode** (
    | `packages/shared/src/permissions.ts`, `errors.ts`, `enums.ts` | Append-only during parallel work; no renames. |
    | `AGENTS.md`, `docs/*.md` | Edit via small PRs; never in a feature branch unless the task says so. |
 4. **Merge order:** API task → contract on `dev` → UI task rebases onto it.
-5. **PR review:** each PR is reviewed by the *other* agent (superpowers `requesting-code-review` / `receiving-code-review`) before the owner merges. Reviewer checks FRD AC coverage, tenant isolation, tests.
-6. **Merge check:** before merging, confirm the PR number, task ID and branch all match the board row, and that the PR has an approving review from the other builder. Mismatch → don't merge, ask. Both builders push as the same GitHub account, so GitHub's "Approve" button is unavailable: a review comment from the other builder that says **"Approved"** and names the task ID counts as the approval.
+5. **PR review:** each PR is reviewed by a **fresh reviewer subagent** (superpowers `requesting-code-review`) that gets only the task, plan/spec and git range, never the builder's session. Reviewer checks plan/FRD coverage, tenant isolation, tests. The builder fixes every Critical and Important finding (or records why it pushes back) and posts the review outcome as a PR comment.
+6. **Merge check:** the builder merges to `dev` itself once (a) the PR number, task ID and branch match the board row, (b) the full gate (`pnpm typecheck && pnpm lint && pnpm test && pnpm test:int`) is green on the branch rebased onto current `dev`, and (c) the review's Critical/Important findings are fixed. Mismatch → don't merge, ask. The owner merges only `dev` → `main` releases.
 7. **Done** = PR merged into `dev` and the task row set to `done` with the PR link.
 8. **Blocked?** Set `Status: blocked`, write why in Notes, and pick another unblocked task.
 9. Never force-push shared branches. Never rewrite `dev`/`main` history.
@@ -101,9 +101,9 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-WB-03 | Settings + unit `publicListed` API **and their contract fields** (moved from T-WB-02); `createIn` with nullable actor; real `booking.holdUntil`/`operator.website` vars | api | T-WB-01, T-WB-02 |  | todo |  | Plan Task 3. suggested: claude. T-WB-06 stubs the settings/unit fields until this merges |
 | T-WB-04 | Public read API: resolver, CORS, units, availability, quote | api | T-WB-03 |  | todo |  | Plan Task 4. suggested: claude |
 | T-WB-05 | Public request API: Turnstile, hold, notification, emails | api | T-WB-04 |  | todo |  | Plan Task 5. suggested: claude |
-| T-WB-06 | App: Settings → Online booking, unit "Show on website" | ui | T-WB-02 (stub); merge after T-WB-03 |  | todo |  | Plan Task 6. suggested: opencode |
-| T-WB-07 | App: Website badge, hold countdown, requests card, Decline (via `POST /v1/bookings/:id/cancel`) | ui | T-WB-02 (stub); merge after T-WB-05 |  | todo |  | Plan Task 7. suggested: opencode |
-| T-WB-08 | Tanuhomes site booking widget (tanuhomes repo) | site | T-WB-04 on staging |  | todo |  | Plan Task 8. suggested: opencode |
+| T-WB-06 | App: Settings → Online booking, unit "Show on website" | ui | T-WB-02 (stub); merge after T-WB-03 |  | todo |  | Plan Task 6. suggested: claude (reassigned from opencode, 2026-10-15) |
+| T-WB-07 | App: Website badge, hold countdown, requests card, Decline (via `POST /v1/bookings/:id/cancel`) | ui | T-WB-02 (stub); merge after T-WB-05 |  | todo |  | Plan Task 7. suggested: claude (reassigned from opencode, 2026-10-15) |
+| T-WB-08 | Tanuhomes site booking widget (tanuhomes repo, branch `boogbe-widget` off `main`; PR to `main`, not merged or deployed by the builder) | site | T-WB-04 |  | todo |  | Plan Task 8. suggested: claude (reassigned from opencode, 2026-10-15) |
 | T-WB-09 | Staging verification and Alaska-first rollout | infra | all WB |  | todo |  | Plan Task 9. planner + owner |
 | T-M6-01 | Turnover due-time rule and task contracts | domain | M2 | claude | done | [#51](https://github.com/edgdmedia/boogbe/pull/51) | Approved T-M6-01 by opencode; rebased over index.ts, merged |
 | T-M7-02 | Expense, statement and owner portal contracts | domain | T-M7-01 (plan order only; no code dependency) | claude | done | [#53](https://github.com/edgdmedia/boogbe/pull/53) | Approved T-M7-02 by opencode; index conflict with #49/#51 resolved keeping both; shared 188; merged |
