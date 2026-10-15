@@ -28,7 +28,7 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 ## Tenant tables (RLS)
 
 ### Settings & counters
-**`org_settings`** (1 row per org): `check_in_time` (`time`, 14:00), `check_out_time` (12:00), `hold_hours` (24), `auto_confirm_on_payment` (true), `owner_sees_guest_names` (false), `receipt_prefix`, `statement_prefix`, `booking_prefix`.
+**`org_settings`** (1 row per org): `check_in_time` (`time`, 14:00), `check_out_time` (12:00), `hold_hours` (24), `auto_confirm_on_payment` (true), `owner_sees_guest_names` (false), `receipt_prefix`, `statement_prefix`, `booking_prefix`, `logo_key`; online booking: `public_enabled` (false), `public_hold_minutes` (120, CHECK 15–1440), `public_origins` (`text[]`, exact origins allowed by CORS on public routes), `public_site_url` (null), `notify_emails` (`text[]`, extra team recipients for website requests). Public routes resolve an org by slug via the `SECURITY DEFINER` function `public_org_lookup(slug) returns (org_id, timezone, public_origins, public_hold_minutes)` — only active orgs with `public_enabled`.
 
 **`org_counter`**: `(org_id, name)` PK; `value bigint`. Names: `receipt`, `statement`, `booking`.
 
@@ -37,7 +37,7 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 
 **`property`**: `id, org_id, name, address, area, default_owner_id (nullable → owner), fee_type (pct_gross|pct_net|none), fee_bps, fee_fixed_monthly_kobo, notes, active, sort_order`.
 
-**`unit`**: `id, org_id, property_id, name, bedrooms, max_guests, nightly_rate_kobo, default_assignee_member_id (nullable), check_in_instructions (text), owner_follows_property (bool, default true — the unit's owner tracks the property's default owner), fee_override (boolean), fee_type, fee_bps, fee_fixed_monthly_kobo (used only when fee_override), active, sort_order`. Unique `(org_id, property_id, name)`.
+**`unit`**: `id, org_id, property_id, name, bedrooms, max_guests, nightly_rate_kobo, default_assignee_member_id (nullable), check_in_instructions (text), owner_follows_property (bool, default true — the unit's owner tracks the property's default owner), fee_override (boolean), fee_type, fee_bps, fee_fixed_monthly_kobo (used only when fee_override), active, public_listed (bool, default false — shown on the operator website), sort_order`. Unique `(org_id, property_id, name)`.
 
 **`unit_ownership`** (effective-dated, OWN-07): `id, org_id, unit_id, owner_id (nullable = operator-owned), effective_from date, effective_to date null`. Exclusion constraint: no overlapping ranges per unit. The "current" owner shown in UI = row covering today; when a property's default owner changes, rows for units without their own override are closed and reopened.
 
@@ -48,7 +48,7 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 ### Guests & bookings
 **`guest`**: `id, org_id, full_name, phone_e164, email null, notes, anonymised_at null`. Indexes: `(org_id, phone_e164)`, `(org_id, lower(email))`, trigram on `full_name` (`pg_trgm`).
 
-**`booking`**: `id, org_id, ref (unique per org), unit_id, guest_id, check_in date, check_out date, guest_count int, source (whatsapp|phone|walk_in|direct|airbnb|booking_com|other), status (tentative|confirmed|checked_in|checked_out|cancelled|no_show), hold_until timestamptz null, computed_total_kobo, final_total_kobo, deposit_kobo, override_reason null, capacity_override_reason null, price_stale bool (dates/unit changed without repricing), ical_warning_ack bool, notes, cancelled_at, cancel_reason, checked_in_at, checked_out_at, created_by_member_id`.
+**`booking`**: `id, org_id, ref (unique per org), unit_id, guest_id, check_in date, check_out date, guest_count int, source (whatsapp|phone|walk_in|direct|airbnb|booking_com|website|other), status (tentative|confirmed|checked_in|checked_out|cancelled|no_show), hold_until timestamptz null, computed_total_kobo, final_total_kobo, deposit_kobo, override_reason null, capacity_override_reason null, price_stale bool (dates/unit changed without repricing), ical_warning_ack bool, notes, cancelled_at, cancel_reason, checked_in_at, checked_out_at, created_by_member_id`.
 Constraints:
 ```sql
 CHECK (check_out > check_in)
