@@ -24,7 +24,8 @@ describe('0008 public booking schema', () => {
   const orgWithSettings = async () => {
     const org = await seedOrg();
     await m.query(
-      `insert into org_settings(org_id, receipt_prefix, statement_prefix, booking_prefix, updated_at) values ($1,'T','T','T',now())`,
+      `insert into org_settings(org_id, receipt_prefix, statement_prefix, booking_prefix, updated_at) values ($1,'T','T','T',now())
+       on conflict (org_id) do nothing`,
       [org.id],
     );
     return org;
@@ -73,7 +74,18 @@ describe('0008 public booking schema', () => {
       { org_id: org.id, timezone: 'Africa/Lagos', public_origins: ['https://tanuhomes.com'], public_hold_minutes: 120 },
     ]);
     expect((await app.query('select * from public_org_lookup($1)', ['no-such-org'])).rows).toEqual([]);
+    await m.query(`update org_settings set public_enabled=false where org_id=$1`, [org.id]);
+    expect((await app.query('select * from public_org_lookup($1)', [org.slug])).rows).toEqual([]);
+    await m.query(`update org_settings set public_enabled=true where org_id=$1`, [org.id]);
     await m.query(`update organization set status='suspended' where id=$1`, [org.id]);
     expect((await app.query('select * from public_org_lookup($1)', [org.slug])).rows).toEqual([]);
+  });
+
+  it('only the app role may execute the lookup', async () => {
+    const priv = await m.query(
+      `select has_function_privilege('public', 'public_org_lookup(text)', 'execute') as anyone,
+              has_function_privilege('boogbe_app', 'public_org_lookup(text)', 'execute') as app`,
+    );
+    expect(priv.rows[0]).toEqual({ anyone: false, app: true });
   });
 });
