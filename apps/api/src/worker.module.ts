@@ -14,6 +14,7 @@ import { BookingHoldsJob } from './modules/bookings/booking-holds.job';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { IcalModule } from './modules/ical/ical.module';
 import { MessagingModule } from './modules/messaging/messaging.module';
+import { WebsiteEmailsModule } from './modules/public/website-emails.service';
 import { IcalImportJob } from './modules/ical/ical-import.job';
 import { MessageDispatchJob } from './modules/messaging/message-dispatch.job';
 
@@ -34,6 +35,7 @@ import { MessageDispatchJob } from './modules/messaging/message-dispatch.job';
     PaymentsModule,
     IcalModule,
     MessagingModule,
+    WebsiteEmailsModule, // website guest emails on hold expiry (booking-holds.job runs here)
   ],
   // Crons live only here (D-019): the API process never runs jobs.
   providers: [BookingHoldsJob, IcalImportJob, MessageDispatchJob],

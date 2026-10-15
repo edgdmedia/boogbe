@@ -41,6 +41,8 @@ const schema = z
     R2_BUCKET: blankIsUnset(z.string().optional()),
     R2_ACCESS_KEY_ID: blankIsUnset(z.string().optional()),
     R2_SECRET_ACCESS_KEY: blankIsUnset(z.string().optional()),
+    // Cloudflare Turnstile secret for public booking requests (WB). Unset: requests fail closed (VERIFICATION_FAILED).
+    TURNSTILE_SECRET_KEY: blankIsUnset(z.string().optional()),
   })
   .superRefine((env, ctx) => {
     // A copied .env.example would sign production sessions with a public secret.
@@ -57,6 +59,10 @@ const schema = z
       (!env.API_PUBLIC_ORIGIN.startsWith('https://') || new URL(env.API_PUBLIC_ORIGIN).origin !== env.API_PUBLIC_ORIGIN)
     ) {
       ctx.addIssue({ code: 'custom', path: ['API_PUBLIC_ORIGIN'], message: 'https origin required in production' });
+    }
+    // Cloudflare's dummy Turnstile secrets accept a public dummy token: in production that would verify anyone.
+    if (env.NODE_ENV === 'production' && env.TURNSTILE_SECRET_KEY && /^[123]x0{30,}AA$/.test(env.TURNSTILE_SECRET_KEY)) {
+      ctx.addIssue({ code: 'custom', path: ['TURNSTILE_SECRET_KEY'], message: 'Turnstile test secret in production' });
     }
     if (env.NODE_ENV === 'production' && /change-me/i.test(env.BETTER_AUTH_SECRET)) {
       ctx.addIssue({ code: 'custom', path: ['BETTER_AUTH_SECRET'], message: 'placeholder secret' });
