@@ -136,3 +136,19 @@ M0 ─► M1 ─► M2 ─┬─► M3 ─┬─► M4 (Tanuhomes go-live) ─�
 | T-M8-06 Automated restore check | infra | OpenCode | M7 |
 | T-M8-07 Security review document | docs | Claude Code | T-M8-02, T-M8-03 |
 | T-M8-08 Second operator onboarding (exit) | ops | Claude Code + owner | all |
+
+## WB — Website booking requests (Stage 1 of online booking)  ·  [`WB-website-booking.md`](WB-website-booking.md)
+
+Spec: `docs/superpowers/specs/2026-10-15-public-booking-requests-design.md`. Starts after T-M5-03/T-M5-04 merge; T-M5-05…07 stay paused until WB is live.
+
+| Task | Track | Agent | Depends on |
+|---|---|---|---|
+| T-WB-01 Migration 0008: public flags, settings, `website` source, `public_org_lookup()` | schema | claude | M5-04 merged |
+| T-WB-02 Shared: source, errors, notification kind, public contracts, templates | domain, contract | claude | — |
+| T-WB-03 Settings + unit `publicListed` API; `createIn` with nullable actor | api | claude | 01, 02 |
+| T-WB-04 Public read API: resolver, CORS, units, availability, quote | api | claude | 03 |
+| T-WB-05 Public request API: Turnstile, hold, notification, emails | api | claude | 04 |
+| T-WB-06 App: Settings → Online booking, unit "Show on website" | ui | opencode | 02 (stub), merge after 03 |
+| T-WB-07 App: Website badge, hold countdown, requests card, Decline | ui | opencode | 02 (stub), merge after 05 |
+| T-WB-08 Tanuhomes site booking widget (tanuhomes repo) | site | opencode | 04 on staging |
+| T-WB-09 Staging verification and Alaska-first rollout | infra | planner + owner | all |
