@@ -61,6 +61,7 @@
 **Files:**
 - Create: `prisma/migrations/0008_public_booking/migration.sql`
 - Modify: `prisma/schema.prisma` (models `Unit`, `OrgSettings`)
+- Modify: `docs/DATA_MODEL.md` (`unit.public_listed`, the five `org_settings` columns, `website` in the booking `source` list, `public_org_lookup()`) — this task says so, so the docs edit belongs in this branch
 - Test: `apps/api/test/public-schema.int.ts`
 
 **Interfaces:**
@@ -183,7 +184,7 @@ Expected: PASS (and `migrations.int.ts` still green — it checks drift between 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add prisma apps/api/test/public-schema.int.ts
+git add prisma docs/DATA_MODEL.md apps/api/test/public-schema.int.ts
 git commit -m "feat(schema): 0008 public booking flags, settings, website source [T-WB-01]"
 ```
 
@@ -211,6 +212,7 @@ git commit -m "feat(schema): 0008 public booking flags, settings, website source
   - From `contracts/public.ts`: `PublicUnit`, `PublicUnitsResponse`, `AvailabilityQuery`, `AvailabilityResponse`, `PublicQuoteQuery`, `PublicQuoteResponse`, `BookingRequestInput`, `BookingRequestResponse`, `MAX_WINDOW_DAYS = 90`, `MAX_NIGHTS = 30`.
   - `OrgSettingsResponse.settings` += `publicEnabled: boolean, publicHoldMinutes: number, publicOrigins: string[], publicSiteUrl: string | null, notifyEmails: string[]`; `UpdateOrgSettingsInput` accepts the same (all optional).
   - Unit response + `UpdateUnitInput` += `publicListed: boolean` (optional on input).
+  - `BookingSummary` += `holdUntil: string | null` (ISO timestamp), so list views can show hold countdowns without per-row detail fetches.
 
 - [ ] **Step 1: Write the failing contract test**
 
@@ -305,6 +307,7 @@ Append-only edits:
 - `contracts/notifications.ts`: append `'website_request'` to `NotificationKind`.
 - `contracts/org.ts`: add to `OrgSettingsResponse.settings`: `publicEnabled: z.boolean(), publicHoldMinutes: z.number().int(), publicOrigins: z.array(z.string()), publicSiteUrl: z.string().nullable(), notifyEmails: z.array(z.string())`. Add to the settings update input: `publicEnabled: z.boolean().optional(), publicHoldMinutes: z.number().int().min(15).max(1440).optional(), publicOrigins: z.array(z.string().url().transform((u) => new URL(u).origin)).max(5).optional(), publicSiteUrl: z.string().url().startsWith('https://').nullable().optional(), notifyEmails: z.array(z.string().email()).max(5).optional()`.
 - `contracts/inventory.ts`: unit response `publicListed: z.boolean()`; unit update input `publicListed: z.boolean().optional()`.
+- `contracts/bookings.ts`: add `holdUntil: z.string().nullable()` to `BookingSummary` (additive).
 - `domain/templates.ts`: append to `TEMPLATE_KEYS` `'website_request_received', 'website_request_closed'`; labels `website_request_received: 'Website request received'`, `website_request_closed: 'Website request not confirmed'`; append `'booking.holdUntil', 'operator.website'` to `PLACEHOLDERS`; `SAMPLE_VARS` add `'booking.holdUntil': '1 Nov 2026, 4:30 pm'`, `'operator.website': 'https://tanuhomes.com'`.
 - `domain/template-defaults.ts`:
 
@@ -357,6 +360,7 @@ git commit -m "feat(shared): website source, public contracts, request templates
   - `create(ctx, input)` becomes `this.orgDb.run(ctx.orgId, (tx) => this.createIn(tx, ctx, { orgId: ctx.orgId, timezone: ctx.timezone }, input))`.
   - `nextRef(tx, timezone: string)` (was `ctx`).
   - `BookingHook.afterCreate?(tx, ctx: OrgCtx | null, booking)`.
+  - `toSummary` (booking.mapper.ts) maps `holdUntil: b.holdUntil ?? null`.
   - `VarsService.forBooking` fills `'booking.holdUntil'` (hold in org timezone, `d MMM yyyy, h:mm a`, `''` when null) and `'operator.website'` (`org_settings.public_site_url ?? ''`).
 
 - [ ] **Step 1: Failing tests**
@@ -506,6 +510,8 @@ Expected: FAIL (unknown fields stripped / `createIn` not a function).
 If `AuditEntry.actor` is typed as `OrgCtx`, widen it to `{ userId: string | null; memberId: string | null }` (columns `actor_user_id`/`actor_member_id` are nullable — the holds job already writes events with no actor; check the `audit_log` DDL and add `DROP NOT NULL` in a follow-up `[schema]` task only if they are not nullable).
 
 Settings: in the org settings service, map the five new fields in the response and accept them in the update (admin-only route is already guarded by the existing `org.settings` permission). Normalise `publicOrigins` via the contract transform (origin only, deduplicate with `[...new Set()]`).
+
+Bookings list: in `booking.mapper.ts` `toSummary`, add `holdUntil: b.holdUntil ?? null` (the full `Booking` already carries it); add an assertion to the existing list test in `bookings.int.ts` that a tentative booking's summary has a non-null `holdUntil` and a confirmed one has `null`.
 
 Units: map `publicListed` in the unit mapper; accept it in `update`; audit as part of the existing unit update audit entry.
 
@@ -1135,6 +1141,8 @@ export class PublicRequestsService implements OnModuleInit {
 ```
 
 Notes for the implementer:
+- Guest lookup by phone fills a missing **email** only; an existing guest's name is never blank, so it is left as the front desk recorded it (spec §5 "name/email only if empty" is satisfied).
+- Reply-To: the T-M5-04 dispatcher already sets `replyTo: org.email` on every outbound email (`message-dispatch.job.ts`), which covers spec §6 — no change here.
 - `Booking.guest.email` / `Booking.source` / `Booking.holdUntil` — use the actual field names from `booking.mapper.ts`; if the mapped guest lacks `email`, read it from `tx.guest`.
 - `orgId` inside `guestEmail`: prefer passing `orgId` as a parameter if `orgSettings` does not expose `orgId` in the mapped type — it does in Prisma (`orgId` is the PK).
 - Make sure the existing `notifyMember` call in `booking-holds.job.ts` is skipped when `created_by_member_id` is null (it already is), so expiry of a website hold notifies nobody in-app; the closed email covers the guest.
@@ -1219,7 +1227,7 @@ it('saves online booking settings', async () => {
 - Modify: `BookingsPage.tsx` (card on top; badge in rows), `BookingDetail.tsx` (badge + countdown), `StatusActions.tsx` (Decline preset), calendar booking chip (badge), notification item icon for `website_request`
 
 **Interfaces:**
-- Consumes: `GET /v1/bookings?source=website&status=tentative&limit=20` (existing list filters), booking `holdUntil`, `source`; existing `POST /v1/bookings/:id/transition` with `{ to: 'confirmed' }` / `{ to: 'cancelled', reason }`.
+- Consumes: `GET /v1/bookings?source=website&status=tentative&limit=20` (existing list filters) whose `BookingSummary` rows carry `holdUntil` (T-WB-02/03); booking `source`; existing `POST /v1/bookings/:id/transition` with `{ to: 'confirmed' }` for Confirm; existing `POST /v1/bookings/:id/cancel` with `CancelBookingInput` `{ reason }` (reason ≥ 3 chars, no refund fields) for Decline — `TransitionInput.to` does not accept `cancelled`. The cancel path calls `transitionIn(…, 'cancelled')`, so T-WB-05's closed-email hook fires.
 
 - [ ] **Step 1: Failing tests**
 
@@ -1257,7 +1265,7 @@ it('renders nothing with no requests', async () => {
   - `HoldCountdown`: re-renders every 30 s; `data-urgent` when < 15 min.
   - `WebsiteRequestsCard`: title "New website requests"; rows show ref, apartment, dates, guest, total and `HoldCountdown`, each linking to `/bookings/:id`. It polls every 60 s, matching how the notifications bell refreshes.
   - "Website" badge wherever a booking source is shown, styled like the other status chips.
-  - Decline in `StatusActions` for `tentative` bookings: a confirm dialog with reasons "Dates not available" / "Could not reach guest" / "Other (type it)" → transition to `cancelled` with that reason. A `409` shows "This request changed. Refresh to see the latest."
+  - Decline in `StatusActions` for `tentative` **website** bookings: reuse the existing cancel dialog path (`POST /v1/bookings/:id/cancel`), opened with preset reasons "Dates not available" / "Could not reach guest" / "Other (type it)" and the refund section hidden (a website request has no payments). A `409` shows "This request changed. Refresh to see the latest."
 
 - [ ] **Step 4: Run** `pnpm --filter @boogbe/app test && typecheck` → PASS.
 
@@ -1410,4 +1418,5 @@ CSS: reuse the existing tokens and `.button` classes in the site stylesheet. The
   - §10 rollout → T-WB-09
   - §11 ownership → agent column
 - **Type consistency:** `createIn(tx, actor, { orgId, timezone }, input, { holdMinutes })` is used the same way in T-WB-03 and T-WB-05. `PublicOrg { orgId, timezone, origins, holdMinutes }` is shared by T-WB-04 and T-WB-05. Template keys and placeholders are defined in T-WB-02 and used in T-WB-03 and T-WB-05.
+- **Review fixes (opencode on #72):** Decline uses the cancel route; `holdUntil` added to `BookingSummary`; DATA_MODEL.md in T-WB-01; Reply-To and guest-name notes in T-WB-05.
 - **Known lookups for implementers:** these names must be confirmed against `dev` (each is flagged inline): the root Prisma provider, the shared zod `parse` helper, the `seedBooking` options, the transition route path, the audit actor type, and `orgStore` export.
