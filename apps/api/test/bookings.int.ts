@@ -311,6 +311,11 @@ describe('bookings [BKG-01..06 BKG-12 BKG-13]', () => {
       });
     });
 
+    it('only ever creates a held website request: no confirmed status, no other source', async () => {
+      await expect(create(stay({ status: 'confirmed' }))).rejects.toMatchObject({ code: 'INTERNAL' });
+      await expect(create(stay({ source: 'whatsapp' }))).rejects.toMatchObject({ code: 'INTERNAL' });
+    });
+
     it('a booking made by staff still records the member', async () => {
       const id = (await fd.post('/v1/bookings').send(body()).expect(201)).body.id;
       const m = await migratorClient();

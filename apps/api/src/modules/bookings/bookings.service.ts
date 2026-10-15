@@ -179,6 +179,7 @@ export class BookingsService {
    * Shared by the app (actor = member) and the public request route (actor = null, WB). With no actor there is
    * no override path: price overrides are refused, capacity is a hard limit, and iCal overlaps are unavailable.
    * `opts.ip` is recorded on the audit entry (public requests pass a hash, never the raw address).
+   * Precondition: `tx` runs under `org.orgId` (from `orgDb.run(org.orgId, …)`); RLS guards every write regardless.
    */
   async createIn(
     tx: OrgTx,
@@ -187,6 +188,9 @@ export class BookingsService {
     input: CreateBookingInput,
     opts: { holdMinutes?: number; ip?: string } = {},
   ): Promise<Booking> {
+    // Without an actor the caller is the public request route: it may only create a held website request.
+    if (!actor && (input.status !== 'tentative' || input.source !== 'website'))
+      throw new AppError('INTERNAL', 500, 'A booking without a member must be a tentative website request');
     if (input.finalTotalKobo !== undefined && !(actor && can(actor.role, 'bookings.override')))
       throw forbidden('You cannot change prices');
     const { unit, fees } = await this.loadPricingInputs(tx, input.unitId);

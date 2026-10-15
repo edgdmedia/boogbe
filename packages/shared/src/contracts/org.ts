@@ -4,6 +4,26 @@ import { E164 } from './common';
 const Time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM (24-hour)');
 const Prefix = z.string().regex(/^[A-Z0-9]{2,6}$/, '2–6 capital letters or digits');
 
+/**
+ * An operator website origin for CORS on public booking routes: https (http only for localhost while developing),
+ * reduced to scheme+host+port. Other schemes give the origin "null", which sandboxed iframes and file:// pages send.
+ */
+const toUrl = (u: string) => {
+  try {
+    return new URL(u);
+  } catch {
+    return null; // zod runs refinements and transforms even after .url() fails
+  }
+};
+const WebsiteOrigin = z
+  .string()
+  .url()
+  .refine((u) => {
+    const x = toUrl(u);
+    return !!x && (x.protocol === 'https:' || (x.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(x.hostname)));
+  }, 'Use your website address, starting with https://')
+  .transform((u) => toUrl(u)?.origin ?? u);
+
 export const OrgSettingsResponse = z.object({
   org: z.object({
     id: z.string(),
@@ -54,7 +74,7 @@ export const UpdateOrgSettingsInput = z
     // Online booking (WB). Origins are stored as bare origins so the CORS check is an exact match.
     publicEnabled: z.boolean().optional(),
     publicHoldMinutes: z.number().int().min(15).max(1440).optional(),
-    publicOrigins: z.array(z.string().url().transform((u) => new URL(u).origin)).max(5).optional(),
+    publicOrigins: z.array(WebsiteOrigin).max(5).optional(),
     publicSiteUrl: z.string().url().startsWith('https://').nullable().optional(),
     notifyEmails: z.array(z.string().email()).max(5).optional(),
   })
