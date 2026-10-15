@@ -11,11 +11,12 @@ import { WorkerModule } from '../src/worker.module';
 
 const soon = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
 let pass = true;
+let hostname = 'tanuhomes.com';
 const seen: { token: string; ip: string | undefined }[] = [];
 const fakeTurnstile = {
   verify: async (token: string, ip: string | undefined) => {
     seen.push({ token, ip });
-    return pass;
+    return { success: pass, hostname };
   },
 };
 // Every request gets its own client IP unless a test pins one: the request throttle (5 / 10 min) is per IP and
@@ -45,6 +46,7 @@ describe('public booking requests [WB]', () => {
     await truncateAll();
     t.app.get(PublicOrgService).clearCache();
     pass = true;
+    hostname = 'tanuhomes.com';
     seen.length = 0;
     const org = await seedOrg('Tanuhomes');
     orgId = org.id;
@@ -82,7 +84,7 @@ describe('public booking requests [WB]', () => {
 
     const [b] = await rows('select id, status, source, hold_until, created_by_member_id, notes from booking where ref=$1', [r.body.ref]);
     expect(b).toMatchObject({ status: 'tentative', source: 'website', created_by_member_id: null });
-    expect(b.notes).toBe('Website request: Arriving **late** [x](https://evil.example)');
+    expect(b.notes).toBe('Website request (email given: ada@example.ng): Arriving **late** [x](https://evil.example)');
     // From the API's ISO timestamp: the column is a naive timestamp, which pg would read in this machine's timezone.
     const hold = new Date(r.body.holdUntil).getTime() - Date.now();
     expect(hold).toBeGreaterThan(119 * 60_000);
@@ -101,6 +103,7 @@ describe('public booking requests [WB]', () => {
     expect(team.body_html).toContain('href="https://wa.me/2348030000000');
     expect(team.body_html).not.toContain('evil.example"'); // guest text never becomes a link
     const guest = mail.find((x) => x.recipient === 'ada@example.ng')!;
+    expect(guest.subject).toBe(`We received your request – ${r.body.ref}`); // placeholders filled in the subject too
     expect(guest.body_html).toMatch(/holding these dates for you until \d{1,2} \w{3,4} \d{4}, \d{1,2}:\d{2} (am|pm)/);
 
     const items = (await admin.agent.get('/v1/notifications').expect(200)).body.items as { kind: string; link: string }[];
@@ -118,14 +121,22 @@ describe('public booking requests [WB]', () => {
     expect(mail.map((x) => x.recipient)).toEqual(['hello@op.ng', 'team@op.ng']);
   });
 
-  it('reuses the guest by phone (filling a missing email), and refuses overlapping nights', async () => {
+  it('reuses the guest by phone without changing their recorded contact details, and refuses overlapping nights', async () => {
+    // A public form must not redirect a known guest's future emails (receipts, check-in codes) to whoever typed their phone.
     await seedGuest(orgId, { fullName: 'Ada (front desk)', phoneE164: '+2348030000000' });
-    expect((await post()).status).toBe(201);
+    const r = await post({ email: 'someone_else@example.ng' });
+    expect(r.status).toBe(201);
     const again = await post({ checkIn: soon(6), checkOut: soon(8) });
     expect(again.status).toBe(409);
     expect(again.body.error.code).toBe('DATES_UNAVAILABLE');
     const guests = await rows('select full_name, email from guest where org_id=$1', [orgId]);
-    expect(guests).toEqual([{ full_name: 'Ada (front desk)', email: 'ada@example.ng' }]);
+    expect(guests).toEqual([{ full_name: 'Ada (front desk)', email: null }]);
+    // The request's own "received" email still goes to the address typed in the form, and the team sees it unaltered.
+    const mail = await rows(`select recipient, template_key, body_text from outbound_message where org_id=$1 order by recipient`, [orgId]);
+    expect(mail.find((x) => x.template_key === 'website_request_received')?.recipient).toBe('someone_else@example.ng');
+    expect(mail.find((x) => x.recipient === 'team@op.ng')?.body_text).toContain('Email: someone_else@example.ng');
+    const [b] = await rows('select notes from booking where ref=$1', [r.body.ref]);
+    expect(b.notes).toContain('someone_else@example.ng');
   });
 
   it('two simultaneous requests for the same nights: exactly one wins', async () => {
@@ -140,6 +151,11 @@ describe('public booking requests [WB]', () => {
     expect(v.status).toBe(400);
     expect(v.body.error.code).toBe('VERIFICATION_FAILED');
     pass = true;
+    hostname = 'evil.example'; // a valid token solved on someone else's site
+    expect((await post()).body.error.code).toBe('VERIFICATION_FAILED');
+    hostname = 'www.tanuhomes.com'; // not one of this operator's listed origins
+    expect((await post()).body.error.code).toBe('VERIFICATION_FAILED');
+    hostname = 'tanuhomes.com';
     expect((await post({ guests: 3 })).body.error.code).toBe('TOO_MANY_GUESTS');
     const other = await seedUnit(orgId, await seedProperty(orgId));
     expect((await post({ unitId: other })).body.error.code).toBe('UNAVAILABLE');
@@ -161,6 +177,7 @@ describe('public booking requests [WB]', () => {
     const r3 = await post({ checkIn: soon(15), checkOut: soon(16), phone: '08033333333', email: 'cy@example.ng' });
     await rows(`update booking set hold_until=now() - interval '1 minute' where ref=$1`, [r1.body.ref]);
     // The holds job runs in the worker process, as in production.
+    const prevDb = process.env.DATABASE_URL;
     process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
     const worker = await Test.createTestingModule({ imports: [WorkerModule] }).compile();
     await worker.init();
@@ -169,6 +186,7 @@ describe('public booking requests [WB]', () => {
       await worker.get(BookingHoldsJob).run(); // a second run must not send the closed email again
     } finally {
       await worker.close();
+      process.env.DATABASE_URL = prevDb;
     }
     const { agent } = await signInAs(t, 'frontdesk', orgId);
     const [{ id: id2 }] = await rows('select id from booking where ref=$1', [r2.body.ref]);

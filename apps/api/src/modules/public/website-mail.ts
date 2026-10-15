@@ -3,11 +3,14 @@ import { waLink } from '@boogbe/shared';
 /** encodeURIComponent leaves ( ) ' ! * alone; a ( or ) in a guest's name would end the Markdown link early. */
 const linkSafe = (url: string) => url.replace(/[()'!*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 
-/** Guest-typed text goes into Markdown: strip anything the renderer would turn into formatting or links. */
+/**
+ * Guest-typed text goes into Markdown: strip what the renderer turns into formatting or links (`**` and
+ * `[text](https://…)`, see markdownToHtml). Underscores and backticks mean nothing to it, so they stay (ada_obi@x.ng).
+ */
 export const plain = (s: string) =>
   s
     .replace(/\[([^\]]*)\]\(([^)]*)\)/g, '$1 ($2)')
-    .replace(/[*_`[\]]/g, '')
+    .replace(/[*[\]]/g, '')
     .replace(/\s*\n\s*/g, ' ')
     .trim();
 
@@ -38,7 +41,7 @@ export function teamEmail(b: TeamEmailBooking, opts: { appOrigin: string }) {
   const lines = [
     'New booking request from the website.',
     `**${plain(b.propertyName)} · ${plain(b.unitName)}**\n${b.checkIn} – ${b.checkOut} (${b.nights} night${b.nights === 1 ? '' : 's'}, ${b.guests} guest${b.guests === 1 ? '' : 's'})\nQuoted total: ${b.total}`,
-    `Guest: ${name}\nPhone: ${b.phone}${b.email ? `\nEmail: ${plain(b.email)}` : ''}${b.note ? `\nNote: ${plain(b.note)}` : ''}`,
+    `Guest: ${name}\nPhone: ${b.phone}${b.email ? `\nEmail: ${b.email}` : ''}${b.note ? `\nNote: ${plain(b.note)}` : ''}`,
     `**Held until ${b.holdUntil}.** Confirm or decline before then, or the dates are released.`,
     `[Confirm in Boogbe](${opts.appOrigin}/bookings/${b.id})`,
     `[WhatsApp the guest](${wa})`,

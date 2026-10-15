@@ -42,7 +42,8 @@ export class OutboxService {
           templateKey: m.templateKey ?? null,
           channel: 'email',
           recipient: m.to,
-          subject: m.subject,
+          // Subjects are plain text: placeholders filled, no Markdown.
+          subject: m.vars ? render(m.subject, m.vars) : m.subject,
           bodyText,
           bodyHtml,
           status: 'queued',

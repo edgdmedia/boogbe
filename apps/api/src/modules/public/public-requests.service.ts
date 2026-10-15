@@ -37,7 +37,10 @@ export class PublicRequestsService {
   async create(slug: string, input: BookingRequestInput, ip: string | undefined) {
     const org: PublicOrg = await this.orgs.resolve(slug);
     if (input.checkIn < todayIn(org.timezone)) throw invalidDates('Dates must be today or later');
-    if (!(await this.turnstile.verify(input.turnstileToken, ip)))
+    const check = await this.turnstile.verify(input.turnstileToken, ip);
+    // A token solved on another site is no proof the guest used this operator's form.
+    const hosts = org.origins.map((o) => new URL(o).hostname);
+    if (!check.success || !check.hostname || !hosts.includes(check.hostname))
       throw new AppError('VERIFICATION_FAILED', 400, 'We could not verify the request. Please try again.');
     return this.orgDb.run(org.orgId, async (tx) => {
       await this.orgs.listedUnit(tx, input.unitId);
@@ -54,12 +57,13 @@ export class PublicRequestsService {
           guestCount: input.guests,
           source: 'website',
           status: 'tentative',
-          notes: input.note ? `Website request: ${input.note}` : 'Website request',
+          notes: [`Website request${input.email ? ` (email given: ${input.email})` : ''}`, input.note].filter(Boolean).join(': '),
         },
         { holdMinutes: org.holdMinutes, ip: ip ? this.ipHash(ip) : undefined },
       );
       await this.notifyTeam(tx, org, b, input);
-      await this.emails.send(tx, b, 'website_request_received', `website_request_received-${b.id}`);
+      // To the address typed in this form, which may not be (and never becomes) the guest's recorded email.
+      if (input.email) await this.emails.send(tx, b, 'website_request_received', `website_request_received-${b.id}`, input.email);
       return { ref: b.ref, holdUntil: b.holdUntil!, totalKobo: b.finalTotalKobo };
     });
   }
@@ -69,14 +73,17 @@ export class PublicRequestsService {
     return createHmac('sha256', this.env.BETTER_AUTH_SECRET).update(`public-ip:${ip}`).digest('hex').slice(0, 32);
   }
 
-  /** Reuse the guest with this phone; fill a missing email, never overwrite what the front desk recorded. */
+  /**
+   * Reuse the guest with this phone, leaving their recorded details alone. Writing a typed email onto a known guest
+   * would let anyone who knows a guest's phone number redirect that guest's future emails (receipts, check-in codes),
+   * so a public form only sets contact details on a guest it creates (deviation from spec §5 "update email if empty").
+   */
   private async upsertGuest(tx: OrgTx, input: BookingRequestInput): Promise<string> {
     const g = await tx.guest.findFirst({
       where: { phoneE164: input.phone, anonymisedAt: null },
       orderBy: { createdAt: 'asc' },
     });
     if (g) {
-      if (!g.email && input.email) await tx.guest.updateMany({ where: { id: g.id }, data: { email: input.email } });
       return g.id;
     }
     const id = newId();

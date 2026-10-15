@@ -34,17 +34,20 @@ export class WebsiteEmailsService implements OnModuleInit {
     });
   }
 
-  /** Only to a guest with an email, and only while the operator keeps the template on and automatic. */
-  async send(tx: OrgTx, b: Booking, key: TemplateKey, dedupeKey: string) {
-    const guest = await tx.guest.findFirst({ where: { id: b.guest.id }, select: { email: true } });
-    if (!guest?.email) return;
+  /**
+   * To `to`, or else the guest's recorded email; skipped when there is neither, or while the operator has the
+   * template switched off or set to manual.
+   */
+  async send(tx: OrgTx, b: Booking, key: TemplateKey, dedupeKey: string, to?: string) {
+    const recipient = to ?? (await tx.guest.findFirst({ where: { id: b.guest.id }, select: { email: true } }))?.email;
+    if (!recipient) return;
     const tpl = await this.templates.getIn(tx, key);
     if (!tpl.active || !tpl.autoEmail) return;
     const orgId = (await tx.$queryRaw<{ o: string }[]>`SELECT app_current_org() AS o`)[0]!.o;
     await this.outbox.queueEmail(tx, {
       bookingId: b.id,
       templateKey: key,
-      to: guest.email,
+      to: recipient,
       subject: tpl.emailSubject,
       bodyMarkdown: tpl.emailBody,
       vars: await this.vars.forBooking(tx, orgId, b.id),

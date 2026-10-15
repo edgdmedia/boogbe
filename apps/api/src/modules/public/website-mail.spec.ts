@@ -22,7 +22,8 @@ const BOOKING = {
 describe('website request team email', () => {
   it('plain() neutralises Markdown and links in guest-typed text', () => {
     expect(plain('[click](https://evil.example) **bold**\nnext')).toBe('click (https://evil.example) bold next');
-    expect(plain('__x__ `code` <b>hi</b>')).toBe('x code <b>hi</b>');
+    // The renderer only formats ** and [text](https://…); underscores and backticks are kept (ada_obi@x.ng).
+    expect(plain('ada_obi `x` <b>hi</b>')).toBe('ada_obi `x` <b>hi</b>');
   });
 
   it('carries the deep link, a wa.me link and the hold expiry; guest text stays plain', () => {
@@ -38,6 +39,10 @@ describe('website request team email', () => {
     expect(links).toHaveLength(2);
     expect(links[0]).toBe('https://app.boogbe.com/bookings/b1');
     expect(links[1]).toMatch(/^https:\/\/wa\.me\/2348030000000\?text=/);
+  });
+
+  it('shows the email exactly as typed', () => {
+    expect(teamEmail({ ...BOOKING, email: 'ada_obi@example.ng' }, { appOrigin: 'https://app.boogbe.com' }).bodyMarkdown).toContain('Email: ada_obi@example.ng');
   });
 
   it('omits email and note lines when the guest gave none', () => {
