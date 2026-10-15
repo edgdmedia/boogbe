@@ -57,12 +57,15 @@ export const UnitInput = z
     checkInInstructions: opt(z.string().max(5000)),
     feeOverride: z.boolean(),
     sortOrder: z.number().int().min(0).default(0),
+    /** Shown on the operator's website (WB); only admins change it. */
+    publicListed: z.boolean().optional(),
   })
   .merge(FeeConfig);
 export type UnitInput = z.infer<typeof UnitInput>;
 export const Unit = UnitInput.extend({
   id: z.string(),
   active: z.boolean(),
+  publicListed: z.boolean(),
   ownerFollowsProperty: z.boolean(),
   currentOwner: z.object({ id: z.string(), name: z.string() }).nullable(),
   currentOwnerSource: z.enum(['unit', 'property', 'operator']),

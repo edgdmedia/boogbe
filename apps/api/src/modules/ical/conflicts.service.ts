@@ -27,17 +27,22 @@ export class ConflictsService implements OnModuleInit {
     private readonly payments: PaymentsService,
   ) {}
 
+  /** The org the transaction runs under: hooks without a member context (holds job, public requests) still have it. */
+  private async currentOrg(tx: OrgTx): Promise<string> {
+    return (await tx.$queryRaw<{ o: string }[]>`SELECT app_current_org() AS o`)[0]!.o;
+  }
+
   onModuleInit() {
     this.sync.afterSync = (tx, orgId, unitId) => this.recompute(tx, orgId, unitId);
     this.bookingHooks.register({
-      afterCreate: (tx, ctx, b) => this.recompute(tx, ctx.orgId, b.unit.id),
+      afterCreate: async (tx, ctx, b) => this.recompute(tx, ctx?.orgId ?? (await this.currentOrg(tx)), b.unit.id),
       afterUpdate: async (tx, ctx, before, after) => {
         // Sorted, so two moves in opposite directions lock the units in the same order.
         for (const unitId of [...new Set([before.unit.id, after.unit.id])].sort()) await this.recompute(tx, ctx.orgId, unitId);
       },
       // The holds job transitions without a member context; the org is still set on the transaction.
       afterTransition: async (tx, ctx, b) => {
-        const orgId = ctx?.orgId ?? (await tx.$queryRaw<{ o: string }[]>`SELECT app_current_org() AS o`)[0]!.o;
+        const orgId = ctx?.orgId ?? (await this.currentOrg(tx));
         await this.recompute(tx, orgId, b.unit.id);
       },
     });

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PUBLIC_ACTOR } from '../../common/audit/audit.service';
 import type { AuditEntry } from '@boogbe/shared';
 import { OrgDb } from '../../common/db/org-db.service';
 import { UserNames } from '../../common/db/user-names';
@@ -30,7 +31,7 @@ export class AuditQueryService {
       const items: AuditEntry[] = page.map((r) => ({
         id: r.id,
         at: r.at.toISOString(),
-        actorName: names.get(r.actorUserId) ?? null,
+        actorName: r.actorUserId === PUBLIC_ACTOR.userId ? 'Website' : (names.get(r.actorUserId) ?? null),
         action: r.action,
         entity: r.entity,
         entityId: r.entityId,
