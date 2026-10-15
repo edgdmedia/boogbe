@@ -13,6 +13,13 @@ const time = (hhmm: string) => {
   return `${((h! + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h! < 12 ? 'am' : 'pm'}`;
 };
 
+/** `1 Nov 2026, 4:30 pm` in the operator's timezone (a hold expiry is an instant, unlike stay dates). */
+const instant = (at: string, timeZone: string) => {
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone, day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(at));
+  const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
+  return `${p.day} ${p.month} ${p.year}, ${time(`${p.hour}:${p.minute}`)}`;
+};
+
 /** The values a template's placeholders are filled with for one booking (MSG-02). */
 @Injectable()
 export class VarsService {
@@ -50,9 +57,8 @@ export class VarsService {
       'checkIn.time': time(s.checkInTime),
       'checkOut.time': time(s.checkOutTime),
       'unit.checkInInstructions': unit.checkInInstructions ?? '',
-      // Filled for real in T-WB-03 (needs org_settings.public_site_url from 0008).
-      'booking.holdUntil': '',
-      'operator.website': '',
+      'booking.holdUntil': b.holdUntil ? instant(b.holdUntil, org.timezone) : '',
+      'operator.website': s.publicSiteUrl ?? '',
     };
   }
 }

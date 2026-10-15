@@ -165,6 +165,18 @@ describe('templates [MSG-01 MSG-02]', () => {
       await admin.post(`/v1/bookings/${b}/payments`).send({ kind: 'payment', amountKobo: 12_000_000, method: 'cash', receivedOn: '2026-10-14' }).expect(201);
       const v = await vars(b);
       expect(v).toMatchObject({ 'money.balance': '₦0', 'money.lastPayment': '₦0', 'operator.email': '', 'unit.checkInInstructions': '' });
+      expect(v).toMatchObject({ 'booking.holdUntil': '', 'operator.website': '' });
+    });
+
+    it('shows the hold expiry in the operator timezone and the operator website (WB)', async () => {
+      const unitId = await seedUnit(orgId, await seedProperty(orgId));
+      const b = await seedBooking(orgId, unitId, await seedGuest(orgId), { checkIn: '2026-11-01', checkOut: '2026-11-02', totalKobo: 10_000_000 });
+      const m = await migratorClient();
+      // 15:30 UTC is 4:30 pm in Lagos (UTC+1).
+      await m.query(`update booking set status='tentative', hold_until='2026-11-01T15:30:00Z' where id=$1`, [b]);
+      await m.query(`update org_settings set public_site_url='https://tanuhomes.com' where org_id=$1`, [orgId]);
+      await m.end();
+      expect(await vars(b)).toMatchObject({ 'booking.holdUntil': '1 Nov 2026, 4:30 pm', 'operator.website': 'https://tanuhomes.com' });
     });
   });
 });

@@ -26,6 +26,11 @@ export const OrgSettingsResponse = z.object({
     statementPrefix: Prefix,
     bookingPrefix: Prefix,
     logoUrl: z.string().url().nullable(),
+    publicEnabled: z.boolean(),
+    publicHoldMinutes: z.number().int(),
+    publicOrigins: z.array(z.string()),
+    publicSiteUrl: z.string().nullable(),
+    notifyEmails: z.array(z.string()),
   }),
 });
 export type OrgSettingsResponse = z.infer<typeof OrgSettingsResponse>;
@@ -46,6 +51,12 @@ export const UpdateOrgSettingsInput = z
     statementPrefix: Prefix.optional(),
     bookingPrefix: Prefix.optional(),
     logoFileId: z.string().nullable().optional(),
+    // Online booking (WB). Origins are stored as bare origins so the CORS check is an exact match.
+    publicEnabled: z.boolean().optional(),
+    publicHoldMinutes: z.number().int().min(15).max(1440).optional(),
+    publicOrigins: z.array(z.string().url().transform((u) => new URL(u).origin)).max(5).optional(),
+    publicSiteUrl: z.string().url().startsWith('https://').nullable().optional(),
+    notifyEmails: z.array(z.string().email()).max(5).optional(),
   })
   .strict();
 export type UpdateOrgSettingsInput = z.infer<typeof UpdateOrgSettingsInput>;
