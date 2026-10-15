@@ -8,7 +8,7 @@ import { OrgDb } from '../src/common/db/org-db.service';
 import { OutboxService } from '../src/modules/messaging/outbox.service';
 import { MessageDispatchJob } from '../src/modules/messaging/message-dispatch.job';
 import { MAILER } from '../src/common/mail/mail.module';
-import { MemoryMailer } from '../src/common/mail/mailer';
+import { MailInFlightError, MemoryMailer } from '../src/common/mail/mailer';
 import { WorkerModule } from '../src/worker.module';
 import { SAMPLE_VARS } from '@boogbe/shared';
 
@@ -199,6 +199,59 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
     expect((await outboxRows())[0]).toMatchObject({ status: 'queued', attempts: 1, error: 'send timed out' });
   });
 
+  it('a key the provider already accepted on an earlier attempt is recorded as sent, not failed', async () => {
+    await queue();
+    const m = await migratorClient();
+    await m.query(`update outbound_message set attempts = 2`); // the final attempt
+    await m.end();
+    const dup = vi.spyOn(w.mailer, 'send').mockResolvedValue({ id: null, alreadyAccepted: true });
+    try {
+      await w.job.run();
+    } finally {
+      dup.mockRestore();
+    }
+    expect((await outboxRows())[0]).toMatchObject({ status: 'sent', provider_id: null, error: null });
+  });
+
+  it('a send still in flight with the same key stays queued under its lease: no failure, no alert', async () => {
+    const admin = await signInAs(t, 'admin', orgId);
+    await queue();
+    const m = await migratorClient();
+    await m.query(`update outbound_message set attempts = 2`); // would be final if counted as a failure
+    const busy = vi.spyOn(w.mailer, 'send').mockRejectedValue(new MailInFlightError());
+    try {
+      await w.job.run();
+    } finally {
+      busy.mockRestore();
+    }
+    const { rows } = await m.query(`select status, error, extract(epoch from next_attempt_at - now()) as wait_s from outbound_message`);
+    await m.end();
+    expect(rows[0]).toMatchObject({ status: 'queued', error: null });
+    expect(Number(rows[0].wait_s)).toBeGreaterThan(300); // still the 10-minute claim lease
+    const items = (await admin.agent.get('/v1/notifications').expect(200)).body.items as { kind: string }[];
+    expect(items.some((n) => n.kind === 'message_failed')).toBe(false);
+  });
+
+  it('a final-attempt failure after another tick recorded the message raises no alert', async () => {
+    const admin = await signInAs(t, 'admin', orgId);
+    await queue();
+    const m = await migratorClient();
+    await m.query(`update outbound_message set attempts = 2`);
+    const late = vi.spyOn(w.mailer, 'send').mockImplementation(async () => {
+      await m.query(`update outbound_message set status='sent', provider_id='other-tick'`);
+      throw new Error('socket hang up');
+    });
+    try {
+      await w.job.run();
+    } finally {
+      late.mockRestore();
+      await m.end();
+    }
+    expect((await outboxRows())[0]).toMatchObject({ status: 'sent', provider_id: 'other-tick' });
+    const items = (await admin.agent.get('/v1/notifications').expect(200)).body.items as { kind: string }[];
+    expect(items.some((n) => n.kind === 'message_failed')).toBe(false);
+  });
+
   it('does not overwrite a result another worker already recorded', async () => {
     await queue();
     const m = await migratorClient();
@@ -247,17 +300,31 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
   it('two transactions queueing the same dedupe key: one row, and the loser’s transaction still commits', async () => {
     const orgDb = t.app.get(OrgDb);
     const outbox = t.app.get(OutboxService);
-    const results = await Promise.all(
-      [0, 1].map(() =>
-        orgDb.run(orgId, async (tx) => {
-          const r = await outbox.queueEmail(tx, { to: 'ada@example.ng', subject: 'Hi', bodyMarkdown: 'x', dedupeKey: 'race' });
-          // Postgres refuses any statement in an aborted transaction; this proves the savepoint kept it usable.
-          await tx.$queryRaw`select 1`;
-          return r;
-        }),
-      ),
-    );
-    expect(results.filter((r) => r === null)).toHaveLength(1);
+    // Force the race: the winner commits its insert *after* the loser's pre-check, so only the unique index
+    // (P2002 → savepoint rollback) can stop the duplicate.
+    let releaseWinner!: () => void;
+    let winnerInserted!: () => void;
+    const winnerMayCommit = new Promise<void>((r) => (releaseWinner = r));
+    const inserted = new Promise<void>((r) => (winnerInserted = r));
+    const winner = orgDb.run(orgId, async (tx) => {
+      const r = await outbox.queueEmail(tx, { to: 'ada@example.ng', subject: 'Hi', bodyMarkdown: 'x', dedupeKey: 'race' });
+      winnerInserted();
+      await winnerMayCommit;
+      return r;
+    });
+    await inserted;
+    const loser = orgDb.run(orgId, async (tx) => {
+      // Pre-check sees nothing: the winner hasn't committed yet.
+      expect(await tx.outboundMessage.findFirst({ where: { dedupeKey: 'race' } })).toBeNull();
+      setTimeout(releaseWinner, 200); // the loser's insert blocks on the index until the winner commits
+      const r = await outbox.queueEmail(tx, { to: 'ada@example.ng', subject: 'Hi', bodyMarkdown: 'x', dedupeKey: 'race' });
+      // Postgres refuses any statement in an aborted transaction; this proves the savepoint kept it usable.
+      await tx.$queryRaw`select 1`;
+      return r;
+    });
+    const [w1, l1] = await Promise.all([winner, loser]);
+    expect(w1).not.toBeNull();
+    expect(l1).toBeNull();
     expect(await outboxRows()).toHaveLength(1);
   });
 

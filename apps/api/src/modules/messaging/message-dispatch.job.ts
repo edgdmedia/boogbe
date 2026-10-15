@@ -5,7 +5,7 @@ import { OrgInfo } from '../../common/db/org-info';
 import { PrismaService } from '../../common/db/prisma.service';
 import { JobRunner } from '../../common/jobs/job-runner';
 import { MAILER } from '../../common/mail/mail.module';
-import type { Mailer } from '../../common/mail/mailer';
+import { MailInFlightError, type Mailer } from '../../common/mail/mailer';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PaymentsService } from '../payments/payments.service';
 
@@ -66,6 +66,11 @@ export class MessageDispatchJob {
         MessageDispatchJob.sendTimeoutMs,
       );
     } catch (e) {
+      if (e instanceof MailInFlightError) {
+        // An earlier attempt with this key is still with the provider: leave the row to its lease and look again then.
+        this.log.warn(`message ${id}: an earlier send is still in progress; will check again after the lease`);
+        return;
+      }
       await this.recordFailure(orgId, msg, e);
       return;
     }
