@@ -43,7 +43,8 @@ export class OutboxService {
           channel: 'email',
           recipient: m.to,
           // Subjects are plain text: placeholders filled, no Markdown.
-          subject: m.vars ? render(m.subject, m.vars) : m.subject,
+          // Collapsed to one line: a value with a line break must never reach a mail header.
+          subject: (m.vars ? render(m.subject, m.vars) : m.subject).replace(/\s+/g, ' ').trim(),
           bodyText,
           bodyHtml,
           status: 'queued',

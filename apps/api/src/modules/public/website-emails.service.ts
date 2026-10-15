@@ -35,22 +35,29 @@ export class WebsiteEmailsService implements OnModuleInit {
   }
 
   /**
-   * To `to`, or else the guest's recorded email; skipped when there is neither, or while the operator has the
-   * template switched off or set to manual.
+   * To the guest's recorded email, or to `typed.to` with the name typed in the form (a website request for a known
+   * guest must not tell the typed address who that guest is). Skipped when there is no address, or while the
+   * operator has the template switched off or set to manual.
    */
-  async send(tx: OrgTx, b: Booking, key: TemplateKey, dedupeKey: string, to?: string) {
-    const recipient = to ?? (await tx.guest.findFirst({ where: { id: b.guest.id }, select: { email: true } }))?.email;
+  async send(tx: OrgTx, b: Booking, key: TemplateKey, dedupeKey: string, typed?: { to: string; guestName: string }) {
+    const recipient = typed?.to ?? (await tx.guest.findFirst({ where: { id: b.guest.id }, select: { email: true } }))?.email;
     if (!recipient) return;
     const tpl = await this.templates.getIn(tx, key);
     if (!tpl.active || !tpl.autoEmail) return;
     const orgId = (await tx.$queryRaw<{ o: string }[]>`SELECT app_current_org() AS o`)[0]!.o;
+    const vars = await this.vars.forBooking(tx, orgId, b.id);
+    if (typed) {
+      const name = typed.guestName.trim();
+      vars['guest.fullName'] = name;
+      vars['guest.firstName'] = name.split(/\s+/)[0] || name;
+    }
     await this.outbox.queueEmail(tx, {
       bookingId: b.id,
       templateKey: key,
       to: recipient,
       subject: tpl.emailSubject,
       bodyMarkdown: tpl.emailBody,
-      vars: await this.vars.forBooking(tx, orgId, b.id),
+      vars,
       dedupeKey,
     });
   }

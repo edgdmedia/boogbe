@@ -133,7 +133,11 @@ describe('public booking requests [WB]', () => {
     expect(guests).toEqual([{ full_name: 'Ada (front desk)', email: null }]);
     // The request's own "received" email still goes to the address typed in the form, and the team sees it unaltered.
     const mail = await rows(`select recipient, template_key, body_text from outbound_message where org_id=$1 order by recipient`, [orgId]);
-    expect(mail.find((x) => x.template_key === 'website_request_received')?.recipient).toBe('someone_else@example.ng');
+    const received = mail.find((x) => x.template_key === 'website_request_received')!;
+    expect(received.recipient).toBe('someone_else@example.ng');
+    // Greets the name typed in the form, never the recorded guest's (phone in, name out would leak who stays here).
+    expect(received.body_text).toMatch(/^Hi Ada,/);
+    expect(received.body_text).not.toContain('front desk');
     expect(mail.find((x) => x.recipient === 'team@op.ng')?.body_text).toContain('Email: someone_else@example.ng');
     const [b] = await rows('select notes from booking where ref=$1', [r.body.ref]);
     expect(b.notes).toContain('someone_else@example.ng');

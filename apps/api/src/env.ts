@@ -60,6 +60,10 @@ const schema = z
     ) {
       ctx.addIssue({ code: 'custom', path: ['API_PUBLIC_ORIGIN'], message: 'https origin required in production' });
     }
+    // Cloudflare's dummy Turnstile secrets accept a public dummy token: in production that would verify anyone.
+    if (env.NODE_ENV === 'production' && env.TURNSTILE_SECRET_KEY && /^[123]x0{30,}AA$/.test(env.TURNSTILE_SECRET_KEY)) {
+      ctx.addIssue({ code: 'custom', path: ['TURNSTILE_SECRET_KEY'], message: 'Turnstile test secret in production' });
+    }
     if (env.NODE_ENV === 'production' && /change-me/i.test(env.BETTER_AUTH_SECRET)) {
       ctx.addIssue({ code: 'custom', path: ['BETTER_AUTH_SECRET'], message: 'placeholder secret' });
     }

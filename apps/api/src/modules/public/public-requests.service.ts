@@ -40,7 +40,8 @@ export class PublicRequestsService {
     const check = await this.turnstile.verify(input.turnstileToken, ip);
     // A token solved on another site is no proof the guest used this operator's form.
     const hosts = org.origins.map((o) => new URL(o).hostname);
-    if (!check.success || !check.hostname || !hosts.includes(check.hostname))
+    const hostOk = check.testKey || (!!check.hostname && hosts.includes(check.hostname));
+    if (!check.success || !hostOk)
       throw new AppError('VERIFICATION_FAILED', 400, 'We could not verify the request. Please try again.');
     return this.orgDb.run(org.orgId, async (tx) => {
       await this.orgs.listedUnit(tx, input.unitId);
@@ -63,7 +64,11 @@ export class PublicRequestsService {
       );
       await this.notifyTeam(tx, org, b, input);
       // To the address typed in this form, which may not be (and never becomes) the guest's recorded email.
-      if (input.email) await this.emails.send(tx, b, 'website_request_received', `website_request_received-${b.id}`, input.email);
+      if (input.email)
+        await this.emails.send(tx, b, 'website_request_received', `website_request_received-${b.id}`, {
+          to: input.email,
+          guestName: input.fullName,
+        });
       return { ref: b.ref, holdUntil: b.holdUntil!, totalKobo: b.finalTotalKobo };
     });
   }

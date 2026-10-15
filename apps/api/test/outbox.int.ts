@@ -119,6 +119,21 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
     );
   });
 
+  it('subjects get their placeholders filled, on one line', async () => {
+    await t.app.get(OrgDb).run(orgId, (tx) =>
+      t.app.get(OutboxService).queueEmail(tx, {
+        to: 'ada@example.ng',
+        subject: 'Booking for {{guest.fullName}} – {{booking.ref}}',
+        bodyMarkdown: 'Hi',
+        vars: { ...SAMPLE_VARS, 'guest.fullName': 'Ada\r\nBcc: x@evil.example', 'booking.ref': 'TAN-1' },
+      }),
+    );
+    const m = await migratorClient();
+    const [row] = (await m.query(`select subject from outbound_message`)).rows;
+    await m.end();
+    expect(row.subject).toBe('Booking for Ada Bcc: x@evil.example – TAN-1');
+  });
+
   it('dedupe key prevents a second queue', async () => {
     expect(await queue({ dedupeKey: 'k1' })).not.toBeNull();
     expect(await queue({ dedupeKey: 'k1' })).toBeNull();
