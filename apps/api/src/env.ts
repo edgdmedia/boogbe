@@ -41,6 +41,8 @@ const schema = z
     R2_BUCKET: blankIsUnset(z.string().optional()),
     R2_ACCESS_KEY_ID: blankIsUnset(z.string().optional()),
     R2_SECRET_ACCESS_KEY: blankIsUnset(z.string().optional()),
+    // Cloudflare Turnstile secret for public booking requests (WB). Unset: requests fail closed (VERIFICATION_FAILED).
+    TURNSTILE_SECRET_KEY: blankIsUnset(z.string().optional()),
   })
   .superRefine((env, ctx) => {
     // A copied .env.example would sign production sessions with a public secret.

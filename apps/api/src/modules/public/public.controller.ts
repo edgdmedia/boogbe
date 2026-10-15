@@ -1,14 +1,16 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Query, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import type { z } from 'zod';
-import { AvailabilityQuery, PublicQuoteQuery } from '@boogbe/shared';
+import { AvailabilityQuery, BookingRequestInput, PublicQuoteQuery } from '@boogbe/shared';
+import { PublicRequestsService } from './public-requests.service';
 import { Public } from '../../common/auth/decorators';
 import { AppError } from '../../common/http/app-error';
 import { invalidDates, PublicReadService } from './public-read.service';
 import { PublicOrgService } from './public-org.service';
 
 /**
- * Query strings are parsed here rather than by the global pipe: the widget only needs to tell date problems
+ * Queries and the request body are parsed here rather than by the global pipe: the widget only needs to tell date problems
  * (INVALID_DATES) apart from everything else, and the generic VALIDATION_FAILED shape would hide that.
  */
 const DATE_FIELDS = new Set(['from', 'to', 'checkIn', 'checkOut']);
@@ -25,6 +27,7 @@ export class PublicController {
   constructor(
     private readonly orgs: PublicOrgService,
     private readonly read: PublicReadService,
+    private readonly requests: PublicRequestsService,
   ) {}
 
   @Get('units')
@@ -50,5 +53,14 @@ export class PublicController {
     const org = await this.orgs.resolve(slug);
     const { checkIn, checkOut, guests } = parseDates(PublicQuoteQuery, q);
     return this.read.quote(org, unitId, checkIn, checkOut, guests);
+  }
+
+  @Post('requests')
+  @Public()
+  @HttpCode(201)
+  @Throttle({ default: { limit: 5, ttl: 600_000 } })
+  async request(@Param('slug') slug: string, @Body() body: unknown, @Req() req: Request) {
+    await this.orgs.resolve(slug); // an unknown or switched-off operator is UNAVAILABLE before any validation detail
+    return this.requests.create(slug, parseDates(BookingRequestInput, body), req.ip);
   }
 }
