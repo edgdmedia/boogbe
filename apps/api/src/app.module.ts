@@ -17,6 +17,7 @@ import { GuestsModule } from './modules/guests/guests.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { IcalModule } from './modules/ical/ical.module';
+import { MessagingModule } from './modules/messaging/messaging.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AuditHttpModule } from './modules/audit/audit-http.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
@@ -45,6 +46,7 @@ const e2e = process.env.NODE_ENV !== 'production' && (process.env.E2E === '1' ||
     BookingsModule,
     PaymentsModule,
     IcalModule,
+    MessagingModule,
     NotificationsModule,
     AuditHttpModule,
     FilesModule,
