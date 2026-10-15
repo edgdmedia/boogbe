@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import type { LucideIcon } from 'lucide-react';
-import { LogOut } from 'lucide-react';
+import { LogOut, TriangleAlert } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { can, OrgSettingsResponse, type Permission } from '@boogbe/shared';
@@ -70,7 +70,18 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
           {logo && <img src={logo} alt="" className="h-7 w-7 shrink-0 rounded-md border border-line object-contain" />}
           <OrgSwitcher />
         </div>
-        <NotificationBell />
+        {/* The tab bar holds five items and Conflicts sits below them on a phone — the header keeps
+            open conflicts visible and one tap away whenever count > 0. */}
+        <span className="flex items-center gap-2">
+          {canSeeConflicts && openConflicts > 0 && (
+            <NavLink to="/conflicts" className="flex items-center gap-1 text-xs text-ink-muted">
+              <TriangleAlert size={16} aria-hidden />
+              Conflicts
+              <span className="rounded-full bg-danger px-1.5 text-[10px] font-semibold text-white">{openConflicts}</span>
+            </NavLink>
+          )}
+          <NotificationBell />
+        </span>
       </header>
       <main className="p-4 pb-24 md:p-6">{children}</main>
       <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t border-line bg-surface md:hidden" aria-label="Main">

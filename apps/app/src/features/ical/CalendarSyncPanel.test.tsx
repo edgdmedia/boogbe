@@ -43,7 +43,7 @@ vi.mock('../../lib/api', async (orig) => ({
 
 describe('CalendarSyncPanel', () => {
   it('shows failing feeds and copies export links', async () => {
-    const write = vi.fn();
+    const write = vi.fn(async () => {});
     Object.assign(navigator, { clipboard: { writeText: write } });
     render(
       <SWRConfig value={{ provider: () => new Map() }}>
@@ -53,6 +53,20 @@ describe('CalendarSyncPanel', () => {
     expect(await screen.findByText(/Failing: Calendar link not found \(404\)/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Copy Airbnb link' }));
     expect(write).toHaveBeenCalledWith('https://api.boogbe.com/v1/ical/tok.ics');
+    expect(await screen.findByText('Link copied')).toBeInTheDocument();
+  });
+
+  it('says copy failed when the clipboard rejects (permissions, insecure context)', async () => {
+    Object.assign(navigator, { clipboard: { writeText: vi.fn(async () => { throw new Error('NotAllowedError'); }) } });
+    render(
+      <SWRConfig value={{ provider: () => new Map() }}>
+        <CalendarSyncPanel unitId="u1" canWrite />
+      </SWRConfig>,
+    );
+    await screen.findByText(/Failing: Calendar link not found \(404\)/);
+    await userEvent.click(screen.getByRole('button', { name: 'Copy Airbnb link' }));
+    expect(await screen.findByText('Copy failed. Select the link and copy it')).toBeInTheDocument();
+    expect(screen.queryByText('Link copied')).not.toBeInTheDocument();
   });
 
   it('Sync now reports what the sync actually did, not a blanket "Synced"', async () => {
