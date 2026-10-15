@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { forgetPublicOrg } from '../public/public-org-cache';
 import type { OrgSettingsResponse, UpdateOrgSettingsInput } from '@boogbe/shared';
 import { PrismaService } from '../../common/db/prisma.service';
 import { OrgDb } from '../../common/db/org-db.service';
@@ -83,6 +84,8 @@ export class OrgService {
         after: input,
       });
     });
+    // A public booking lookup cached before this change would otherwise answer from stale settings for 30 s.
+    forgetPublicOrg(before.org.slug);
     return this.get(ctx);
   }
 }

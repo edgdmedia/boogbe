@@ -191,6 +191,41 @@ describe('public read API [WB]', () => {
     expect(pre.headers['access-control-allow-headers']).toMatch(/content-type/i);
   });
 
+  it('a preflight from an unlisted origin gets no CORS grant', async () => {
+    const org = await publicOrg();
+    const pre = await t.http
+      .options(`/v1/public/${org.slug}/requests`)
+      .set('Origin', 'https://evil.example')
+      .set('Access-Control-Request-Method', 'POST');
+    expect(pre.status).toBe(204);
+    expect(pre.headers['access-control-allow-origin']).toBeUndefined();
+    expect(pre.headers['access-control-allow-methods']).toBeUndefined();
+    expect(pre.headers['access-control-allow-credentials']).toBeUndefined();
+  });
+
+  it('a bad guest count is VALIDATION_FAILED, not a date error', async () => {
+    const org = await publicOrg(async (o, p) => [await seedUnit(o, p)]);
+    const r = await t.http.get(`/v1/public/${org.slug}/units/${org.units[0]}/quote?checkIn=${soon(3)}&checkOut=${soon(5)}&guests=0`);
+    expect(r.status).toBe(400);
+    expect(r.body.error.code).toBe('VALIDATION_FAILED');
+  });
+
+  it('enabling online booking in Settings takes effect at once (no stale cache)', async () => {
+    const org = await seedOrg();
+    await seedOrgSettings(org.id);
+    expect((await t.http.get(`/v1/public/${org.slug}/units`)).status).toBe(404); // cached as unavailable
+    const admin = (await signInAs(t, 'admin', org.id)).agent;
+    await admin.patch('/v1/org/settings').send({ publicEnabled: true, publicOrigins: ['https://tanuhomes.com'] }).expect(200);
+    const r = await t.http.get(`/v1/public/${org.slug}/units`).set('Origin', 'https://tanuhomes.com');
+    expect(r.status).toBe(200);
+    expect(r.headers['access-control-allow-origin']).toBe('https://tanuhomes.com');
+  });
+
+  it('a slug that cannot exist is UNAVAILABLE without a lookup', async () => {
+    expect((await t.http.get(`/v1/public/${'x'.repeat(80)}/units`)).body.error.code).toBe('UNAVAILABLE');
+    expect((await t.http.get('/v1/public/bad%20slug!/units')).body.error.code).toBe('UNAVAILABLE');
+  });
+
   it('a disabled operator gets no CORS headers even for a once-allowed origin', async () => {
     const org = await seedOrg();
     await seedOrgSettings(org.id, { public_enabled: false, public_origins: ['https://tanuhomes.com'] });

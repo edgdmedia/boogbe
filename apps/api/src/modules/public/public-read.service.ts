@@ -11,8 +11,9 @@ import { PublicOrgService, type PublicOrg } from './public-org.service';
 export const invalidDates = (m: string) => new AppError('INVALID_DATES', 422, m);
 
 /**
- * The calendar sources take a member context for the back office's redaction rules; the public read only keeps
- * `start`/`end`/`status` of what they return, so any labels, names or refs in the items never leave this service.
+ * The calendar sources take a member context for the back office's redaction rules; none reads it today, and the
+ * public read keeps only `start`/`end`/`status` of what they return, so labels, names or refs never leave this
+ * service. A source that starts using `ctx` must handle its absence here.
  */
 const NO_MEMBER = null as unknown as OrgCtx;
 

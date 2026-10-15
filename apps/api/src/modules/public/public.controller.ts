@@ -3,6 +3,7 @@ import { Throttle } from '@nestjs/throttler';
 import type { z } from 'zod';
 import { AvailabilityQuery, PublicQuoteQuery } from '@boogbe/shared';
 import { Public } from '../../common/auth/decorators';
+import { AppError } from '../../common/http/app-error';
 import { invalidDates, PublicReadService } from './public-read.service';
 import { PublicOrgService } from './public-org.service';
 
@@ -10,10 +11,13 @@ import { PublicOrgService } from './public-org.service';
  * Query strings are parsed here rather than by the global pipe: the widget only needs to tell date problems
  * (INVALID_DATES) apart from everything else, and the generic VALIDATION_FAILED shape would hide that.
  */
+const DATE_FIELDS = new Set(['from', 'to', 'checkIn', 'checkOut']);
 function parseDates<S extends z.ZodTypeAny>(schema: S, q: unknown): z.infer<S> {
   const r = schema.safeParse(q);
-  if (!r.success) throw invalidDates(r.error.issues[0]?.message ?? 'Check the dates');
-  return r.data;
+  if (r.success) return r.data;
+  const dates = r.error.issues.filter((i) => DATE_FIELDS.has(String(i.path[0])));
+  if (dates.length) throw invalidDates(dates[0]!.message);
+  throw new AppError('VALIDATION_FAILED', 400, 'Check the request', r.error.issues);
 }
 
 @Controller('public/:slug')
