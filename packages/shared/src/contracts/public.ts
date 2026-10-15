@@ -62,18 +62,20 @@ const optionalText = (max: number) =>
     .transform((v) => (v ? v : undefined));
 export const BookingRequestInput = z
   .object({
-    unitId: z.string().min(1),
+    unitId: z.string().min(1).max(64),
     checkIn: Day,
     checkOut: Day,
     guests: z.number().int().min(1).max(20),
     fullName: z.string().trim().min(2).max(100),
     phone: z
       .string()
+      .max(32)
       .transform((v, c) => normalizePhone(v) ?? (c.addIssue({ code: 'custom', message: 'Enter a valid phone number' }), z.NEVER)),
-    email: z
-      .union([z.literal(''), z.string().trim().email().max(150)])
-      .optional()
-      .transform((v) => (v ? v : undefined)),
+    // Web forms send "", whitespace or null for an empty optional field: all mean "no email".
+    email: z.preprocess(
+      (v) => (v == null ? undefined : typeof v === 'string' ? v.trim() || undefined : v),
+      z.string().email().max(150).optional(),
+    ),
     note: optionalText(1000),
     turnstileToken: z.string().min(1).max(2048),
   })

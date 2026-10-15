@@ -36,6 +36,15 @@ describe('public contracts', () => {
     expect(BookingRequestInput.safeParse({ ...r, note: 'x'.repeat(1001) }).success).toBe(false);
     expect(BookingRequestInput.safeParse({ ...r, fullName: 'A' }).success).toBe(false);
   });
+
+  it('treats a blank or null email as no email; caps ids and phone length (public input)', () => {
+    const base = { unitId: 'u1', checkIn: '2026-11-01', checkOut: '2026-11-03', guests: 2, fullName: 'Ada Obi', phone: '08030000000', turnstileToken: 't' };
+    expect(BookingRequestInput.parse({ ...base, email: '   ' }).email).toBeUndefined();
+    expect(BookingRequestInput.parse({ ...base, email: null }).email).toBeUndefined();
+    expect(BookingRequestInput.parse({ ...base, email: ' ada@example.ng ' }).email).toBe('ada@example.ng');
+    expect(BookingRequestInput.safeParse({ ...base, unitId: 'x'.repeat(65) }).success).toBe(false);
+    expect(BookingRequestInput.safeParse({ ...base, phone: '0'.repeat(33) }).success).toBe(false);
+  });
 });
 
 describe('website source and related codes', () => {
