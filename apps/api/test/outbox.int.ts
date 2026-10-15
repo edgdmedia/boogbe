@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { createTestApp, type TestApp } from './helpers/app';
 import { migratorClient, truncateAll } from './helpers/db';
@@ -141,6 +141,124 @@ describe('outbox [MSG-03 MSG-05 MSG-06]', () => {
     await queue();
     await Promise.all([w.job.run(), w.job.run(), w.job.run()]);
     expect(w.mailer.sent).toHaveLength(1);
+  });
+
+  it('sends with the message id as the provider idempotency key (a re-claimed lease never mails twice)', async () => {
+    const q = await queue();
+    await w.job.run();
+    expect(w.mailer.sent[0]!.idempotencyKey).toBe(q!.id);
+  });
+
+  it('a failure recording the result after a successful send is not a send failure', async () => {
+    const admin = await signInAs(t, 'admin', orgId);
+    await queue();
+    const orgDb = (w.job as unknown as { orgDb: OrgDb }).orgDb;
+    const real = orgDb.run.bind(orgDb);
+    let handedOver = false;
+    let failed = false;
+    const realSend = w.mailer.send.bind(w.mailer);
+    const send = vi.spyOn(w.mailer, 'send').mockImplementation(async (m) => {
+      const r = await realSend(m);
+      handedOver = true;
+      return r;
+    });
+    const spy = vi.spyOn(orgDb, 'run').mockImplementation(((id: string, fn: never) => {
+      // The first DB call after the provider took the mail records the result: drop it, as a lost connection would.
+      if (handedOver && !failed) {
+        failed = true;
+        return Promise.reject(new Error('connection lost'));
+      }
+      return real(id, fn);
+    }) as never);
+    try {
+      await w.job.run();
+    } finally {
+      spy.mockRestore();
+      send.mockRestore();
+    }
+    expect(failed).toBe(true);
+    expect(w.mailer.sent).toHaveLength(1);
+    // Left queued under its lease: no retry scheduled, never `failed`, no false alert.
+    const [row] = await outboxRows();
+    expect(row).toMatchObject({ status: 'queued', error: null });
+    const items = (await admin.agent.get('/v1/notifications').expect(200)).body.items as { kind: string }[];
+    expect(items.some((n) => n.kind === 'message_failed')).toBe(false);
+  });
+
+  it('a hung provider call times out and counts as a failed attempt', async () => {
+    await queue();
+    const hang = vi.spyOn(w.mailer, 'send').mockImplementation(() => new Promise(() => {}));
+    const prev = MessageDispatchJob.sendTimeoutMs;
+    MessageDispatchJob.sendTimeoutMs = 50;
+    try {
+      await w.job.run();
+    } finally {
+      MessageDispatchJob.sendTimeoutMs = prev;
+      hang.mockRestore();
+    }
+    expect((await outboxRows())[0]).toMatchObject({ status: 'queued', attempts: 1, error: 'send timed out' });
+  });
+
+  it('does not overwrite a result another worker already recorded', async () => {
+    await queue();
+    const m = await migratorClient();
+    const slow = vi.spyOn(w.mailer, 'send').mockImplementation(async () => {
+      // Another tick re-claimed this row after the lease and recorded it while we were still sending.
+      await m.query(`update outbound_message set status='sent', provider_id='other-tick'`);
+      return { id: 'late' };
+    });
+    try {
+      await w.job.run();
+    } finally {
+      slow.mockRestore();
+      await m.end();
+    }
+    expect((await outboxRows())[0]).toMatchObject({ status: 'sent', provider_id: 'other-tick' });
+  });
+
+  it('sends without the attachment when the receipt cannot be built', async () => {
+    const fd = (await signInAs(t, 'frontdesk', orgId)).agent;
+    const guestId = await seedGuest(orgId, { fullName: 'Bola Ade', phoneE164: '+2348030000002' });
+    const id = (
+      await fd
+        .post('/v1/bookings')
+        .send({ unitId, guestId, checkIn: '2026-12-01', checkOut: '2026-12-03', guestCount: 1, source: 'whatsapp' })
+        .expect(201)
+    ).body.id;
+    const paid = (
+      await fd
+        .post(`/v1/bookings/${id}/payments`)
+        .send({ kind: 'payment', amountKobo: 5_000_000, method: 'bank_transfer', receivedOn: '2026-10-10' })
+        .expect(201)
+    ).body;
+    await queue({ bookingId: id, paymentId: paid.entries[0].id });
+    const payments = (w.job as unknown as { payments: { receiptForOrg: () => Promise<never> } }).payments;
+    const broken = vi.spyOn(payments, 'receiptForOrg').mockRejectedValue(new Error('Receipt not found'));
+    try {
+      await w.job.run();
+    } finally {
+      broken.mockRestore();
+    }
+    expect(w.mailer.sent).toHaveLength(1);
+    expect(w.mailer.sent[0]!.attachments).toBeUndefined();
+    expect((await outboxRows())[0]).toMatchObject({ status: 'sent' });
+  });
+
+  it('two transactions queueing the same dedupe key: one row, and the loser’s transaction still commits', async () => {
+    const orgDb = t.app.get(OrgDb);
+    const outbox = t.app.get(OutboxService);
+    const results = await Promise.all(
+      [0, 1].map(() =>
+        orgDb.run(orgId, async (tx) => {
+          const r = await outbox.queueEmail(tx, { to: 'ada@example.ng', subject: 'Hi', bodyMarkdown: 'x', dedupeKey: 'race' });
+          // Postgres refuses any statement in an aborted transaction; this proves the savepoint kept it usable.
+          await tx.$queryRaw`select 1`;
+          return r;
+        }),
+      ),
+    );
+    expect(results.filter((r) => r === null)).toHaveLength(1);
+    expect(await outboxRows()).toHaveLength(1);
   });
 
   it('attaches the receipt PDF when the message is about a payment', async () => {

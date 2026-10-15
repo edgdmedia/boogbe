@@ -9,6 +9,8 @@ export interface MailMessage {
   replyTo?: string;
   fromName?: string;
   attachments?: { filename: string; content: Buffer }[];
+  /** Provider-side dedupe (Resend keeps keys 24 h): a re-sent message with the same key is accepted once. */
+  idempotencyKey?: string;
 }
 export interface Mailer {
   /** False for the in-memory mailer: nothing leaves the process, so the outbox must not record mail as sent. */
@@ -27,15 +29,18 @@ export class ResendMailer implements Mailer {
   }
   async send(m: MailMessage) {
     const from = m.fromName ? `${m.fromName} via Boogbe <${this.from.match(/<(.+)>/)?.[1] ?? this.from}>` : this.from;
-    const { data, error } = await this.client.emails.send({
-      from,
-      to: m.to,
-      subject: m.subject,
-      html: m.html,
-      text: m.text,
-      replyTo: m.replyTo,
-      attachments: m.attachments?.map((a) => ({ filename: a.filename, content: a.content })),
-    });
+    const { data, error } = await this.client.emails.send(
+      {
+        from,
+        to: m.to,
+        subject: m.subject,
+        html: m.html,
+        text: m.text,
+        replyTo: m.replyTo,
+        attachments: m.attachments?.map((a) => ({ filename: a.filename, content: a.content })),
+      },
+      m.idempotencyKey ? { idempotencyKey: m.idempotencyKey } : undefined,
+    );
     if (error) throw new Error(`resend: ${error.message}`);
     return { id: data?.id ?? null };
   }
