@@ -38,6 +38,7 @@ export function StatusActions({ booking, onChanged }: { booking: Booking; onChan
       // The hold may have expired, or a colleague may have acted on the request, since this page loaded.
       if (request && x instanceof ApiError && (x.code === 'CONFLICT' || x.code === 'INVALID_TRANSITION')) {
         setErr('This request changed. Refresh to see the latest.');
+        setCancel(false); // the booking reloads underneath; the message shows beside the actions
         onChanged();
       } else setErr(x instanceof ApiError ? bookingErrorMessage(x) : String(x));
       return false;
@@ -55,11 +56,23 @@ export function StatusActions({ booking, onChanged }: { booking: Booking; onChan
           </Button>
         ))}
       {next.includes('cancelled') && (
-        <Button variant="danger" onClick={() => setCancel(true)}>
+        <Button
+          variant="danger"
+          onClick={() => {
+            // a reopened dialog starts fresh, not on a half-typed reason from an earlier attempt
+            setReason('');
+            setPreset(DECLINE_REASONS[0]);
+            setRefundKobo(0);
+            setRefundMethod('bank_transfer');
+            setRefundReference('');
+            setErr(undefined);
+            setCancel(true);
+          }}
+        >
           {decline ? 'Decline' : 'Cancel booking'}
         </Button>
       )}
-      {err && (
+      {err && !cancel && (
         <p role="alert" className="w-full text-sm text-danger">
           {err}
         </p>
@@ -69,12 +82,14 @@ export function StatusActions({ booking, onChanged }: { booking: Booking; onChan
           className="flex flex-col gap-3"
           onSubmit={(e) => {
             e.preventDefault();
+            // the API trims before its 3-character minimum, so "   " passes the browser check but not the server
+            if (cancelReason.trim().length < 3) return setErr('Give a reason of at least 3 characters.');
             void run(
               api(`/v1/bookings/${booking.id}/cancel`, {
                 method: 'POST',
-                body: { reason: cancelReason, ...(refundKobo > 0 && { refundKobo, refundMethod, refundReference: refundReference || undefined }) },
+                body: { reason: cancelReason.trim(), ...(refundKobo > 0 && { refundKobo, refundMethod, refundReference: refundReference || undefined }) },
               }),
-            ).then(() => setCancel(false));
+            ).then((ok) => ok && setCancel(false));
           }}
         >
           <p className="text-sm">The dates become free immediately.</p>
@@ -91,8 +106,13 @@ export function StatusActions({ booking, onChanged }: { booking: Booking; onChan
           )}
           {(!decline || preset === OTHER) && (
             <Field label="Reason">
-              <Input value={reason} onChange={(e) => setReason(e.target.value)} required minLength={3} />
+              <Input value={reason} onChange={(e) => setReason(e.target.value)} required minLength={3} autoFocus={decline} />
             </Field>
+          )}
+          {err && (
+            <p role="alert" className="text-sm text-danger">
+              {err}
+            </p>
           )}
           {netPaid > 0 && (
             <>

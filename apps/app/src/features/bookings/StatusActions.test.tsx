@@ -67,6 +67,35 @@ describe('StatusActions — website requests [T-WB-07]', () => {
     expect(api).toHaveBeenCalledWith('/v1/bookings/b9/cancel', { method: 'POST', body: { reason: 'Guest asked for a cheaper unit' } });
   });
 
+  it('a blank "Other" reason is refused in the form and the dialog stays open; reopening starts fresh', async () => {
+    api.mockClear();
+    const user = userEvent.setup();
+    render(<StatusActions booking={request} onChanged={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: 'Decline' }));
+    await user.click(screen.getByLabelText('Other (type it)'));
+    expect(screen.getByLabelText('Reason')).toHaveFocus();
+    await user.type(screen.getByLabelText('Reason'), '   ');
+    await user.click(screen.getByRole('button', { name: 'Decline request' }));
+    expect(api).not.toHaveBeenCalled();
+    expect(screen.getByText('Give a reason of at least 3 characters.')).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    await user.click(screen.getByRole('button', { name: 'Decline' }));
+    expect(screen.getByLabelText('Dates not available')).toBeChecked();
+    expect(screen.queryByLabelText('Reason')).not.toBeInTheDocument();
+  });
+
+  it('a server error keeps the dialog open', async () => {
+    const { ApiError } = await vi.importActual<typeof import('../../lib/api')>('../../lib/api');
+    api.mockClear();
+    api.mockRejectedValueOnce(new ApiError('VALIDATION_FAILED', 'Check the reason', 400));
+    const user = userEvent.setup();
+    render(<StatusActions booking={request} onChanged={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: 'Decline' }));
+    await user.click(screen.getByRole('button', { name: 'Decline request' }));
+    expect(await screen.findByText('Check the reason')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Decline request' })).toBeInTheDocument();
+  });
+
   it('a request that changed meanwhile (hold expired, someone else acted) says so and refreshes', async () => {
     const { ApiError } = await vi.importActual<typeof import('../../lib/api')>('../../lib/api');
     api.mockClear();
