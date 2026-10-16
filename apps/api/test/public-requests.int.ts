@@ -143,6 +143,16 @@ describe('public booking requests [WB]', () => {
     expect(b.notes).toContain('someone_else@example.ng');
   });
 
+  it('a known guest with a different saved email: "received" goes to the typed address, the saved one is kept', async () => {
+    await seedGuest(orgId, { fullName: 'Ada (front desk)', phoneE164: '+2348030000000' });
+    await rows(`update guest set email='ada.saved@example.ng' where org_id=$1 returning id`, [orgId]);
+    const r = await post({ email: 'typed@example.ng' });
+    expect(r.status).toBe(201);
+    expect(await rows('select email from guest where org_id=$1', [orgId])).toEqual([{ email: 'ada.saved@example.ng' }]);
+    const mail = await rows(`select recipient from outbound_message where org_id=$1 and template_key='website_request_received'`, [orgId]);
+    expect(mail).toEqual([{ recipient: 'typed@example.ng' }]);
+  });
+
   it('two simultaneous requests for the same nights: exactly one wins', async () => {
     const [a, b] = await Promise.all([post(), post({ phone: '08031111111' })]);
     expect([a.status, b.status].sort()).toEqual([201, 409]);

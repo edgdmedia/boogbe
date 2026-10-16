@@ -56,6 +56,17 @@
 ## Turning GitHub deploys back on
 Only when the owner decides to. The workflows need these secrets: `PROD_SSH_HOST`, `PROD_SSH_USER`, `PROD_SSH_KEY` (a deploy key for `boogbe`, with SSH reachable from GitHub runners), `CF_API_TOKEN` (Pages:Edit), and `CF_ACCOUNT_ID` (`af273e5d58efe45fa36724c5a3e61052`). Then run `gh workflow enable "Deploy API"` and `gh workflow enable "Deploy App"`. Once enabled, every push to `main` deploys.
 
+## Website booking (WB) rollout and settings
+Guests request dates on an operator's own website (Tanuhomes first) through `/v1/public/:slug/*`. What must line up:
+- **API `.env`:** `TURNSTILE_SECRET_KEY`. Without it every request is refused (fails closed). Production refuses Cloudflare's dummy test secrets (`1x…AA`, `2x…AA`, `3x…AA`) at startup. Use the always-pass pair (site key `1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA`) only locally or on staging. Restart PM2 after changing it.
+- **Cloudflare Turnstile widget** (Cloudflare dashboard → Turnstile, "Managed" mode): list **both** hostnames, `tanuhomes.com` and `www.tanuhomes.com`, plus any preview or staging host that will use the real site key. The site key goes into the Tanuhomes build as `PUBLIC_TURNSTILE_SITE_KEY`, and the secret into the API `.env`.
+- **Boogbe app → Settings → Online booking** (admin):
+  - **Website address** `https://tanuhomes.com`. Its `www.` twin is added automatically.
+  - **Every other site that shows the form must be listed in "Other sites that can show the booking form".** That includes a staging or preview copy of the Tanuhomes site, and `http://localhost:4321` while testing locally. The list drives CORS (the browser's request is refused otherwise). With a real Turnstile secret, the API also refuses a challenge solved on a host that isn't listed. The dummy test secrets skip that hostname check.
+  - Turn on "Accept booking requests from your website", set the hold minutes and the extra notify emails, and tick **Show on website** on each unit to offer. An unlisted unit is invisible to the public API.
+- **Tanuhomes site build:** `PUBLIC_BOOGBE_API` (default `https://api.boogbe.com`), `PUBLIC_BOOGBE_SLUG` (default `tanuhomes`), `PUBLIC_TURNSTILE_SITE_KEY`. A property shows the widget only when its JSON has `boogbe.units` (`[{ "label", "unitId" }]`) **and** the site key is set. Otherwise it keeps the rate card.
+- **Emails** go through the outbox (`outbound_message`), so a mail outage never fails a request. Check that table first when an email seems missing.
+
 ## Restore drill (monthly; record date + duration in this file)
 1. `aws s3 ls s3://$R2_BUCKET/backups/prod/ --recursive --endpoint-url $R2_ENDPOINT | tail -1`
 2. Download, then `createdb -O boogbe_migrator boogbe_restore_test && pg_restore --no-owner -d boogbe_restore_test <file>`
