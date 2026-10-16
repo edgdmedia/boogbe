@@ -1389,7 +1389,7 @@ CSS: reuse the existing tokens and `.button` classes in the site stylesheet. The
   - `npx vitest run src/scripts && TZ=America/New_York npx vitest run src/scripts && npm run build`: PASS. The build must also pass with no `boogbe` key on any property (RateCard everywhere).
   - Then walk it against a **local** Boogbe API (there is no staging): build with `PUBLIC_BOOGBE_API=http://localhost:<api port> PUBLIC_BOOGBE_SLUG=<local slug> PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA`, and use Playwright to go pick dates → quote → request → ref shown. `1x000…AA` is Cloudflare's always-pass test key; the local API needs the matching test secret `1x0000000000000000000000000000000AA`.
 
-- [ ] **Step 5: Commit** `feat: Boogbe booking widget on linked properties` and open a PR to Tanuhomes `main`.
+- [ ] **Step 5: Commit** `feat: Boogbe booking widget on linked properties` and open a PR to Tanuhomes `astro-rebuild` (its `main` is still the old static site).
 
 ---
 
@@ -1406,7 +1406,7 @@ Owner decision (2026-10-16): **no staging**. Test locally, then on production th
 **Production order.** One action per line, with who does it. The RUNBOOK section "Website booking (WB) rollout and settings" explains each setting.
 
 1. **Owner:** in Cloudflare → Turnstile, create a "Managed" widget for `tanuhomes.com`, `www.tanuhomes.com` and the preview host `tanuhomes-preview.edgdmedia.workers.dev`.
-2. **Owner:** put the Turnstile **secret** in the API server's `.env` as `TURNSTILE_SECRET_KEY`. The next deploy's PM2 reload picks it up. Send the **site key** (public) to the builder.
+2. **Owner:** put the Turnstile **secret** in the API server's `.env` as `TURNSTILE_SECRET_KEY`. The next deploy's PM2 reload picks it up. Check the secret is the **real** one, not a `1x…AA`-style test secret: production refuses to start with a test secret, and that would only show after migration 0008 has run in step 4. Send the **site key** (public) to the builder.
 3. **Owner:** merge the `dev` → `main` release PR.
 4. **Owner** (server, as `boogbe`): `B bash deploy/deploy.sh prod`. This takes a pg_dump, **runs migration 0008** and reloads PM2. Then check `https://api.boogbe.com/v1/health`.
 5. **Owner** (or the builder, on the owner's go): deploy the app from a clean `main` (RUNBOOK → Deploys, step 2).
@@ -1420,12 +1420,12 @@ Owner decision (2026-10-16): **no staging**. Test locally, then on production th
    - website `https://tanuhomes.com`
    - other sites `https://tanuhomes-preview.edgdmedia.workers.dev`
    - notify emails
-8. **Builder:** run `node scripts/link-boogbe.mjs`. It fetches the unit ids from `https://api.boogbe.com/v1/public/tanuhomes/units` and writes them into the six property JSONs. Push the change to tanuhomes#1.
+8. **Builder:** run `npm run link-boogbe -- --dry-run`, fix anything it reports with the owner, then run `npm run link-boogbe`. It fetches the unit ids from `https://api.boogbe.com/v1/public/tanuhomes/units` and writes them into the six property JSONs. Push the change to tanuhomes#1.
 9. **Owner:** merge tanuhomes#1 into `astro-rebuild`.
-10. **Builder** (on the owner's go): build the preview with the site key and deploy it to the separate preview worker: `PUBLIC_TURNSTILE_SITE_KEY=<site key> npm run build:preview && npx wrangler deploy --name tanuhomes-preview`. The `tanuhomes` worker also serves `tanuhomes.com`, so deploying there would make the widget public.
+10. **Builder** (on the owner's go): build the preview (never `npm run deploy:preview`, which targets the production worker) with the site key and deploy it to the separate preview worker: `PUBLIC_TURNSTILE_SITE_KEY=<site key> npm run build:preview && npx wrangler deploy --name tanuhomes-preview`. The `tanuhomes` worker also serves `tanuhomes.com`, so deploying there would make the widget public.
 11. **Owner:** on the preview site, send a real request using your own phone and email. Check that the team and guest emails reach real inboxes.
 12. **Owner:** confirm that test request, then cancel it. Decline a second request and check the "closed" email.
-13. **Builder** (on the owner's go): put the site live with `PUBLIC_TURNSTILE_SITE_KEY=<site key> npm run deploy` (the `tanuhomes` worker, `tanuhomes.com`).
+13. **Builder** (on the owner's go): put the site live. This publishes the whole `astro-rebuild` site (the relaunch), not just the widget. First confirm in the Cloudflare dashboard that the `tanuhomes` worker is the one serving `tanuhomes.com`. Run `PUBLIC_TURNSTILE_SITE_KEY=<site key> npm run deploy` (the `tanuhomes` worker, `tanuhomes.com`).
 14. **Owner:** remove the preview origin from "Other sites" and the preview hostname from Turnstile. **Builder:** delete the preview worker (`npx wrangler delete --name tanuhomes-preview`).
 15. **Builder:** mark WB done on the board and resume T-M5-05.
 
