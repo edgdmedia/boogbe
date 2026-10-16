@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createTestApp, type TestApp } from './helpers/app';
 import { migratorClient, truncateAll } from './helpers/db';
-import { seedOrg, seedUser, signIn, signInAs } from './helpers/users';
+import { addMember, seedOrg, seedUser, signIn, signInAs } from './helpers/users';
 
 describe('guards', () => {
   let t: TestApp;
@@ -36,6 +36,27 @@ describe('guards', () => {
       timezone: 'Africa/Lagos',
     });
     expect(res.body.memberships).toEqual([{ orgId: org.id, orgName: 'Tanuhomes', role: 'frontdesk' }]);
+  });
+
+  it('signing in with exactly one operator makes it active — no chooser [AUTH-05]', async () => {
+    const org = await seedOrg('Tanuhomes');
+    const u = await seedUser(t);
+    await addMember(org.id, u.id, 'admin');
+    const agent = await signIn(t, u.email, u.password);
+    const res = await agent.get('/v1/me').expect(200);
+    expect(res.body.activeOrg).toMatchObject({ id: org.id, role: 'admin' });
+  });
+
+  it('signing in with several operators leaves the choice to the user [AUTH-05]', async () => {
+    const a = await seedOrg();
+    const b = await seedOrg();
+    const u = await seedUser(t);
+    await addMember(a.id, u.id, 'admin');
+    await addMember(b.id, u.id, 'frontdesk');
+    const agent = await signIn(t, u.email, u.password);
+    const res = await agent.get('/v1/me').expect(200);
+    expect(res.body.activeOrg).toBeNull();
+    expect(res.body.memberships).toHaveLength(2);
   });
 
   it('role change takes effect on the next request without re-login [AUTH-06]', async () => {

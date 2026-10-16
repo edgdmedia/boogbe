@@ -8,8 +8,8 @@ import { api } from './api';
  */
 export function useRefreshSession() {
   const { mutate } = useSWRConfig();
-  return async () => {
+  return async (): Promise<MeResponse | undefined> => {
     await mutate((key) => key !== '/v1/me', undefined, { revalidate: false });
-    await mutate('/v1/me', api('/v1/me', { schema: MeResponse }), { revalidate: false });
+    return mutate('/v1/me', api('/v1/me', { schema: MeResponse }), { revalidate: false });
   };
 }

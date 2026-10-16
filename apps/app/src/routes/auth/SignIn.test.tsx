@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { SWRConfig } from 'swr';
@@ -121,6 +121,43 @@ describe('SignIn', () => {
     );
     await fill();
     expect(await screen.findByText('Home page')).toBeInTheDocument();
+  });
+
+  it('keeps the form and what was typed while /v1/me is re-checked on window focus', async () => {
+    let calls = 0;
+    // First check answers 401; the focus re-check hangs, as a slow network would.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        calls++ === 0 ? Promise.resolve(json(401, { error: { code: 'UNAUTHENTICATED' } })) : new Promise<Response>(() => {}),
+      ),
+    );
+    render(
+      <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0, focusThrottleInterval: 0 }}>
+        <MemoryRouter>
+          <SignIn />
+        </MemoryRouter>
+      </SWRConfig>,
+    );
+    await userEvent.type(await screen.findByLabelText(/email/i), 'a@b.ng');
+    window.dispatchEvent(new Event('focus'));
+    await waitFor(() => expect(calls).toBe(2));
+    expect(screen.getByLabelText(/email/i)).toHaveValue('a@b.ng');
+  });
+
+  it('does not keep re-asking /v1/me after a 401', async () => {
+    const f = vi.fn(async () => json(401, { error: { code: 'UNAUTHENTICATED' } }));
+    vi.stubGlobal('fetch', f);
+    render(
+      <SWRConfig value={{ provider: () => new Map(), errorRetryInterval: 10 }}>
+        <MemoryRouter>
+          <SignIn />
+        </MemoryRouter>
+      </SWRConfig>,
+    );
+    await screen.findByLabelText(/email/i);
+    await new Promise((r) => setTimeout(r, 200));
+    expect(f).toHaveBeenCalledTimes(1);
   });
 
   it('says so when the session cannot be loaded after signing in', async () => {

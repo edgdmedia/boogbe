@@ -2,7 +2,7 @@ import { expect, type Browser, type Page } from '@playwright/test';
 import { PROD, inviteEmail, inviteUrl, operatorName, platformAdmin, slugFor } from './fixtures';
 
 /** Signs the platform admin in and opens Platform. In production the owner's account is also a Tanuhomes admin,
- *  so it lands on /choose-operator (RoleLanding); Platform is opened explicitly there. */
+ *  so it lands in Tanuhomes (RoleLanding); Platform is opened explicitly there. */
 export async function signInPlatformAdmin(page: Page): Promise<void> {
   await page.goto('/auth/sign-in');
   await page.getByLabel('Email').fill(platformAdmin.email);
