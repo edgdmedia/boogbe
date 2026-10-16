@@ -7,22 +7,18 @@
    CREATE ROLE boogbe_migrator LOGIN PASSWORD '<strong>' CREATEDB BYPASSRLS;
    CREATE ROLE boogbe_app LOGIN PASSWORD '<strong>' NOBYPASSRLS NOSUPERUSER;
    CREATE DATABASE boogbe OWNER boogbe_migrator;
-   CREATE DATABASE boogbe_staging OWNER boogbe_migrator;
    \c boogbe
    CREATE EXTENSION IF NOT EXISTS btree_gist; CREATE EXTENSION IF NOT EXISTS pg_trgm; CREATE EXTENSION IF NOT EXISTS citext;
    GRANT CONNECT ON DATABASE boogbe TO boogbe_app;
-   \c boogbe_staging
-   CREATE EXTENSION IF NOT EXISTS btree_gist; CREATE EXTENSION IF NOT EXISTS pg_trgm; CREATE EXTENSION IF NOT EXISTS citext;
-   GRANT CONNECT ON DATABASE boogbe_staging TO boogbe_app;
    ```
    Do **not** run `deploy/sql/roles.sql` here — its passwords are for local/CI only.
-3. As `boogbe`: `git clone <repo> /home/boogbe/app` (branch `main`) and `/home/boogbe/staging` (branch `dev`). Create `.env` in each from `.env.example`:
-   - `NODE_ENV=production`, `PORT=3060` (prod) / `3061` (staging)
-   - `DATABASE_URL` = `boogbe_app` URL, `DATABASE_MIGRATE_URL` = `boogbe_migrator` URL (db `boogbe` / `boogbe_staging`)
+3. As `boogbe`: `git clone <repo> /home/boogbe/app` (branch `main`). Create `.env` from `.env.example`:
+   - `NODE_ENV=production`, `PORT=3060`
+   - `DATABASE_URL` = `boogbe_app` URL, `DATABASE_MIGRATE_URL` = `boogbe_migrator` URL (db `boogbe`)
    - `BETTER_AUTH_SECRET` = `openssl rand -base64 48` (the `.env.example` placeholder is refused in production)
-   - `BETTER_AUTH_URL=https://api.boogbe.com` / `https://staging-api.boogbe.com` — the **API** origin: password-reset and other auth links are built from it, and Cloudflare Pages cannot serve `/v1/auth/*`
-   - `APP_ORIGIN=https://app.boogbe.com` / `https://staging-app.boogbe.com`, `COOKIE_DOMAIN=.boogbe.com`
-   - `API_PUBLIC_ORIGIN=https://api.boogbe.com` / `https://staging-api.boogbe.com` — origin of the iCal export links given to Airbnb/Booking.com; must be `https` with no path (refused otherwise in production). Changing it later breaks every link already pasted into a channel (D-025: never change after go-live; if it must change, keep the old host serving `/v1/ical/*` too).
+   - `BETTER_AUTH_URL=https://api.boogbe.com` — the **API** origin: password-reset and other auth links are built from it, and Cloudflare Pages cannot serve `/v1/auth/*`
+   - `APP_ORIGIN=https://app.boogbe.com`, `COOKIE_DOMAIN=.boogbe.com`
+   - `API_PUBLIC_ORIGIN=https://api.boogbe.com` — origin of the iCal export links given to Airbnb/Booking.com; must be `https` with no path (refused otherwise in production). Changing it later breaks every link already pasted into a channel (D-025: never change after go-live; if it must change, keep the old host serving `/v1/ical/*` too).
    - `RESEND_API_KEY`, `MAIL_FROM`, `SENTRY_DSN`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`
 4. nginx. The edgdmedia VPS is a **shared Webmin/Virtualmin server**: other sites share this nginx, so boogbe's settings stay inside its own server block.
    - Cloudflare Origin Certificate for `*.boogbe.com` at `/etc/ssl/cloudflare/boogbe-origin.{pem,key}`.
@@ -30,7 +26,7 @@
    - Real IP: `/etc/nginx/snippets/boogbe-cf-realip.conf` (`set_real_ip_from` Cloudflare ranges + `real_ip_header CF-Connecting-IP`), `include`d in the `api.boogbe.com` server block. It makes `$remote_addr` the visitor, so rate limits work. Never install `cloudflare-realip.conf` in `conf.d/` here: that applies it to every site.
    - `deploy/nginx/boogbe-logging.conf` in `/etc/nginx/conf.d/` (iCal token masking). Then `sudo nginx -t && sudo systemctl reload nginx`.
    - Firewall: 443 open to Cloudflare IPs only. Refresh the real-IP list monthly (root crontab): `0 4 1 * * /home/boogbe/app/deploy/nginx/update-cloudflare-ips.sh /etc/nginx/snippets/boogbe-cf-realip.conf`. Always pass the path: without it the script writes `conf.d/cloudflare-realip.conf`.
-5. First deploy: `bash deploy/deploy.sh staging` (in `/home/boogbe/staging`) then `bash deploy/deploy.sh prod` (in `/home/boogbe/app`). Then `pm2 startup` + `pm2 save`.
+5. First deploy: `bash deploy/deploy.sh prod` (in `/home/boogbe/app`). Then `pm2 startup` + `pm2 save`.
 6. Platform admin: add your email to `PLATFORM_ADMIN_EMAILS` in `.env`, then `pnpm --filter @boogbe/api create-platform-admin you@edgdmedia.com "Your Name" -` (reads the password from stdin; see `docs/GO-LIVE.md` step 12).
 7. Backups (crontab -e as boogbe): `30 1 * * * /home/boogbe/app/deploy/backup.sh prod >> /home/boogbe/app/logs/backup.log 2>&1` (01:30 UTC = 02:30 Lagos).
 
@@ -45,12 +41,12 @@
      CLOUDFLARE_ACCOUNT_ID=af273e5d58efe45fa36724c5a3e61052 npx wrangler@3 pages deploy apps/app/dist --project-name boogbe-app --branch main
      ```
      That's the EDGD Media Cloudflare account, project `boogbe-app`. Run `npx wrangler@3 login` once per machine. The API goes first because a new app build may call routes or migrations that only the new API has.
-- Staging (`dev` → `staging-api`/`staging-app`) is not set up yet; it comes back with its own trigger and nginx server block.
+- **There is no staging** (owner decision, 2026-10-16). Changes are tested locally (full gate plus a local walk of the real API, worker, app and, for website booking, the Tanuhomes widget), then on production.
 - `deploy/deploy.sh` builds the API **with its workspace dependencies** (`pnpm --filter "@boogbe/api..." build`): the compiled API requires `packages/shared/dist`.
 - Every deploy takes a `pg_dump` first (`~/backups/boogbe-<instance>/pre-deploy-*.dump`, 14 days) and aborts if it fails.
 
 ## Cloudflare
-- DNS: `app` → Pages project `boogbe-app` (production branch `main`); `staging-app` → Pages branch alias `dev`; `api`, `staging-api` → VPS IP, proxied.
+- DNS: `app` → Pages project `boogbe-app` (production branch `main`); `api` → VPS IP, proxied.
 - SSL mode: Full (strict).
 
 ## Turning GitHub deploys back on
@@ -58,15 +54,16 @@ Only when the owner decides to. The workflows need these secrets: `PROD_SSH_HOST
 
 ## Website booking (WB) rollout and settings
 Guests request dates on an operator's own website (Tanuhomes first) through `/v1/public/:slug/*`. What must line up:
-- **API `.env`:** `TURNSTILE_SECRET_KEY`. Without it every request is refused (fails closed). Production refuses Cloudflare's dummy test secrets (`1x…AA`, `2x…AA`, `3x…AA`) at startup. Use the always-pass pair (site key `1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA`) only locally or on staging. Restart PM2 after changing it.
+- **API `.env`:** `TURNSTILE_SECRET_KEY`. Without it every request is refused (fails closed). Production refuses Cloudflare's dummy test secrets (`1x…AA`, `2x…AA`, `3x…AA`) at startup. Use the always-pass pair (site key `1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA`) only locally. Restart PM2 after changing it.
 - **Which host serves the site.** The widget lives on the Tanuhomes `astro-rebuild` branch, whose build defaults to a preview origin unless `SITE_URL` is set (`npm run build` sets `https://tanuhomes.com`). List the host that **actually** serves the pages: in Turnstile, and in Boogbe's website address or "Other sites". The rest of this section assumes `tanuhomes.com`.
-- **Cloudflare Turnstile widget** (Cloudflare dashboard → Turnstile, "Managed" mode): list **both** hostnames, `tanuhomes.com` and `www.tanuhomes.com`, plus any preview or staging host that will use the real site key. The site key goes into the Tanuhomes build as `PUBLIC_TURNSTILE_SITE_KEY`, and the secret into the API `.env`.
+- **Cloudflare Turnstile widget** (Cloudflare dashboard → Turnstile, "Managed" mode): list **both** hostnames, `tanuhomes.com` and `www.tanuhomes.com`, plus the preview host while testing: `tanuhomes-preview.edgdmedia.workers.dev` (a separate worker; `tanuhomes.edgdmedia.workers.dev` is the **production** worker's own address). The site key goes into the Tanuhomes build as `PUBLIC_TURNSTILE_SITE_KEY`, and the secret into the API `.env`.
 - **Boogbe app → Settings → Online booking** (admin):
   - **Website address** `https://tanuhomes.com`. Its `www.` twin is added automatically.
-  - **Every other site that shows the form must be listed in "Other sites that can show the booking form".** That includes a staging or preview copy of the Tanuhomes site, and `http://localhost:4321` while testing locally. The list drives CORS (the browser's request is refused otherwise). With a real Turnstile secret, the API also refuses a challenge solved on a host that isn't listed. The dummy test secrets skip that hostname check.
-  - Turn on "Accept booking requests from your website". The page won't save it on until at least one site is listed, and it allows **5 sites in all**, counting the website's `www.` twin. Website + www + one staging host + `localhost` is already 4. Set the hold minutes and the extra notify emails, and tick **Show on website** on each unit to offer. An unlisted unit is invisible to the public API.
+  - **Every other site that shows the form must be listed in "Other sites that can show the booking form".** That includes the preview copy of the Tanuhomes site (`https://tanuhomes-preview.edgdmedia.workers.dev`), and `http://localhost:4321` while testing locally. The list drives CORS (the browser's request is refused otherwise). With a real Turnstile secret, the API also refuses a challenge solved on a host that isn't listed. The dummy test secrets skip that hostname check.
+  - Turn on "Accept booking requests from your website". The page won't save it on until at least one site is listed, and it allows **5 sites in all**, counting the website's `www.` twin. Website + www + the preview host + `localhost` is already 4. Set the hold minutes and the extra notify emails, and tick **Show on website** on each unit to offer. An unlisted unit is invisible to the public API.
   - Changes apply at once in the API process that saved them; any other API process may answer from its cached copy for up to 30 s.
 - **Tanuhomes site build:** `PUBLIC_BOOGBE_API` (default `https://api.boogbe.com`), `PUBLIC_BOOGBE_SLUG` (default `tanuhomes`), `PUBLIC_TURNSTILE_SITE_KEY`. A property shows the widget only when its JSON has `boogbe.units` (`[{ "label", "unitId" }]`) **and** the site key is set. Otherwise it keeps the rate card. The app doesn't display unit ids. Once online booking is on and the unit is listed, `https://api.boogbe.com/v1/public/<slug>/units` lists each listed unit's `id` (and `name`).
+- **Tanuhomes deploys:** `npm run deploy` publishes to the `tanuhomes` worker, which serves `tanuhomes.com`. **Never use `npm run deploy:preview`**: it pushes a noindex preview build to that same production worker. Preview builds go to the separate worker: `npm run build:preview && npx wrangler deploy --name tanuhomes-preview`.
 - **Emails** go through the outbox (`outbound_message`), so a mail outage never fails a request. Check that table first when an email seems missing.
 
 ## Restore drill (monthly; record date + duration in this file)
