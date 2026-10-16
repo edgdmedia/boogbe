@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
-import { OrgSettingsResponse, type UpdateOrgSettingsInput } from '@boogbe/shared';
+import { can, OrgSettingsResponse, type UpdateOrgSettingsInput } from '@boogbe/shared';
 import { Button, Card, Field, Input, Spinner } from '@boogbe/ui';
 import { api, ApiError, useApi } from '../../lib/api';
+import { useMe } from '../../lib/use-me';
 
 const MAX_ORIGINS = 5;
 const MAX_EMAILS = 5;
@@ -51,13 +52,19 @@ function toInput(v: Form): { input?: UpdateOrgSettingsInput; errors: Errors } {
   const errors: Errors = {};
   const hold = Number(v.holdMinutes);
   if (!Number.isInteger(hold) || hold < 15 || hold > 1440) errors.holdMinutes = 'Use 15 to 1440 minutes';
-  const site = v.site.trim();
-  if (site && toUrl(site)?.protocol !== 'https:')
+  const typed = v.site.trim();
+  const siteUrl = toUrl(typed);
+  if (typed && siteUrl?.protocol !== 'https:')
     errors.site = 'Use your website address, starting with https://';
+  // URL lower-cases the scheme and host (HTTPS://Example.com); the API wants a literal https:// prefix.
+  const site =
+    typed && siteUrl
+      ? `${siteUrl.origin}${siteUrl.pathname === '/' ? '' : siteUrl.pathname}${siteUrl.search}${siteUrl.hash}`
+      : '';
   const extras = list(v.extra);
   const badExtras = extras.filter((x) => !siteOk(toUrl(x)));
   if (badExtras.length) errors.extra = `Use full addresses starting with https://: ${badExtras.join(', ')}`;
-  const emails = list(v.emails);
+  const emails = [...new Set(list(v.emails).map((x) => x.toLowerCase()))];
   const badEmails = emails.filter((x) => !z.string().email().safeParse(x).success);
   if (badEmails.length) errors.emails = `Check these addresses: ${badEmails.join(', ')}`;
   else if (emails.length > MAX_EMAILS) errors.emails = `Up to ${MAX_EMAILS} addresses`;
@@ -74,21 +81,35 @@ function toInput(v: Form): { input?: UpdateOrgSettingsInput; errors: Errors } {
       publicHoldMinutes: hold,
       publicSiteUrl: site || null,
       publicOrigins: origins,
-      notifyEmails: [...new Set(emails)],
+      notifyEmails: emails,
     },
   };
 }
 
 export function OnlineBooking() {
+  const { me } = useMe();
+  const role = me?.activeOrg?.role;
   const { data, mutate } = useApi('/v1/org/settings', OrgSettingsResponse);
+  const loaded = useRef(false);
   const [v, setV] = useState<Form>();
   const [errors, setErrors] = useState<Errors>({});
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Load once: a revalidation (focus, another tab) must not wipe unsaved edits. A save reloads explicitly.
   useEffect(() => {
-    if (data) setV(fromSettings(data.settings));
+    if (data && !loaded.current) {
+      loaded.current = true;
+      setV(fromSettings(data.settings));
+    }
   }, [data]);
+  if (role && !can(role, 'org.settings.write'))
+    return (
+      <Card className="max-w-2xl">
+        <h1 className="mb-1 text-xl font-semibold">Online booking</h1>
+        <p className="text-sm text-ink-muted">Only admins can change online booking.</p>
+      </Card>
+    );
   if (!data || !v) return <Spinner />;
   const set = (patch: Partial<Form>) => {
     setV({ ...v, ...patch });
@@ -112,13 +133,15 @@ export function OnlineBooking() {
           setBusy(true);
           try {
             await api('/v1/org/settings', { method: 'PATCH', body: input });
-            await mutate();
-            setSaved(true);
           } catch (err) {
             setErrors({ form: err instanceof ApiError ? err.message : 'Could not save. Try again.' });
-          } finally {
             setBusy(false);
+            return;
           }
+          setSaved(true);
+          setBusy(false);
+          const fresh = await mutate().catch(() => undefined);
+          if (fresh) setV(fromSettings(fresh.settings));
         }}
       >
         <label className="flex items-center gap-2 text-sm">
@@ -174,7 +197,7 @@ export function OnlineBooking() {
               }
             }}
           >
-            {copied ? 'Copied' : 'Copy'}
+            <span aria-live="polite">{copied ? 'Copied' : 'Copy'}</span>
           </Button>
           <span className="text-ink-muted">Your website setup needs this.</span>
         </div>
@@ -183,7 +206,9 @@ export function OnlineBooking() {
             {errors.form}
           </p>
         )}
-        {saved && <p className="text-sm text-ink-muted">Saved.</p>}
+        <p aria-live="polite" className="text-sm text-ink-muted">
+          {saved ? 'Saved.' : ''}
+        </p>
         <Button type="submit" loading={busy}>
           Save
         </Button>

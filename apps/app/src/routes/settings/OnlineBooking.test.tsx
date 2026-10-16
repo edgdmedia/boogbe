@@ -1,8 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SWRConfig } from 'swr';
+import { SWRConfig, useSWRConfig } from 'swr';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { OnlineBooking, originsFor } from './OnlineBooking';
+
+const role = vi.hoisted(() => ({ current: 'admin' }));
+vi.mock('../../lib/use-me', () => ({ useMe: () => ({ me: { activeOrg: { role: role.current } } }) }));
 
 const settings = (s: Record<string, unknown> = {}) => ({
   org: {
@@ -152,6 +155,65 @@ describe('OnlineBooking', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Check the form');
   });
 });
+
+describe('OnlineBooking edge cases', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    role.current = 'admin';
+  });
+
+  it('sends a lower-case https:// address and lower-cased, de-duplicated emails', async () => {
+    const patches = serve(settings());
+    const user = userEvent.setup();
+    renderPage();
+    await user.type(await screen.findByLabelText('Website address'), 'HTTPS://TanuHomes.com/stay');
+    await user.type(
+      screen.getByLabelText('Also email new requests to'),
+      'A@x.ng, a@x.ng, b@x.ng, c@x.ng, d@x.ng, e@x.ng',
+    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(patches).toHaveLength(1));
+    expect(patches[0]).toMatchObject({
+      publicSiteUrl: 'https://tanuhomes.com/stay',
+      publicOrigins: ['https://tanuhomes.com', 'https://www.tanuhomes.com'],
+      notifyEmails: ['a@x.ng', 'b@x.ng', 'c@x.ng', 'd@x.ng', 'e@x.ng'],
+    });
+  });
+
+  it('a background refresh does not wipe unsaved edits', async () => {
+    let current = settings();
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify(current)));
+    const user = userEvent.setup();
+    render(
+      <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
+        <OnlineBooking />
+        <RefreshButton />
+      </SWRConfig>,
+    );
+    await user.type(await screen.findByLabelText('Website address'), 'https://tanuhomes.com');
+    current = settings({ publicHoldMinutes: 30 });
+    await user.click(screen.getByRole('button', { name: 'refresh' }));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.getByLabelText('Website address')).toHaveValue('https://tanuhomes.com');
+  });
+
+  it('non-admins see a notice instead of the form', async () => {
+    role.current = 'frontdesk';
+    serve(settings());
+    renderPage();
+    expect(await screen.findByText('Only admins can change online booking.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
+  });
+});
+
+function RefreshButton() {
+  const { mutate } = useSWRConfig();
+  return (
+    <button type="button" onClick={() => mutate('/v1/org/settings')}>
+      refresh
+    </button>
+  );
+}
 
 describe('originsFor', () => {
   it('adds the www twin, or the bare twin when www was typed', () => {
