@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { forgetPublicOrg } from '../public/public-org-cache';
 import type { OrgSettingsResponse, UpdateOrgSettingsInput } from '@boogbe/shared';
 import { PrismaService } from '../../common/db/prisma.service';
 import { OrgDb } from '../../common/db/org-db.service';
@@ -42,6 +43,11 @@ export class OrgService {
         statementPrefix: s.statementPrefix,
         bookingPrefix: s.bookingPrefix,
         logoUrl: s.logoKey ? await this.files.signedUrlForKey(s.logoKey) : null,
+        publicEnabled: s.publicEnabled,
+        publicHoldMinutes: s.publicHoldMinutes,
+        publicOrigins: s.publicOrigins,
+        publicSiteUrl: s.publicSiteUrl,
+        notifyEmails: s.notifyEmails,
       },
     };
   }
@@ -64,6 +70,10 @@ export class OrgService {
           ? (await this.files.assertConfirmed(tx, input.logoFileId, 'logo')).key
           : null;
       }
+      // The contract reduces each origin to scheme+host; two URLs on one site collapse to one origin.
+      if (input.publicOrigins) settingsPatch.publicOrigins = [...new Set(input.publicOrigins)];
+      if (input.notifyEmails)
+        settingsPatch.notifyEmails = [...new Set(input.notifyEmails.map((e) => e.toLowerCase()))];
       if (Object.keys(settingsPatch).length) await tx.orgSettings.updateMany({ data: settingsPatch });
       await this.audit.record(tx, {
         actor: ctx,
@@ -74,6 +84,8 @@ export class OrgService {
         after: input,
       });
     });
+    // A public booking lookup cached before this change would otherwise answer from stale settings for 30 s.
+    forgetPublicOrg(before.org.slug);
     return this.get(ctx);
   }
 }

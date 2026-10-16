@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SWRConfig } from 'swr';
 import { describe, expect, it, vi } from 'vitest';
@@ -81,5 +81,17 @@ describe('BookingForm', () => {
       guestId: 'g1',
       unitId: 'u1',
     });
+  });
+
+  it('never offers "Website" as a source: only the public booking API creates those', async () => {
+    render(
+      <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
+        <BookingForm unitId="u1" checkIn="2026-11-01" checkOut="2026-11-04" onCreated={vi.fn()} />
+      </SWRConfig>,
+    );
+    const select = screen.getByLabelText(/booked via/i);
+    const labels = within(select).getAllByRole('option').map((o) => o.textContent);
+    expect(labels).toContain('WhatsApp');
+    expect(labels).not.toContain('Website');
   });
 });

@@ -1,8 +1,13 @@
 # Go-live: production (Tanuhomes), 2026-10-15
 
-Production only. Staging comes later. Run the commands in order, and check each step before moving on. Secrets are **never** pasted into this repo, a chat, a PR or a shell history file. Generate them on the server, or paste them from the provider's dashboard straight into `.env`.
+Production only. There is no staging (owner decision, 2026-10-16): test locally, then on production. Run the commands in order, and check each step before moving on. Secrets are **never** pasted into this repo, a chat, a PR or a shell history file. Generate them on the server, or paste them from the provider's dashboard straight into `.env`.
 
-Hosts: `api.boogbe.com` (VPS `server.edgdmedia.com`, user `boogbe`, PM2 on 127.0.0.1:3060) and `app.boogbe.com` (Cloudflare Pages project `boogbe-app`, branch `main`).
+Hosts: `api.boogbe.com` (VPS `server.edgdmedia.com`, user `boogbe`, PM2 on 127.0.0.1:3060) and `app.boogbe.com` (Cloudflare Pages project `boogbe-app`, branch `main`, EDGD Media account `af273e5d58efe45fa36724c5a3e61052`).
+
+**Release 1 went live on 2026-10-14.** What was actually done differs from the original plan in three places, and this file now records what was done:
+- **Deploys are manual.** The GitHub "Deploy API" and "Deploy App" workflows are disabled (owner decision). See step 8 for the API and step 9 for the app, and `docs/RUNBOOK.md`, "Deploys", for every deploy after the first.
+- **The VPS is a shared Webmin/Virtualmin server**, so nginx follows that server's layout (step 6).
+- **AWS CLI comes from apt** (step 2).
 
 ## 0. What the owner provides
 
@@ -18,33 +23,31 @@ Hosts: `api.boogbe.com` (VPS `server.edgdmedia.com`, user `boogbe`, PM2 on 127.0
 
 `deploy.sh prod` deploys `origin/main`, so `main` must hold the release first.
 1. The release PR `dev → main` is opened at the cut-off. It needs approval plus the full local gate (AGENTS rule 6).
-2. Merging it triggers the Deploy workflows. Until step 9 sets the secrets, those runs fail at SSH. That's harmless, and expected.
+2. Merging it deploys nothing: the Deploy workflows are disabled. Deploy by hand (steps 8 and 9).
 
 ## 2. Server packages (once, with sudo)
 
 First check what the VPS already runs: another site may share nginx or Postgres. These steps only **add** to the server.
 ```sh
 sudo nginx -v; psql --version; node -v 2>/dev/null; ls /etc/nginx/conf.d /etc/nginx/sites-enabled
-grep -rn "real_ip_header" /etc/nginx/ || true   # if another conf already sets it, merge cloudflare-realip.conf into that file instead of adding a second one (duplicate directive = nginx -t error)
+grep -rn "real_ip_header" /etc/nginx/ || true   # on a shared server keep boogbe's real-IP settings inside its own server block (step 6), never http-wide
 sudo adduser --disabled-password --gecos "" boogbe   # skip if it exists
 sudo apt-get update && sudo apt-get install -y nginx git unzip   # skip what is installed
 # PostgreSQL 16: in Ubuntu 24.04's own repo; on 22.04 add the PGDG repo first (sudo apt-get install -y postgresql-common && sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh)
 sudo apt-get install -y postgresql-16
-# AWS CLI v2 (backup.sh uploads to R2 with it; apt's "awscli" is v1 or missing on 24.04)
-cd /tmp && curl -fsSLo awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip && unzip -q awscliv2.zip && sudo ./aws/install && aws --version && cd -
+# AWS CLI from apt (backup.sh uploads to R2 with it). It only needs `s3 cp`, `s3 rm` and `s3api list-objects-v2`, which apt's version has.
+# If apt has no "awscli" package (Ubuntu 24.04), install v2 from https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip instead.
+sudo apt-get install -y awscli && aws --version
 # Node 22 + pnpm + pm2 for the boogbe user only (other sites on the VPS keep their own Node)
 sudo -iu boogbe bash -c 'curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash && . ~/.nvm/nvm.sh && nvm install 22 && npm i -g pnpm@9 pm2'
 ```
 
-nvm is not loaded by non-interactive shells, so every later command that needs node, pnpm or pm2 goes through this helper. Define it once in your sudo shell; it runs a command as `boogbe` in `/home/boogbe/app` with nvm loaded (`deploy.sh` loads nvm itself, so GitHub Actions needs nothing extra):
+nvm is not loaded by non-interactive shells, so every later command that needs node, pnpm or pm2 goes through this helper. Define it once in your sudo shell; it runs a command as `boogbe` in `/home/boogbe/app` with nvm loaded (`deploy.sh` loads nvm itself, so it also runs from a plain `boogbe` login shell):
 ```sh
 B() { sudo -iu boogbe bash -c '. ~/.nvm/nvm.sh >/dev/null && cd /home/boogbe/app && "$@"' _ "$@"; }
 ```
 
-Deploy key for GitHub Actions (the private half becomes `PROD_SSH_KEY` in step 9):
-```sh
-sudo -iu boogbe bash -c 'mkdir -p -m 700 ~/.ssh && ssh-keygen -t ed25519 -N "" -C gh-actions-deploy -f ~/.ssh/gh_deploy && cat ~/.ssh/gh_deploy.pub >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
-```
+The GitHub Actions deploy key isn't needed while deploys are manual. If the Deploy workflows are turned back on, set it up then (see `docs/RUNBOOK.md`, "Turning GitHub deploys back on").
 
 ## 3. Postgres (prod database only)
 
@@ -106,10 +109,19 @@ sudo tee /etc/ssl/cloudflare/boogbe-origin.pem > /dev/null   # paste the origin 
 sudo tee /etc/ssl/cloudflare/boogbe-origin.key > /dev/null   # paste the private key, Ctrl-D
 sudo chmod 600 /etc/ssl/cloudflare/boogbe-origin.key
 A=/home/boogbe/app/deploy/nginx
-sudo cp $A/cloudflare-realip.conf $A/boogbe-logging.conf /etc/nginx/conf.d/   # see step 2 about real_ip_header
-sudo cp $A/boogbe-api.conf /etc/nginx/sites-enabled/boogbe-api.conf
+sudo cp $A/boogbe-logging.conf /etc/nginx/conf.d/
+```
+
+**Shared Webmin/Virtualmin server.** The repo's `boogbe-api.conf` and `cloudflare-realip.conf` are templates. On this server they are installed like this:
+- **Site file:** `/etc/nginx/sites-available/api.boogbe.com.conf`, enabled with a symlink in `sites-enabled/`. It is based on `boogbe-api.conf`.
+- **Listen on the server's own addresses**, as the Virtualmin sites do: `listen 169.58.2.239:443 ssl http2;` and `listen [<server IPv6>]:443 ssl http2;`. A bare `listen 443` loses to the other sites' address-specific listeners, so their default site answers for `api.boogbe.com`.
+- **Real IP is per site, not http-wide:** the Cloudflare `set_real_ip_from` list and `real_ip_header CF-Connecting-IP` live in `/etc/nginx/snippets/boogbe-cf-realip.conf`, which is `include`d inside the `api.boogbe.com` server block. Don't put `cloudflare-realip.conf` in `conf.d/`: it would apply to every site on the box.
+- Leave the other sites' files alone. Check with `sudo nginx -t` before every reload.
+
+```sh
 sudo nginx -t && sudo systemctl reload nginx
-(sudo crontab -l 2>/dev/null; echo '0 4 1 * * /home/boogbe/app/deploy/nginx/update-cloudflare-ips.sh') | sudo crontab -
+# monthly refresh of the real-IP list: pass the snippet path, or the script writes conf.d/cloudflare-realip.conf
+(sudo crontab -l 2>/dev/null; echo '0 4 1 * * /home/boogbe/app/deploy/nginx/update-cloudflare-ips.sh /etc/nginx/snippets/boogbe-cf-realip.conf') | sudo crontab -
 ```
 Firewall: 443 open to Cloudflare IPs only (ufw or the provider's firewall).
 
@@ -137,17 +149,16 @@ B pm2 startup systemd   # prints one "sudo env PATH=… pm2 startup …" line: r
 
 Check: `pm2 ls` shows both processes online. Running `curl -s https://api.boogbe.com/v1/health` from your machine returns `{"ok":true,"db":true}`.
 
-## 9. GitHub: secrets, then deploy the app
+## 9. Deploy the app (on your machine)
 
+Built locally and uploaded with wrangler to the EDGD Media Cloudflare account. These are the same steps the disabled "Deploy App" workflow ran:
 ```sh
-gh secret set PROD_SSH_HOST --body server.edgdmedia.com
-gh secret set PROD_SSH_USER --body boogbe
-ssh <you>@server.edgdmedia.com sudo cat /home/boogbe/.ssh/gh_deploy | gh secret set PROD_SSH_KEY   # the key made in step 2; never written to your disk
-gh secret set CF_API_TOKEN                              # paste when prompted
-gh secret set CF_ACCOUNT_ID --body <account id>
-gh workflow run "Deploy App" --ref main && gh workflow run "Deploy API" --ref main
+git checkout main && git pull --ff-only && pnpm install --frozen-lockfile
+VITE_API_ORIGIN=https://api.boogbe.com pnpm --filter "@boogbe/app..." build
+npx wrangler@3 login   # once per machine; sign in to the EDGD Media account
+CLOUDFLARE_ACCOUNT_ID=af273e5d58efe45fa36724c5a3e61052 npx wrangler@3 pages deploy apps/app/dist --project-name boogbe-app --branch main
 ```
-Check: https://app.boogbe.com loads the sign-in page, and both workflow runs are green.
+Check: https://app.boogbe.com loads the sign-in page. `VITE_API_ORIGIN` is baked in at build time, so a build without it points the app at the wrong API.
 
 ## 10. Nightly backup to R2 (01:30 UTC = 02:30 Lagos)
 
@@ -168,8 +179,9 @@ sudo tail -1 /var/log/nginx/boogbe-api.access.log                        # shows
 ## 12. Owner account, Tanuhomes, seed
 
 ```sh
-read -rsp 'Password: ' PW && echo && printf '%s' "$PW" | B pnpm --filter @boogbe/api create-platform-admin -- edgdmedia@gmail.com "<Your name>" -; unset PW   # "-" reads it from stdin: never in history or ps
+read -rsp 'Password: ' PW && echo && printf '%s' "$PW" | B pnpm --filter @boogbe/api create-platform-admin edgdmedia@gmail.com "<Your name>" -; unset PW   # "-" reads it from stdin: never in history or ps
 ```
+No `--` before the email. pnpm passes it on to the script as a literal argument; scripts from before POSTLAUNCH-1 then took `--` as the email. The script now ignores a leading `--`.
 1. Sign in at https://app.boogbe.com, go to **Platform**, then **New operator**: "Tanuhomes", slug `tanuhomes`.
 2. Invite `edgdmedia@gmail.com` as admin and accept the emailed link.
 3. Copy the operator id from the Platform page URL, then on the server run:

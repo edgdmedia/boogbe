@@ -10,7 +10,7 @@ Design phase. Start with [`docs/superpowers/specs/2026-10-09-boogbe-v1-design.md
 ## Docs
 | Doc | Purpose |
 |---|---|
-| [`AGENTS.md`](AGENTS.md) | Rules for AI builders (OpenCode, Claude Code) |
+| [`AGENTS.md`](AGENTS.md) | Rules for the AI builder (Claude Code) and its reviewers |
 | [`docs/PRD.md`](docs/PRD.md) | Product requirements |
 | [`docs/FRD.md`](docs/FRD.md) | Functional requirements with IDs + acceptance criteria |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture |

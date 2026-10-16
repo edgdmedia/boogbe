@@ -1,4 +1,4 @@
-import { Bell } from 'lucide-react';
+import { Bell, Globe } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import useSWR from 'swr';
@@ -48,6 +48,9 @@ export function NotificationBell() {
                 }}
                 className={`block rounded-lg px-2 py-2 text-sm hover:bg-surface-2 ${n.readAt ? 'text-ink-muted' : 'font-medium'}`}
               >
+                {n.kind === 'website_request' && (
+                  <Globe size={14} aria-hidden data-kind-icon="website_request" className="mr-1 inline-block align-[-2px] text-info" />
+                )}
                 {n.title}
                 {n.body && <span className="block text-xs font-normal text-ink-muted">{n.body}</span>}
               </Link>

@@ -7,6 +7,7 @@ export const NotificationKind = z.enum([
   'statements_ready',
   'task_issue',
   'message_failed',
+  'website_request',
 ]);
 export const Notification = z.object({
   id: z.string(),

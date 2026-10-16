@@ -12,6 +12,8 @@ import { jsonOnly } from './common/http/json-only.middleware';
 import { requestId } from './common/http/request-id.middleware';
 import { AUTH } from './common/auth/auth.tokens';
 import type { Auth } from './common/auth/auth';
+import { publicCors } from './modules/public/public-cors';
+import { PublicOrgService } from './modules/public/public-org.service';
 
 /** `overrides` swap providers (tests only), e.g. a fake iCal fetcher. */
 export async function buildApp(
@@ -40,7 +42,11 @@ export async function buildApp(
   // express must trust it so throttling and the auth rate limiter key off the client IP.
   http.set('trust proxy', 'loopback');
   http.use(helmet());
-  http.use(cors({ origin: [env.APP_ORIGIN], credentials: true }));
+  // Public booking routes answer only their operator's own website origins, never with credentials (WB);
+  // the app-wide CORS below then skips them.
+  http.use('/v1/public', publicCors(app.get(PublicOrgService)));
+  const appCors = cors({ origin: [env.APP_ORIGIN], credentials: true });
+  http.use((req, res, next) => ((req as { publicRoute?: boolean }).publicRoute ? next() : appCors(req, res, next)));
   // Better Auth reads its own body, so it must be mounted before the JSON parser.
   const auth = app.get<Auth>(AUTH);
   http.all('/v1/auth/*', toNodeHandler(auth));

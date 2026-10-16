@@ -18,7 +18,7 @@ const SOURCE = { unit: '', property: ' (from property)', operator: '' } as const
 
 export function PropertyDetail() {
   const { id = '' } = useParams();
-  const [q] = useSearchParams();
+  const [q, setQ] = useSearchParams();
   const { me } = useMe();
   const { data: p, mutate: mutateP } = useProperty(id);
   const { data: units, mutate: mutateU } = useUnits(id);
@@ -31,7 +31,18 @@ export function PropertyDetail() {
   const canSync = !!role && can(role, 'ical.read');
   useEffect(() => {
     const u = q.get('unit');
-    if (u && units && canSync && units.items.some((x) => x.id === u)) setDialog({ kind: 'sync', unit: units.items.find((x) => x.id === u)! });
+    if (u && units && canSync && units.items.some((x) => x.id === u)) {
+      setDialog({ kind: 'sync', unit: units.items.find((x) => x.id === u)! });
+      // Clear the param: while it sits in the URL, any later revalidation of units re-runs this
+      // effect and re-opens the dialog the user just closed.
+      setQ(
+        (prev) => {
+          prev.delete('unit');
+          return prev;
+        },
+        { replace: true },
+      );
+    }
   }, [units]);
   if (!p || !units) return <Spinner />;
   const close = () => setDialog(null);

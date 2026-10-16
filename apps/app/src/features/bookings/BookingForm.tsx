@@ -124,11 +124,14 @@ export function BookingForm({
         </Field>
         <Field label="Booked via">
           <Select value={v.source} onChange={(e) => setV({ ...v, source: e.target.value as typeof v.source })}>
-            {BookingSourceEnum.options.map((s) => (
-              <option key={s} value={s}>
-                {SOURCE_LABELS[s]}
-              </option>
-            ))}
+            {/* Website bookings only come from the public booking API, never the front desk. */}
+            {BookingSourceEnum.options
+              .filter((s) => s !== 'website')
+              .map((s) => (
+                <option key={s} value={s}>
+                  {SOURCE_LABELS[s]}
+                </option>
+              ))}
           </Select>
         </Field>
         <fieldset className="flex items-end gap-4 text-sm">

@@ -4,6 +4,8 @@ import { migratorClient, truncateAll } from './helpers/db';
 import { seedOrg, signInAs, type Agent } from './helpers/users';
 import { seedGuest, seedProperty, seedUnit } from './helpers/inventory';
 import { newId } from '../src/common/db/ids';
+import { OrgDb } from '../src/common/db/org-db.service';
+import { BookingsService } from '../src/modules/bookings/bookings.service';
 
 async function settings(orgId: string) {
   const m = await migratorClient();
@@ -186,6 +188,11 @@ describe('bookings [BKG-01..06 BKG-12 BKG-13]', () => {
       .expect(201);
     const all = (await fd.get('/v1/bookings').expect(200)).body.items;
     expect(all.map((b: { ref: string }) => b.ref.slice(-4))).toEqual(['0002', '0001']);
+    // List rows carry the hold so the front desk can show countdowns without a detail fetch per row (WB).
+    const [confirmed, tentative] = all as { status: string; holdUntil: string | null }[];
+    expect(confirmed!.holdUntil).toBeNull();
+    expect(tentative!.status).toBe('tentative');
+    expect(new Date(tentative!.holdUntil!).getTime()).toBeGreaterThan(Date.now());
     expect((await fd.get('/v1/bookings?status=confirmed').expect(200)).body.items).toHaveLength(1);
     expect((await fd.get('/v1/bookings?source=whatsapp').expect(200)).body.items).toHaveLength(1);
     expect((await fd.get('/v1/bookings?from=2026-11-30&to=2026-12-31').expect(200)).body.items).toHaveLength(
@@ -226,5 +233,95 @@ describe('bookings [BKG-01..06 BKG-12 BKG-13]', () => {
       .post('/v1/blocks')
       .send({ unitId, start: '2026-11-02', end: '2026-11-03', reason: 'maintenance' })
       .expect(409);
+  });
+
+  it('staff cannot create or relabel a booking as "website" (only the public API does)', async () => {
+    expect((await fd.post('/v1/bookings').send(body({ source: 'website' }))).status).toBe(400);
+    const id = (await fd.post('/v1/bookings').send(body()).expect(201)).body.id;
+    expect((await fd.patch(`/v1/bookings/${id}`).send({ source: 'website' })).status).toBe(400);
+  });
+
+  describe('createIn without an actor (public requests, WB)', () => {
+    const create = (input: Record<string, unknown>, holdMinutes = 120) =>
+      t.app
+        .get(OrgDb)
+        .run(orgId, (tx) =>
+          t.app
+            .get(BookingsService)
+            .createIn(tx, null, { orgId, timezone: 'Africa/Lagos' }, input as never, { holdMinutes }),
+        );
+    const stay = (o: Record<string, unknown> = {}) => ({
+      unitId,
+      guestId,
+      checkIn: '2026-12-10',
+      checkOut: '2026-12-12',
+      guestCount: 2,
+      source: 'website',
+      status: 'tentative',
+      ...o,
+    });
+
+    it('creates a tentative website booking held for the given minutes, with no member', async () => {
+      const b = await create(stay());
+      expect(b).toMatchObject({ source: 'website', status: 'tentative' });
+      const hold = new Date(b.holdUntil!).getTime() - Date.now();
+      expect(hold).toBeGreaterThan(119 * 60_000);
+      expect(hold).toBeLessThanOrEqual(120 * 60_000);
+      const m = await migratorClient();
+      const row = (await m.query(`select created_by_member_id from booking where id=$1`, [b.id])).rows[0];
+      const ev = (
+        await m.query(`select actor_member_id from booking_status_event where booking_id=$1`, [b.id])
+      ).rows[0];
+      const audit = (
+        await m.query(
+          `select actor_user_id, actor_member_id from audit_log where entity_id=$1 and action='booking.create'`,
+          [b.id],
+        )
+      ).rows[0];
+      await m.end();
+      expect(row.created_by_member_id).toBeNull();
+      expect(ev.actor_member_id).toBeNull();
+      expect(audit).toEqual({ actor_user_id: 'public', actor_member_id: null });
+    });
+
+    it('refuses iCal-overlapping dates outright (no acknowledgement for the public)', async () => {
+      const m = await migratorClient();
+      const feed = newId();
+      await m.query(
+        `insert into ical_feed(id, org_id, unit_id, label, channel, url, updated_at) values ($1,$2,$3,'Airbnb','airbnb','https://a/x.ics',now())`,
+        [feed, orgId, unitId],
+      );
+      await m.query(
+        `insert into block(id, org_id, unit_id, start, "end", source, reason, feed_id, external_uid, updated_at)
+         values ($1,$2,$3,'2026-12-10','2026-12-12','ical','external',$4,'uid-1',now())`,
+        [newId(), orgId, unitId, feed],
+      );
+      await m.end();
+      await expect(create(stay({ acknowledgeIcalOverlap: true }))).rejects.toMatchObject({
+        code: 'DATES_UNAVAILABLE',
+      });
+    });
+
+    it('refuses too many guests and price overrides, with no override path', async () => {
+      await expect(create(stay({ guestCount: 5, capacityOverrideReason: 'family' }))).rejects.toMatchObject({
+        code: 'TOO_MANY_GUESTS',
+      });
+      await expect(create(stay({ finalTotalKobo: 1, overrideReason: 'cheap' }))).rejects.toMatchObject({
+        code: 'FORBIDDEN',
+      });
+    });
+
+    it('only ever creates a held website request: no confirmed status, no other source', async () => {
+      await expect(create(stay({ status: 'confirmed' }))).rejects.toMatchObject({ code: 'INTERNAL' });
+      await expect(create(stay({ source: 'whatsapp' }))).rejects.toMatchObject({ code: 'INTERNAL' });
+    });
+
+    it('a booking made by staff still records the member', async () => {
+      const id = (await fd.post('/v1/bookings').send(body()).expect(201)).body.id;
+      const m = await migratorClient();
+      const row = (await m.query(`select created_by_member_id from booking where id=$1`, [id])).rows[0];
+      await m.end();
+      expect(row.created_by_member_id).not.toBeNull();
+    });
   });
 });

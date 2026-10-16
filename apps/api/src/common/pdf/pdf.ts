@@ -11,14 +11,20 @@ const FONTS = resolve(__dirname, '../../../assets/fonts');
  */
 export function renderPdf(
   draw: (doc: PDFKit.PDFDocument) => void,
-  opts: { compress?: boolean; subject?: string } = {},
+  opts: { compress?: boolean; subject?: string; createdAt?: Date } = {},
 ): Promise<Buffer> {
   return new Promise((ok, fail) => {
     const doc = new PDFDocument({
       size: 'A4',
       margin: 48,
       compress: opts.compress ?? true,
-      info: { Producer: 'Boogbe', ...(opts.subject && { Subject: opts.subject }) },
+      // A fixed CreationDate (pdfkit otherwise stamps "now" and derives the file ID from it) makes a document
+      // render to the same bytes every time, so an email retry sends an identical payload.
+      info: {
+        Producer: 'Boogbe',
+        ...(opts.subject && { Subject: opts.subject }),
+        ...(opts.createdAt && { CreationDate: opts.createdAt }),
+      },
     });
     doc.registerFont('body', `${FONTS}/NotoSans-Regular.ttf`);
     doc.registerFont('bold', `${FONTS}/NotoSans-Bold.ttf`);

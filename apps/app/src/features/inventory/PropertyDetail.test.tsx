@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Route, Routes, useSearchParams } from 'react-router-dom';
 import { SWRConfig } from 'swr';
 import { describe, expect, it, vi } from 'vitest';
 import { PropertyDetail } from './PropertyDetail';
@@ -48,6 +49,8 @@ vi.mock('./hooks', () => ({
   useUnitFees: () => ({ data: { items: [] }, mutate: vi.fn() }),
   useProperties: () => ({ data: { items: [] }, mutate: vi.fn() }),
 }));
+// The panel is CalendarSyncPanel's own test's subject; here we only care that the dialog opens/closes.
+vi.mock('../ical/CalendarSyncPanel', () => ({ CalendarSyncPanel: () => <p>sync panel stub</p> }));
 vi.mock('../../lib/use-me', () => ({
   useMe: () => ({ me: { activeOrg: { role: 'admin', timezone: 'Africa/Lagos' } } }),
 }));
@@ -68,5 +71,28 @@ describe('PropertyDetail', () => {
     expect(screen.getByText(/₦200,000 \/ night/)).toBeInTheDocument();
     expect(screen.getByText('Mrs Adebayo (from property)')).toBeInTheDocument();
     expect(screen.getByText('20% of gross')).toBeInTheDocument();
+  });
+
+  it('opens the sync dialog from ?unit= and clears the param so closing sticks', async () => {
+    const search = { current: '' };
+    function Spy() {
+      const [q] = useSearchParams();
+      search.current = q.toString();
+      return null;
+    }
+    render(
+      <SWRConfig value={{ provider: () => new Map() }}>
+        <MemoryRouter initialEntries={['/settings/properties/p1?unit=u1#calendar-sync']}>
+          <Routes>
+            <Route path="/settings/properties/:id" element={<><PropertyDetail /><Spy /></>} />
+          </Routes>
+        </MemoryRouter>
+      </SWRConfig>,
+    );
+    expect(await screen.findByText('sync panel stub')).toBeInTheDocument();
+    // Without clearing, any later revalidation re-runs the effect and re-opens a dialog the user closed.
+    expect(search.current).not.toContain('unit=');
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByText('sync panel stub')).not.toBeInTheDocument();
   });
 });

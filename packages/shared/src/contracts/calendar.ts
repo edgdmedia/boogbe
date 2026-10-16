@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BookingSourceEnum } from './booking-source';
 import { IsoDateSchema } from './common';
 import { addDays } from '../domain/dates';
 
@@ -26,6 +27,7 @@ export const CalendarItem = z.discriminatedUnion('kind', [
     start: z.string(),
     end: z.string(),
     status: BookingStatus,
+    source: BookingSourceEnum,
     ref: z.string(),
     guestName: z.string().nullable(),
     balanceKobo: z.number().int().nullable(),

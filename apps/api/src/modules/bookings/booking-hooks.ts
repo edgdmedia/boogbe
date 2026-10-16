@@ -4,7 +4,8 @@ import type { OrgTx } from '../../common/db/org-db.service';
 import type { OrgCtx } from '../../common/auth/request-ctx';
 
 export interface BookingHook {
-  afterCreate?(tx: OrgTx, ctx: OrgCtx, booking: Booking): Promise<void>;
+  /** `ctx` is null for bookings from the public request route (WB). */
+  afterCreate?(tx: OrgTx, ctx: OrgCtx | null, booking: Booking): Promise<void>;
   afterTransition?(tx: OrgTx, ctx: OrgCtx | null, booking: Booking, from: BookingStatus): Promise<void>;
   afterUpdate?(tx: OrgTx, ctx: OrgCtx, before: Booking, after: Booking): Promise<void>;
   /** Fill computed fields (M3: paid/balance/deposit). Mutates in place. */

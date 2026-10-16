@@ -217,10 +217,15 @@ export class PaymentsService implements OnModuleInit {
 
   /** Receipt PDF for one money-in entry; the balance shown is the balance right after that entry (PAY-06). */
   async receipt(ctx: OrgCtx, paymentId: string): Promise<ReceiptFile> {
-    const data = await this.orgDb.run(ctx.orgId, async (tx) => {
+    return this.receiptForOrg(ctx.orgId, paymentId);
+  }
+
+  /** For the email outbox, which runs in the worker with an org id but no member (T-M5-04). */
+  async receiptForOrg(orgId: string, paymentId: string): Promise<ReceiptFile> {
+    const data = await this.orgDb.run(orgId, async (tx) => {
       const p = await tx.payment.findFirst({ where: { id: paymentId } });
       if (!p || !p.receiptNo) throw notFound('Receipt');
-      const booking = await this.bookings.getIn(tx, ctx.orgId, p.bookingId);
+      const booking = await this.bookings.getIn(tx, orgId, p.bookingId);
       const rows = await tx.payment.findMany({
         where: { bookingId: p.bookingId, createdAt: { lte: p.createdAt } },
         orderBy: { createdAt: 'asc' },
@@ -235,7 +240,7 @@ export class PaymentsService implements OnModuleInit {
         { finalTotalKobo: booking.finalTotalKobo, status: booking.status },
       );
       const s = await tx.orgSettings.findFirstOrThrow();
-      const org = await this.orgInfo.get(ctx.orgId, tx);
+      const org = await this.orgInfo.get(orgId, tx);
       return { p, receiptNo: p.receiptNo, booking, t, logoKey: s.logoKey, org };
     });
     const logo = data.logoKey ? await this.storage.get(data.logoKey) : null;

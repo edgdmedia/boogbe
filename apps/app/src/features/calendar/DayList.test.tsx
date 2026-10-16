@@ -11,8 +11,8 @@ const data: CalendarResponse = {
     { id: 'p', name: 'The Rock', units: [{ id: 'u1', name: 'Kairo', bedrooms: 2, maxGuests: 4, nightlyRateKobo: 20_000_000 }] },
   ],
   items: [
-    { kind: 'booking', id: 'b1', unitId: 'u1', start: '2026-10-30', end: '2026-11-01', status: 'checked_in', ref: 'TAN-1', guestName: 'Ada', balanceKobo: null, hasConflict: false },
-    { kind: 'booking', id: 'b2', unitId: 'u1', start: '2026-11-01', end: '2026-11-03', status: 'confirmed', ref: 'TAN-2', guestName: 'Ben', balanceKobo: null, hasConflict: false },
+    { kind: 'booking', id: 'b1', unitId: 'u1', start: '2026-10-30', end: '2026-11-01', status: 'checked_in', source: 'phone', ref: 'TAN-1', guestName: 'Ada', balanceKobo: null, hasConflict: false },
+    { kind: 'booking', id: 'b2', unitId: 'u1', start: '2026-11-01', end: '2026-11-03', status: 'confirmed', source: 'phone', ref: 'TAN-2', guestName: 'Ben', balanceKobo: null, hasConflict: false },
   ],
 };
 

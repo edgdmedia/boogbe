@@ -4,6 +4,8 @@ import { BookingSourceEnum, SOURCE_LABELS, STATUS_LABELS } from '@boogbe/shared'
 import { Badge, EmptyState, Input, Select, Spinner, Table } from '@boogbe/ui';
 import { formatDate, formatNaira } from '../../lib/format';
 import { useBookings } from './hooks';
+import { WebsiteBadge } from './WebsiteBadge';
+import { WebsiteRequestsCard } from './WebsiteRequestsCard';
 
 export function BookingsPage() {
   const nav = useNavigate();
@@ -16,6 +18,7 @@ export function BookingsPage() {
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold">Bookings</h1>
+      <WebsiteRequestsCard />
       <div className="grid gap-2 md:grid-cols-5">
         <Input aria-label="Search" placeholder="Ref, guest or phone" value={f.q} onChange={(e) => { setCursor(null); setF({ ...f, q: e.target.value }); }} />
         <Select aria-label="Status" value={f.status} onChange={(e) => { setCursor(null); setF({ ...f, status: e.target.value }); }}>
@@ -50,7 +53,13 @@ export function BookingsPage() {
             { key: 'g', header: 'Guest', cell: (b) => b.guestName },
             { key: 'u', header: 'Unit', cell: (b) => b.unitName },
             { key: 'd', header: 'Dates', cell: (b) => `${formatDate(b.checkIn)} → ${formatDate(b.checkOut)}` },
-            { key: 's', header: 'Status', cell: (b) => <Badge>{STATUS_LABELS[b.status]}</Badge> },
+            { key: 's', header: 'Status', cell: (b) => (
+                <span className="flex flex-wrap gap-1">
+                  <Badge>{STATUS_LABELS[b.status]}</Badge>
+                  <WebsiteBadge source={b.source} />
+                </span>
+              ),
+            },
             { key: 't', header: 'Total', cell: (b) => formatNaira(b.finalTotalKobo), className: 'text-right' },
             { key: 'bal', header: 'Balance', cell: (b) => (b.balanceKobo === null ? '—' : formatNaira(b.balanceKobo)), className: 'text-right' },
           ]}

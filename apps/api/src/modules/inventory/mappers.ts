@@ -56,6 +56,7 @@ export function toUnit(
     checkInInstructions: r.checkInInstructions,
     sortOrder: r.sortOrder,
     active: r.active,
+    publicListed: r.publicListed,
     feeOverride: r.feeOverride,
     feeType: r.feeType as Unit['feeType'],
     feeBps: r.feeBps,

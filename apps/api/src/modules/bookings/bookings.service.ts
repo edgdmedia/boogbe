@@ -22,7 +22,7 @@ import {
 import { OrgDb, type OrgTx } from '../../common/db/org-db.service';
 import { MemberNames } from '../../common/db/member-names';
 import { newId } from '../../common/db/ids';
-import { AuditService } from '../../common/audit/audit.service';
+import { AuditService, PUBLIC_ACTOR } from '../../common/audit/audit.service';
 import { AppError, forbidden, notFound } from '../../common/http/app-error';
 import type { OrgCtx } from '../../common/auth/request-ctx';
 import { BlocksService } from '../inventory/blocks.service';
@@ -149,10 +149,10 @@ export class BookingsService {
   }
 
   /** `<prefix>-<YYMM>-<seq>` with YYMM in the operator's timezone (BKG-13). */
-  async nextRef(tx: OrgTx, ctx: OrgCtx): Promise<string> {
+  async nextRef(tx: OrgTx, timezone: string): Promise<string> {
     const s = await tx.orgSettings.findFirstOrThrow();
     const n = await this.orgDb.nextNumber(tx, 'booking');
-    const yymm = todayIn(ctx.timezone).slice(2, 7).replace('-', '');
+    const yymm = todayIn(timezone).slice(2, 7).replace('-', '');
     return `${s.bookingPrefix}-${yymm}-${String(n).padStart(4, '0')}`;
   }
 
@@ -167,85 +167,116 @@ export class BookingsService {
   }
 
   create(ctx: OrgCtx, input: CreateBookingInput): Promise<Booking> {
-    if (input.finalTotalKobo !== undefined && !can(ctx.role, 'bookings.override'))
-      throw forbidden('You cannot change prices');
-    return this.orgDb.run(ctx.orgId, async (tx) => {
-      const { unit, fees } = await this.loadPricingInputs(tx, input.unitId);
-      if (!(await tx.guest.findFirst({ where: { id: input.guestId, anonymisedAt: null } }))) {
-        throw new AppError('VALIDATION_FAILED', 400, 'Guest not found');
-      }
-      this.checkCapacity(ctx, input.guestCount, unit.maxGuests, input.capacityOverrideReason);
-      // Locks the unit row and asks every calendar source (blocks + bookings); the exclusion constraint is the backstop.
-      await this.blocks.assertUnitFree(tx, input.unitId, input.checkIn, input.checkOut);
-      const warnings = await this.icalWarnings(tx, input.unitId, input.checkIn, input.checkOut);
-      if (warnings.length && !input.acknowledgeIcalOverlap) {
-        throw new AppError('ICAL_OVERLAP', 409, 'These dates overlap a booking on another channel', {
-          warnings,
-        });
-      }
+    // Website bookings come only from the public request route (WB); staff never create or relabel one.
+    if (input.source === 'website')
+      throw new AppError('VALIDATION_FAILED', 400, 'Website bookings come only from the online booking form');
+    return this.orgDb.run(ctx.orgId, (tx) =>
+      this.createIn(tx, ctx, { orgId: ctx.orgId, timezone: ctx.timezone }, input),
+    );
+  }
 
-      let price = quote({
-        nightlyRateKobo: kobo(unit.nightlyRateKobo),
-        fees,
+  /**
+   * Shared by the app (actor = member) and the public request route (actor = null, WB). With no actor there is
+   * no override path: price overrides are refused, capacity is a hard limit, and iCal overlaps are unavailable.
+   * `opts.ip` is recorded on the audit entry (public requests pass a hash, never the raw address).
+   * Precondition: `tx` runs under `org.orgId` (from `orgDb.run(org.orgId, …)`); RLS guards every write regardless.
+   */
+  async createIn(
+    tx: OrgTx,
+    actor: OrgCtx | null,
+    org: { orgId: string; timezone: string },
+    input: CreateBookingInput,
+    opts: { holdMinutes?: number; ip?: string } = {},
+  ): Promise<Booking> {
+    // Without an actor the caller is the public request route: it may only create a held website request.
+    if (!actor && (input.status !== 'tentative' || input.source !== 'website'))
+      throw new AppError('INTERNAL', 500, 'A booking without a member must be a tentative website request');
+    if (input.finalTotalKobo !== undefined && !(actor && can(actor.role, 'bookings.override')))
+      throw forbidden('You cannot change prices');
+    const { unit, fees } = await this.loadPricingInputs(tx, input.unitId);
+    if (!(await tx.guest.findFirst({ where: { id: input.guestId, anonymisedAt: null } }))) {
+      throw new AppError('VALIDATION_FAILED', 400, 'Guest not found');
+    }
+    if (actor) this.checkCapacity(actor, input.guestCount, unit.maxGuests, input.capacityOverrideReason);
+    else if (input.guestCount > unit.maxGuests)
+      throw new AppError('TOO_MANY_GUESTS', 422, `This apartment sleeps ${unit.maxGuests}`);
+    // Locks the unit row and asks every calendar source (blocks + bookings); the exclusion constraint is the backstop.
+    await this.blocks.assertUnitFree(tx, input.unitId, input.checkIn, input.checkOut);
+    const warnings = await this.icalWarnings(tx, input.unitId, input.checkIn, input.checkOut);
+    // The back office may book over an iCal block after acknowledging it; the public never can (plan deviation 4).
+    if (warnings.length && !actor)
+      throw new AppError('DATES_UNAVAILABLE', 409, 'Those dates are not available');
+    if (warnings.length && !input.acknowledgeIcalOverlap) {
+      throw new AppError('ICAL_OVERLAP', 409, 'These dates overlap a booking on another channel', {
+        warnings,
+      });
+    }
+
+    let price = quote({
+      nightlyRateKobo: kobo(unit.nightlyRateKobo),
+      fees,
+      checkIn: input.checkIn,
+      checkOut: input.checkOut,
+      guestCount: input.guestCount,
+    });
+    if (input.finalTotalKobo !== undefined) price = applyOverride(price, input.finalTotalKobo);
+
+    const s = await tx.orgSettings.findFirstOrThrow();
+    const holdMs = (opts.holdMinutes ?? s.holdHours * 60) * 60_000;
+    const id = newId();
+    const ref = await this.nextRef(tx, org.timezone);
+    await tx.booking.create({
+      data: {
+        id,
+        ref,
+        unitId: input.unitId,
+        guestId: input.guestId,
+        checkIn: day(input.checkIn),
+        checkOut: day(input.checkOut),
+        guestCount: input.guestCount,
+        source: input.source,
+        status: input.status,
+        holdUntil: input.status === 'tentative' ? new Date(Date.now() + holdMs) : null,
+        computedTotalKobo: BigInt(price.computedTotalKobo),
+        finalTotalKobo: BigInt(price.finalTotalKobo),
+        depositKobo: BigInt(price.depositKobo),
+        overrideReason: input.finalTotalKobo !== undefined ? input.overrideReason : null,
+        capacityOverrideReason: input.guestCount > unit.maxGuests ? input.capacityOverrideReason : null,
+        icalWarningAck: warnings.length > 0,
+        notes: input.notes ?? null,
+        createdByMemberId: actor?.memberId ?? null,
+      } as never,
+    });
+    await this.writeLines(tx, id, price);
+    await tx.bookingStatusEvent.create({
+      data: {
+        id: newId(),
+        bookingId: id,
+        fromStatus: null,
+        toStatus: input.status,
+        actorMemberId: actor?.memberId ?? null,
+      } as never,
+    });
+    const booking = await this.getIn(tx, org.orgId, id);
+    await this.audit.record(tx, {
+      // audit_log.actor_user_id is NOT NULL and has no FK: a public request is recorded as the actor 'public' (spec §5).
+      actor: actor ?? PUBLIC_ACTOR,
+      action: 'booking.create',
+      entity: 'booking',
+      entityId: id,
+      ...(opts.ip && { ip: opts.ip }),
+      after: {
+        ref,
+        unitId: input.unitId,
         checkIn: input.checkIn,
         checkOut: input.checkOut,
-        guestCount: input.guestCount,
-      });
-      if (input.finalTotalKobo !== undefined) price = applyOverride(price, input.finalTotalKobo);
-
-      const s = await tx.orgSettings.findFirstOrThrow();
-      const id = newId();
-      const ref = await this.nextRef(tx, ctx);
-      await tx.booking.create({
-        data: {
-          id,
-          ref,
-          unitId: input.unitId,
-          guestId: input.guestId,
-          checkIn: day(input.checkIn),
-          checkOut: day(input.checkOut),
-          guestCount: input.guestCount,
-          source: input.source,
-          status: input.status,
-          holdUntil: input.status === 'tentative' ? new Date(Date.now() + s.holdHours * 3_600_000) : null,
-          computedTotalKobo: BigInt(price.computedTotalKobo),
-          finalTotalKobo: BigInt(price.finalTotalKobo),
-          depositKobo: BigInt(price.depositKobo),
-          overrideReason: input.finalTotalKobo !== undefined ? input.overrideReason : null,
-          capacityOverrideReason: input.guestCount > unit.maxGuests ? input.capacityOverrideReason : null,
-          icalWarningAck: warnings.length > 0,
-          notes: input.notes ?? null,
-          createdByMemberId: ctx.memberId,
-        } as never,
-      });
-      await this.writeLines(tx, id, price);
-      await tx.bookingStatusEvent.create({
-        data: {
-          id: newId(),
-          bookingId: id,
-          fromStatus: null,
-          toStatus: input.status,
-          actorMemberId: ctx.memberId,
-        } as never,
-      });
-      const booking = await this.getIn(tx, ctx.orgId, id);
-      await this.audit.record(tx, {
-        actor: ctx,
-        action: 'booking.create',
-        entity: 'booking',
-        entityId: id,
-        after: {
-          ref,
-          unitId: input.unitId,
-          checkIn: input.checkIn,
-          checkOut: input.checkOut,
-          finalTotalKobo: price.finalTotalKobo,
-          overrideReason: input.overrideReason,
-        },
-      });
-      await this.hooks.run('afterCreate', tx, ctx, booking);
-      return booking;
+        finalTotalKobo: price.finalTotalKobo,
+        overrideReason: input.overrideReason,
+        source: input.source,
+      },
     });
+    await this.hooks.run('afterCreate', tx, actor, booking);
+    return booking;
   }
 
   async hydrate(tx: OrgTx, orgId: string, rows: BookingRow[]): Promise<Booking[]> {
@@ -399,6 +430,14 @@ export class BookingsService {
         input.unitId !== undefined || input.checkIn !== undefined || input.checkOut !== undefined;
       if (!editable && before.status !== 'checked_in') {
         throw new AppError('INVALID_TRANSITION', 422, 'This booking can no longer be changed');
+      }
+      // A booking keeps "website" only if it came from the public route; staff cannot relabel one as such.
+      if (input.source === 'website' && before.source !== 'website') {
+        throw new AppError(
+          'VALIDATION_FAILED',
+          400,
+          'Website bookings come only from the online booking form',
+        );
       }
       if (before.status === 'checked_in' && (input.unitId !== undefined || input.checkIn !== undefined)) {
         throw new AppError('INVALID_TRANSITION', 422, 'Only the check-out date can change after check-in');

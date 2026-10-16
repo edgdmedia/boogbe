@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createTestApp, type TestApp } from './helpers/app';
-import { truncateAll } from './helpers/db';
+import { migratorClient, truncateAll } from './helpers/db';
+import { newId } from '../src/common/db/ids';
 import { seedOrg, signInAs } from './helpers/users';
 
 describe('audit viewer [AUD-02]', () => {
@@ -22,6 +23,19 @@ describe('audit viewer [AUD-02]', () => {
     const r = (await admin.agent.get('/v1/audit?entity=owner').expect(200)).body;
     expect(r.items[0]).toMatchObject({ action: 'owner.create', entity: 'owner', actorName: 'Test User' });
     await (await signInAs(t, 'frontdesk', orgId)).agent.get('/v1/audit').expect(403);
+  });
+
+  it('entries made by a website request show "Website" as the actor (WB)', async () => {
+    const orgId = (await seedOrg()).id;
+    const admin = await signInAs(t, 'admin', orgId);
+    const m = await migratorClient();
+    await m.query(
+      `insert into audit_log(id, org_id, actor_user_id, action, entity, entity_id, at) values ($1,$2,'public','booking.create','booking','b1',now())`,
+      [newId(), orgId],
+    );
+    await m.end();
+    const r = (await admin.agent.get('/v1/audit?entity=booking').expect(200)).body;
+    expect(r.items[0]).toMatchObject({ action: 'booking.create', actorName: 'Website' });
   });
 
   it('lists newest first and pages with a cursor', async () => {

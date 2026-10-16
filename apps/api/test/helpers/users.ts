@@ -21,6 +21,28 @@ export async function seedOrg(name = `Org ${randomUUID().slice(0, 6)}`) {
   return { id, slug };
 }
 
+/**
+ * Gives a seeded org its `org_settings` row (seedOrg doesn't; the platform's createOperator does).
+ * Without it, `update org_settings … where org_id=$1` silently updates 0 rows. Idempotent; `set` patches columns.
+ */
+export async function seedOrgSettings(orgId: string, set: Record<string, unknown> = {}) {
+  const c = await migratorClient();
+  try {
+    await c.query(
+      `INSERT INTO org_settings(org_id, receipt_prefix, statement_prefix, booking_prefix, updated_at) VALUES ($1,'TAN','TAN','TAN',now())
+       ON CONFLICT (org_id) DO NOTHING`,
+      [orgId],
+    );
+    const keys = Object.keys(set);
+    if (keys.length) {
+      const cols = keys.map((k, i) => `"${k}" = $${i + 2}`).join(', ');
+      await c.query(`UPDATE org_settings SET ${cols} WHERE org_id = $1`, [orgId, ...keys.map((k) => set[k])]);
+    }
+  } finally {
+    await c.end();
+  }
+}
+
 /** Inserts an org + inviter + pending invitation for `email`; returns the invitation id. */
 export async function seedInvitation(email: string): Promise<string> {
   const c = await migratorClient();
