@@ -7,10 +7,13 @@ import { useLedger } from '../payments/hooks';
 import { bookingErrorMessage } from './errors';
 
 const VERB: Record<string, string> = { confirmed: 'Confirm', checked_in: 'Check in', checked_out: 'Check out', no_show: 'Mark no-show' };
+const DECLINE_REASONS = ['Dates not available', 'Could not reach guest'] as const;
+const OTHER = 'other';
 
 export function StatusActions({ booking, onChanged }: { booking: Booking; onChanged: () => void }) {
   const [cancel, setCancel] = useState(false);
   const [reason, setReason] = useState('');
+  const [preset, setPreset] = useState<string>(DECLINE_REASONS[0]);
   const [err, setErr] = useState<string>();
   const [refundKobo, setRefundKobo] = useState(0);
   const [refundMethod, setRefundMethod] = useState<PaymentMethod>('bank_transfer');
@@ -19,6 +22,9 @@ export function StatusActions({ booking, onChanged }: { booking: Booking; onChan
   const { data: ledger, mutate: mutateLedger } = useLedger(booking.id);
   const netPaid = ledger?.totals.netPaidKobo ?? 0;
   const depositHeld = ledger?.totals.depositHeldKobo ?? 0;
+  // A website request nobody has paid for is declined, not cancelled: preset reasons, no refund section.
+  const request = booking.source === 'website' && booking.status === 'tentative';
+  const decline = request && !!ledger && netPaid === 0;
   const run = async (p: Promise<unknown>) => {
     setErr(undefined);
     try {
@@ -27,10 +33,18 @@ export function StatusActions({ booking, onChanged }: { booking: Booking; onChan
       // Payments panel stops showing pre-action entries (bug bash: refund row missing until reload)
       await mutateLedger();
       onChanged();
+      return true;
     } catch (x) {
-      setErr(x instanceof ApiError ? bookingErrorMessage(x) : String(x));
+      // The hold may have expired, or a colleague may have acted on the request, since this page loaded.
+      if (request && x instanceof ApiError && (x.code === 'CONFLICT' || x.code === 'INVALID_TRANSITION')) {
+        setErr('This request changed. Refresh to see the latest.');
+        setCancel(false); // the booking reloads underneath; the message shows beside the actions
+        onChanged();
+      } else setErr(x instanceof ApiError ? bookingErrorMessage(x) : String(x));
+      return false;
     }
   };
+  const cancelReason = decline && preset !== OTHER ? preset : reason;
   const next = nextStatuses(booking.status);
   return (
     <div className="flex flex-wrap gap-2">
@@ -42,32 +56,64 @@ export function StatusActions({ booking, onChanged }: { booking: Booking; onChan
           </Button>
         ))}
       {next.includes('cancelled') && (
-        <Button variant="danger" onClick={() => setCancel(true)}>
-          Cancel booking
+        <Button
+          variant="danger"
+          onClick={() => {
+            // a reopened dialog starts fresh, not on a half-typed reason from an earlier attempt
+            setReason('');
+            setPreset(DECLINE_REASONS[0]);
+            setRefundKobo(0);
+            setRefundMethod('bank_transfer');
+            setRefundReference('');
+            setErr(undefined);
+            setCancel(true);
+          }}
+        >
+          {decline ? 'Decline' : 'Cancel booking'}
         </Button>
       )}
-      {err && (
+      {err && !cancel && (
         <p role="alert" className="w-full text-sm text-danger">
           {err}
         </p>
       )}
-      <Dialog open={cancel} onClose={() => setCancel(false)} title={`Cancel ${booking.ref}?`}>
+      <Dialog open={cancel} onClose={() => setCancel(false)} title={decline ? `Decline ${booking.ref}?` : `Cancel ${booking.ref}?`}>
         <form
           className="flex flex-col gap-3"
           onSubmit={(e) => {
             e.preventDefault();
+            // the API trims before its 3-character minimum, so "   " passes the browser check but not the server
+            if (cancelReason.trim().length < 3) return setErr('Give a reason of at least 3 characters.');
             void run(
               api(`/v1/bookings/${booking.id}/cancel`, {
                 method: 'POST',
-                body: { reason, ...(refundKobo > 0 && { refundKobo, refundMethod, refundReference: refundReference || undefined }) },
+                body: { reason: cancelReason.trim(), ...(refundKobo > 0 && { refundKobo, refundMethod, refundReference: refundReference || undefined }) },
               }),
-            ).then(() => setCancel(false));
+            ).then((ok) => ok && setCancel(false));
           }}
         >
           <p className="text-sm">The dates become free immediately.</p>
-          <Field label="Reason">
-            <Input value={reason} onChange={(e) => setReason(e.target.value)} required minLength={3} />
-          </Field>
+          {decline && (
+            <fieldset className="flex flex-col gap-1 text-sm">
+              <legend className="mb-1 font-medium">Why?</legend>
+              {[...DECLINE_REASONS, OTHER].map((r) => (
+                <label key={r} className="flex items-center gap-2">
+                  <input type="radio" name="decline-reason" value={r} checked={preset === r} onChange={() => setPreset(r)} />
+                  {r === OTHER ? 'Other (type it)' : r}
+                </label>
+              ))}
+            </fieldset>
+          )}
+          {(!decline || preset === OTHER) && (
+            <Field label="Reason">
+              <Input value={reason} onChange={(e) => setReason(e.target.value)} required minLength={3} autoFocus={decline} />
+            </Field>
+          )}
+          {err && (
+            <p role="alert" className="text-sm text-danger">
+              {err}
+            </p>
+          )}
           {netPaid > 0 && (
             <>
               <Field label="Refund to guest" hint={`Max ${formatNaira(netPaid)}`}>
@@ -94,7 +140,7 @@ export function StatusActions({ booking, onChanged }: { booking: Booking; onChan
             <p className="text-sm text-ink-muted">Caution deposit of {formatNaira(depositHeld)} is still held — return it from the Payments panel.</p>
           )}
           <Button type="submit" variant="danger">
-            Cancel booking
+            {decline ? 'Decline request' : 'Cancel booking'}
           </Button>
         </form>
       </Dialog>

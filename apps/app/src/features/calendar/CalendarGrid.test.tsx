@@ -27,6 +27,18 @@ describe('CalendarGrid', () => {
     expect(screen.getByRole('button', { name: /Maintenance, 3 Nov – 5 Nov/ })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /2 Nov.*today/i })).toBeInTheDocument();
   });
+  it('marks website requests on the booking chip [T-WB-07]', () => {
+    const withRequest: CalendarResponse = {
+      ...data,
+      items: [
+        { kind: 'booking', id: 'k1', unitId: 'u1', start: '2026-11-06', end: '2026-11-08', status: 'tentative', source: 'website', ref: 'TAN-7', guestName: 'Ada', balanceKobo: null, hasConflict: false },
+        { kind: 'booking', id: 'k2', unitId: 'u1', start: '2026-11-09', end: '2026-11-11', status: 'confirmed', source: 'phone', ref: 'TAN-8', guestName: 'Ben', balanceKobo: null, hasConflict: false },
+      ],
+    };
+    render(<CalendarGrid data={withRequest} onEmptySelect={vi.fn()} onItemClick={vi.fn()} />);
+    expect(screen.getByRole('button', { name: /^Website request · Ada · TAN-7, 6 Nov/ })).toHaveTextContent('Web · Ada · TAN-7');
+    expect(screen.getByRole('button', { name: /^Ben · TAN-8/ })).toHaveTextContent(/^Ben · TAN-8$/);
+  });
   it('drag-selects empty cells into a range', () => {
     const onEmptySelect = vi.fn();
     render(<CalendarGrid data={data} onEmptySelect={onEmptySelect} onItemClick={vi.fn()} />);

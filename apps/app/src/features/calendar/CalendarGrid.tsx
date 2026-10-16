@@ -18,8 +18,13 @@ const TONE: Record<string, string> = {
 const tone = (i: CalendarItem) => (i.kind === 'booking' ? TONE[i.status] : TONE[i.source]) ?? '';
 const label = (i: CalendarItem) =>
   i.kind === 'booking'
-    ? `${i.hasConflict ? '⚠ ' : ''}${i.guestName ?? 'Guest'} · ${i.ref}`
+    ? `${i.hasConflict ? '⚠ ' : ''}${i.source === 'website' ? 'Web · ' : ''}${i.guestName ?? 'Guest'} · ${i.ref}`
     : i.label;
+/** Screen readers get the words the chip abbreviates. */
+const spoken = (i: CalendarItem) =>
+  i.kind === 'booking' && i.source === 'website'
+    ? `${i.status === 'tentative' ? 'Website request' : 'Website booking'} · ${label(i).replace('Web · ', '')}`
+    : label(i);
 
 export function CalendarGrid({
   data,
@@ -100,7 +105,7 @@ export function CalendarGrid({
                       key={`${item.kind}-${item.id}`}
                       type="button"
                       onClick={() => onItemClick(item)}
-                      aria-label={`${label(item)}, ${short(item.start)} – ${short(item.end)}${item.kind === 'booking' && item.hasConflict ? ', possible double booking' : ''}`}
+                      aria-label={`${spoken(item)}, ${short(item.start)} – ${short(item.end)}${item.kind === 'booking' && item.hasConflict ? ', possible double booking' : ''}`}
                       className={clsx(
                         'absolute top-1.5 z-[4] h-9 truncate border px-2 text-left text-xs font-medium', item.kind === 'booking' && item.hasConflict ? 'ring-2 ring-danger' : '',
                         tone(item),

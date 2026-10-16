@@ -50,6 +50,7 @@ export class BookingSourceImpl implements CalendarSource, OnModuleInit {
       start: iso(b.checkIn),
       end: iso(b.checkOut),
       status: b.status as never,
+      source: b.source as never,
       ref: b.ref,
       guestName: b.guest.fullName,
       balanceKobo: bal.get(b.id) ?? null,
