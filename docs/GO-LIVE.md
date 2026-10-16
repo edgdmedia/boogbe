@@ -1,6 +1,6 @@
 # Go-live: production (Tanuhomes), 2026-10-15
 
-Production only. Staging comes later. Run the commands in order, and check each step before moving on. Secrets are **never** pasted into this repo, a chat, a PR or a shell history file. Generate them on the server, or paste them from the provider's dashboard straight into `.env`.
+Production only. There is no staging (owner decision, 2026-10-16): test locally, then on production. Run the commands in order, and check each step before moving on. Secrets are **never** pasted into this repo, a chat, a PR or a shell history file. Generate them on the server, or paste them from the provider's dashboard straight into `.env`.
 
 Hosts: `api.boogbe.com` (VPS `server.edgdmedia.com`, user `boogbe`, PM2 on 127.0.0.1:3060) and `app.boogbe.com` (Cloudflare Pages project `boogbe-app`, branch `main`, EDGD Media account `af273e5d58efe45fa36724c5a3e61052`).
 

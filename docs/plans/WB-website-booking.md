@@ -49,10 +49,10 @@
 | T-WB-03 Settings + unit `publicListed` API; `createIn` refactor with nullable actor | api | claude | 01, 02 |
 | T-WB-04 Public read API: org resolver, CORS, units, availability, quote | api | claude | 03 |
 | T-WB-05 Public request API: Turnstile, guest upsert, tentative hold, notification, emails | api | claude | 04 |
-| T-WB-06 App: Settings → Online booking, unit "Show on website" | ui | opencode | 02 (stub), merge after 03 |
-| T-WB-07 App: Website badge, hold countdown, requests card, Decline | ui | opencode | 02 (stub), merge after 05 |
-| T-WB-08 Tanuhomes site: booking widget | site | opencode | 04 merged to staging |
-| T-WB-09 Staging verification, prod enable, Alaska-first rollout | infra | planner + owner | all |
+| T-WB-06 App: Settings → Online booking, unit "Show on website" | ui | claude | 02 (stub), merge after 03 |
+| T-WB-07 App: Website badge, hold countdown, requests card, Decline | ui | claude | 02 (stub), merge after 05 |
+| T-WB-08 Tanuhomes site: booking widget | site | claude | 04 |
+| T-WB-09 Local walk, then production test on the unreleased site; all six properties at once | infra | owner + builder | all |
 
 ---
 
@@ -1387,21 +1387,47 @@ CSS: reuse the existing tokens and `.button` classes in the site stylesheet. The
 
 - [ ] **Step 4: Verify**
   - `npx vitest run src/scripts && TZ=America/New_York npx vitest run src/scripts && npm run build`: PASS. The build must also pass with no `boogbe` key on any property (RateCard everywhere).
-  - Then link Alaska to a staging unit, run `PUBLIC_BOOGBE_API=https://staging-api.boogbe.com PUBLIC_BOOGBE_SLUG=<staging slug> PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA npm run dev`, and use Playwright to walk pick dates → quote → request → ref shown. `1x000…AA` is Cloudflare's always-pass test key; the staging API needs the matching test secret `1x0000000000000000000000000000000AA`.
+  - Then walk it against a **local** Boogbe API (there is no staging): build with `PUBLIC_BOOGBE_API=http://localhost:<api port> PUBLIC_BOOGBE_SLUG=<local slug> PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA`, and use Playwright to go pick dates → quote → request → ref shown. `1x000…AA` is Cloudflare's always-pass test key; the local API needs the matching test secret `1x0000000000000000000000000000000AA`.
 
 - [ ] **Step 5: Commit** `feat: Boogbe booking widget on linked properties` and open a PR to Tanuhomes `main`.
 
 ---
 
-### Task 9 (T-WB-09) [infra]: Staging verification and rollout (planner + owner)
+### Task 9 (T-WB-09) [infra]: Local walk, then production test on the unreleased site (owner + builder)
 
-- [ ] **Staging:** deploy `dev` to staging. Set `TURNSTILE_SECRET_KEY` to the always-pass test secret. In the staging app, enable online booking for the staging org with origins `http://localhost:4321`, and list one unit. Run the T-WB-08 Playwright walk. Confirm that the team and guest emails appear in the outbound log and that an expired hold sends "Request not confirmed".
-- [ ] **Turnstile (owner):** in the Cloudflare dashboard, create a Turnstile widget for `tanuhomes.com` and `www.tanuhomes.com` in the "Managed" mode. Put the site key in the Tanuhomes build env as `PUBLIC_TURNSTILE_SITE_KEY` and the secret on the API server's `.env` as `TURNSTILE_SECRET_KEY`. Restart the API with PM2.
-- [ ] **Release:** open a dev→main release PR, then follow the manual deploy (RUNBOOK). Migration 0008 runs.
-- [ ] **Tanuhomes data (owner + planner):** in app.boogbe.com, check the six properties and their apartments: Alaska 1-bed ₦150,000; Destiny 1-bed ₦175,000 and 2-bed ₦210,000; Ebony 1-bed ₦120,000 and 2-bed ₦140,000; Kairo ₦200,000; Lumina 1-bed ₦180,000 and 2-bed ₦220,000; Veyra 2-bed ₦150,000. Each needs the ₦100,000 refundable caution deposit fee. Then go to Settings → Online booking: enable it, set website `https://tanuhomes.com`, set notify emails, and set "Show on website" on **Alaska only**.
-- [ ] **Site:** add `boogbe.units` to `alaska.json` with the production unit id, then build and deploy the Tanuhomes site (`npm run deploy`). Make a real request on a far-future date, check both emails, decline it, and check the "closed" email.
-- [ ] **Watch for 3–5 days.** Then list the other units, add `boogbe` to the other five property JSONs, and deploy.
-- [ ] **Board:** mark WB done and resume T-M5-05.
+Owner decision (2026-10-16): **no staging**. Test locally, then on production through a preview copy of the Tanuhomes site that isn't public. Link **all six properties at once**; there is no Alaska-first stage. Nothing goes to production until the owner says go.
+
+- [x] **Local walk (builder, 2026-10-16).** This ran on `dev`: real API, worker and app, its own database, the real widget build, and real Turnstile with the always-pass keys.
+  - Operator setup through the app UI.
+  - Three widget requests: Turnstile rendered inside the initially hidden form, and the team, notify and guest "received" emails were queued.
+  - Confirm queued "confirmed"; Decline queued "closed"; a 15-minute hold expired on its own (via the 10-minute hold job) and queued "closed".
+  - A local API with no `TURNSTILE_SECRET_KEY` refused requests (`VERIFICATION_FAILED`).
+
+**Production order.** One action per line, with who does it. The RUNBOOK section "Website booking (WB) rollout and settings" explains each setting.
+
+1. **Owner:** in Cloudflare → Turnstile, create a "Managed" widget for `tanuhomes.com`, `www.tanuhomes.com` and the preview host `tanuhomes-preview.edgdmedia.workers.dev`.
+2. **Owner:** put the Turnstile **secret** in the API server's `.env` as `TURNSTILE_SECRET_KEY`. The next deploy's PM2 reload picks it up. Send the **site key** (public) to the builder.
+3. **Owner:** merge the `dev` → `main` release PR.
+4. **Owner** (server, as `boogbe`): `B bash deploy/deploy.sh prod`. This takes a pg_dump, **runs migration 0008** and reloads PM2. Then check `https://api.boogbe.com/v1/health`.
+5. **Owner** (or the builder, on the owner's go): deploy the app from a clean `main` (RUNBOOK → Deploys, step 2).
+6. **Owner:** in app.boogbe.com, enter the six properties and their ten units:
+   - the nightly rates from the site data (T-WB-08 PR)
+   - a ₦100,000 refundable caution-deposit fee on each unit
+   - check-in and check-out times
+   - **Show on website** on every unit
+7. **Owner:** in Settings → Online booking:
+   - turn it on, with a 120-minute hold
+   - website `https://tanuhomes.com`
+   - other sites `https://tanuhomes-preview.edgdmedia.workers.dev`
+   - notify emails
+8. **Builder:** run `node scripts/link-boogbe.mjs`. It fetches the unit ids from `https://api.boogbe.com/v1/public/tanuhomes/units` and writes them into the six property JSONs. Push the change to tanuhomes#1.
+9. **Owner:** merge tanuhomes#1 into `astro-rebuild`.
+10. **Builder** (on the owner's go): build the preview with the site key and deploy it to the separate preview worker: `PUBLIC_TURNSTILE_SITE_KEY=<site key> npm run build:preview && npx wrangler deploy --name tanuhomes-preview`. The `tanuhomes` worker also serves `tanuhomes.com`, so deploying there would make the widget public.
+11. **Owner:** on the preview site, send a real request using your own phone and email. Check that the team and guest emails reach real inboxes.
+12. **Owner:** confirm that test request, then cancel it. Decline a second request and check the "closed" email.
+13. **Builder** (on the owner's go): put the site live with `PUBLIC_TURNSTILE_SITE_KEY=<site key> npm run deploy` (the `tanuhomes` worker, `tanuhomes.com`).
+14. **Owner:** remove the preview origin from "Other sites" and the preview hostname from Turnstile. **Builder:** delete the preview worker (`npx wrangler delete --name tanuhomes-preview`).
+15. **Builder:** mark WB done on the board and resume T-M5-05.
 
 ---
 
