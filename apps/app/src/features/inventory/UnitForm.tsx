@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useId } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Unit, UnitInput } from '@boogbe/shared';
 import { Button, Field, Input, Select } from '@boogbe/ui';
@@ -29,8 +30,10 @@ export function UnitForm({
         feeBps: 0,
         feeFixedMonthlyKobo: 0,
         sortOrder: 0,
+        publicListed: false,
       },
   });
+  const publicHint = useId();
   const override = f.watch('feeOverride');
   const e = f.formState.errors;
   return (
@@ -69,6 +72,15 @@ export function UnitForm({
       <Field label="Check-in instructions" hint="Sent to guests the day before arrival. Owners never see this.">
         <textarea className="min-h-24 rounded-lg border border-line bg-surface p-3 text-ink" {...f.register('checkInInstructions')} />
       </Field>
+      <div className="flex flex-col gap-1 md:col-span-2">
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" aria-describedby={publicHint} {...f.register('publicListed')} />
+          Show on website
+        </label>
+        <p id={publicHint} className="text-xs text-ink-muted">
+          Guests can see availability and request this apartment on your website.
+        </p>
+      </div>
       <label className="flex items-center gap-2 text-sm md:col-span-2">
         <input type="checkbox" {...f.register('feeOverride')} />
         Use a different management fee for this unit

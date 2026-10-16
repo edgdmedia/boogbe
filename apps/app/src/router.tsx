@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { BookOpen, Building2, CalendarDays, Contact, ScrollText, Settings, ShieldCheck, TriangleAlert, UserRound, Users, Wallet } from 'lucide-react';
+import { BookOpen, Building2, CalendarDays, Contact, Globe, ScrollText, Settings, ShieldCheck, TriangleAlert, UserRound, Users, Wallet } from 'lucide-react';
 import { createBrowserRouter, Outlet } from 'react-router-dom';
 import { EmptyState } from '@boogbe/ui';
 import { AppShell, type NavItem } from './components/shell/AppShell';
@@ -27,6 +27,7 @@ import { Team } from './routes/settings/Team';
 import { Sessions } from './routes/settings/Sessions';
 import { AuditLog } from './routes/settings/AuditLog';
 import { OrgProfile } from './routes/settings/OrgProfile';
+import { OnlineBooking } from './routes/settings/OnlineBooking';
 import { MoneyPage } from './features/payments/MoneyPage';
 import { ChooseOperator } from './routes/ChooseOperator';
 
@@ -41,6 +42,7 @@ export const OPERATOR_NAV: NavItem[] = [
   { to: '/conflicts', label: 'Conflicts', icon: TriangleAlert, permission: 'bookings.read' },
   { to: '/settings/team', label: 'Team', icon: Users, permission: 'members.write' },
   { to: '/settings', label: 'Settings', icon: Settings, permission: 'org.settings.read' },
+  { to: '/settings/online-booking', label: 'Online booking', icon: Globe, permission: 'org.settings.write' },
   { to: '/settings/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.read' },
 ];
 const PLATFORM_NAV: NavItem[] = [{ to: '/platform', label: 'Operators', icon: ShieldCheck }];
@@ -68,6 +70,7 @@ export const router = createBrowserRouter([
       { path: '/calendar', element: operator(<CalendarPage />) },
       { path: '/settings', element: operator(<OrgProfile />) },
       { path: '/settings/team', element: operator(<Team />) },
+      { path: '/settings/online-booking', element: operator(<OnlineBooking />) },
       { path: '/settings/sessions', element: operator(<Sessions />) },
       { path: '/settings/audit', element: operator(<AuditLog />) },
       { path: '/settings/properties', element: operator(<PropertiesPage />) },
