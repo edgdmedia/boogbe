@@ -5,9 +5,11 @@ import { Badge, Button, Card, Dialog, Spinner } from '@boogbe/ui';
 import { api } from '../../lib/api';
 import { formatDate } from '../../lib/format';
 import { EditBookingForm } from './EditBookingDialog';
+import { HoldCountdown } from './HoldCountdown';
 import { useBooking } from './hooks';
 import { PriceBreakdown } from './PriceBreakdown';
 import { StatusActions } from './StatusActions';
+import { WebsiteBadge } from './WebsiteBadge';
 
 const TONE = { tentative: 'warning', confirmed: 'info', checked_in: 'success', checked_out: 'neutral', cancelled: 'danger', no_show: 'danger' } as const;
 
@@ -27,7 +29,8 @@ export function BookingDetail() {
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-semibold">{b.ref}</h1>
             <Badge tone={TONE[b.status]}>{STATUS_LABELS[b.status]}</Badge>
-            {b.holdUntil && <span className="text-xs text-ink-muted">Held until {new Date(b.holdUntil).toLocaleString('en-NG')}</span>}
+            <WebsiteBadge source={b.source} />
+            {b.status === 'tentative' && b.holdUntil && <HoldCountdown holdUntil={b.holdUntil} />}
           </div>
           <p>
             <Link to={`/guests/${b.guest.id}`} className="font-medium text-brand">
