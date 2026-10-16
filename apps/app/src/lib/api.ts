@@ -39,6 +39,9 @@ export async function api<T = unknown>(
   return init.schema ? init.schema.parse(json) : (json as T);
 }
 
+// Retrying a 4xx (signed out, forbidden, not found) can't succeed; only network and server errors are worth it.
+const retryable = (e: Error) => !(e instanceof ApiError) || e.status === 0 || e.status >= 500;
+
 export function useApi<T>(path: string | null, schema?: ZodType<T>) {
-  return useSWR<T, ApiError>(path, (p: string) => api<T>(p, { schema }));
+  return useSWR<T, ApiError>(path, (p: string) => api<T>(p, { schema }), { shouldRetryOnError: retryable });
 }

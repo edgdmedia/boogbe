@@ -60,6 +60,22 @@ export function createAuth({ prisma, mailer, env }: { prisma: PrismaClient; mail
           },
         },
       },
+      session: {
+        create: {
+          // A user with exactly one operator goes straight in; the chooser is only for several.
+          // Without this every new session starts with no active org and lands on /choose-operator.
+          before: async (session) => {
+            if ((session as { activeOrganizationId?: string | null }).activeOrganizationId) return;
+            const members = await prisma.member.findMany({
+              where: { userId: session.userId },
+              select: { organizationId: true },
+              take: 2,
+            });
+            if (members.length !== 1) return;
+            return { data: { ...session, activeOrganizationId: members[0]!.organizationId } };
+          },
+        },
+      },
     },
     hooks: {
       before: createAuthMiddleware(async (ctx) => {

@@ -1,11 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
-import { PROD, inviteEmail, operatorName, platformAdmin, resetDb, slugFor } from './fixtures';
+import { PROD, inviteEmail, platformAdmin, resetDb, slugFor } from './fixtures';
 import { onboardOperator } from './helpers';
 
 test.beforeAll(() => resetDb());
 
-// In production the platform admin (the owner) is also a Tanuhomes admin, so signing in lands on /choose-operator.
-const adminHome = PROD ? /\/choose-operator$/ : /\/platform$/;
+// In production the platform admin (the owner) is also a Tanuhomes admin — their only operator — so signing in opens it.
+const adminHome = PROD ? /\/calendar$/ : /\/platform$/;
 
 // T-M2-13: opening the app signed out caches a 401 for /v1/me; signing in through the form must still land on the
 // right page in the same page load — no reload, no second visit to `/`.
@@ -23,12 +23,12 @@ test('a platform admin who opens the app signed out lands on Platform after sign
   await expect(page).toHaveURL(/\/platform$/);
 });
 
-test('an operator admin who opens the app signed out is asked to choose the operator after signing in', async ({ page, browser }) => {
+test('an operator admin with one operator who opens the app signed out goes straight in after signing in, no chooser', async ({ page, browser }) => {
   const admin = await onboardOperator(page, browser, 'tanu-signin');
   await admin.context().clearCookies(); // signed out (the Sign out button sits in a menu on mobile)
   await signInFromRoot(admin, inviteEmail(slugFor('tanu-signin')), 'correct-horse-battery');
-  await expect(admin).toHaveURL(/\/choose-operator$/);
-  await expect(admin.getByText(operatorName('tanu-signin'))).toBeVisible();
+  await expect(admin).toHaveURL(/\/calendar$/);
+  await expect(admin.getByRole('heading', { name: 'Choose an operator' })).toHaveCount(0);
 });
 
 test('a signed-in user who opens the sign-in page goes straight on, never off-site', async ({ page, baseURL }) => {
