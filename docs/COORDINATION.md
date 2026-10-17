@@ -108,8 +108,8 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-WB-09 | Local walk, then production test on the unreleased site; all six properties at once (no staging, no Alaska-first stage — owner decision 2026-10-16) | infra | all WB | claude | in-progress | | Plan Task 9 (production order, owner + builder). Local walk done 2026-10-16: all checks passed; hold expiry lands on the 10-minute job tick |
 | T-M6-01 | Turnover due-time rule and task contracts | domain | M2 | claude | done | [#51](https://github.com/edgdmedia/boogbe/pull/51) | Approved T-M6-01 by opencode; rebased over index.ts, merged |
 | T-M7-02 | Expense, statement and owner portal contracts | domain | T-M7-01 (plan order only; no code dependency) | claude | done | [#53](https://github.com/edgdmedia/boogbe/pull/53) | Approved T-M7-02 by opencode; index conflict with #49/#51 resolved keeping both; shared 188; merged |
-| T-UI-01 | Redesign: tokens, Inter, restyled primitives, PageHeader/StatTile/Textarea | ui | — | claude | in_progress | | `docs/plans/UI-redesign.md` Task 1; plan approved by owner 2026-10-17 (#89) |
-| T-UI-02 | Redesign: shell — dark sidebar + rail, phone tabs + More drawer, settings layout | ui | T-UI-01 | — | todo | | Plan Task 2 |
+| T-UI-01 | Redesign: tokens, Inter, restyled primitives, PageHeader/StatTile/Textarea | ui | — | claude | done | [#90](https://github.com/edgdmedia/boogbe/pull/90) | Merged 2026-10-17; int 254/254, E2E 13/13. Reviewer: 3 Important fixed (dark backdrop, forced-colors focus, table roles) + width override; warning badge tint /8 for AA |
+| T-UI-02 | Redesign: shell — dark sidebar + rail, phone tabs + More drawer, settings layout | ui | T-UI-01 | claude | in_progress | | Plan Task 2 |
 | T-UI-03 | Redesign: bookings, calendar, guests, conflicts | ui | T-UI-02 | — | todo | | Plan Task 3 |
 | T-UI-04 | Redesign: money, inventory | ui | T-UI-02 | — | todo | | Plan Task 4 |
 | T-UI-05 | Redesign: settings, auth, platform, placeholders | ui | T-UI-02 | — | todo | | Plan Task 5 |
