@@ -59,9 +59,9 @@ export function Team() {
           </p>
         )}
       </Card>
-      <Card className="flex flex-col gap-2">
+      <Card className="flex flex-col">
         {data.members.map((m) => (
-          <div key={m.id} className="flex flex-wrap items-center justify-between gap-2">
+          <div key={m.id} className="flex flex-wrap items-center justify-between gap-2 border-t border-line py-3 first:border-t-0">
             <span>
               {m.user.name} <span className="text-sm text-ink-muted">{m.user.email}</span>
             </span>
@@ -100,7 +100,7 @@ export function Team() {
         {data.invitations
           .filter((i) => i.status === 'pending')
           .map((i) => (
-            <div key={i.id} className="flex items-center justify-between text-sm text-ink-muted">
+            <div key={i.id} className="flex items-center justify-between gap-2 border-t border-line py-3 text-sm text-ink-muted first:border-t-0">
               <span>
                 {i.email} · {ROLE_LABELS[i.role as OrgRole]} · invited
               </span>

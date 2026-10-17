@@ -8,12 +8,14 @@ export function Sessions() {
   return (
     <div className="flex max-w-3xl flex-col gap-5">
       <PageHeader title="Signed-in devices" />
-      <Card className="flex flex-col gap-2">
-        {data.map((s) => (
-          <p key={s.id} className="text-sm">
-            {s.userAgent ?? 'Unknown device'} · {new Date(s.createdAt).toLocaleString('en-NG')}
-          </p>
-        ))}
+      <Card className="flex flex-col gap-3">
+        <div>
+          {data.map((s) => (
+            <p key={s.id} className="border-t border-line py-3 text-sm first:border-t-0">
+              {s.userAgent ?? 'Unknown device'} · {new Date(s.createdAt).toLocaleString('en-NG')}
+            </p>
+          ))}
+        </div>
         <Button
           variant="secondary"
           onClick={async () => {
