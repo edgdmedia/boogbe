@@ -9,6 +9,7 @@ import { api } from '../../lib/api';
 import { authClient } from '../../lib/auth-client';
 import { useMe } from '../../lib/use-me';
 import { useRefreshSession } from '../../lib/use-refresh-session';
+import { AuthFrame } from './AuthFrame';
 
 const NewUser = z.object({
   name: z.string().trim().min(2, 'Enter your name'),
@@ -45,12 +46,12 @@ export function AcceptInvite() {
   if (signedInAsInvitee && inv.status === 'accepted') return <Navigate to="/" replace />;
   if (inv === null || inv.status !== 'pending' || inv.expired) {
     return (
-      <main className="mx-auto max-w-sm p-4 pt-24">
+      <AuthFrame>
         <EmptyState
           title="This invitation is no longer valid"
           body="Ask the person who invited you to send a new one."
         />
-      </main>
+      </AuthFrame>
     );
   }
 
@@ -69,8 +70,8 @@ export function AcceptInvite() {
 
   if (signedInAsInvitee) {
     return (
-      <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center p-4">
-        <h1 className="mb-1 text-2xl font-semibold">
+      <AuthFrame>
+        <h1 className="mb-1 text-[26px] font-bold tracking-[-0.02em]">
           Join {inv.orgName} as {ROLE_LABELS[inv.role]}
         </h1>
         <p className="mb-6 text-sm text-ink-muted">You are signed in as {inv.email}.</p>
@@ -93,7 +94,7 @@ export function AcceptInvite() {
         >
           Accept invitation
         </Button>
-      </main>
+      </AuthFrame>
     );
   }
 
@@ -114,14 +115,14 @@ export function AcceptInvite() {
   });
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center p-4">
-      <h1 className="mb-1 text-2xl font-semibold">
+    <AuthFrame>
+      <h1 className="mb-1 text-[26px] font-bold tracking-[-0.02em]">
         Join {inv.orgName} as {ROLE_LABELS[inv.role]}
       </h1>
       <p className="mb-6 text-sm text-ink-muted">
         {inv.userExists ? 'Sign in to accept.' : 'Create your Boogbe account to accept.'}
       </p>
-      <Card>
+      <Card className="p-6">
         <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
           <Field label="Email">
             <Input value={inv.email} disabled readOnly />
@@ -152,6 +153,6 @@ export function AcceptInvite() {
           </Button>
         </form>
       </Card>
-    </main>
+    </AuthFrame>
   );
 }

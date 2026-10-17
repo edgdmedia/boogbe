@@ -21,7 +21,7 @@ export function NotificationBell() {
         {unread > 0 && <span className="absolute right-1 top-1 rounded-full bg-danger px-1.5 text-[10px] font-semibold text-danger-ink">{unread}</span>}
       </button>
       {open && (
-        <div className="absolute right-0 z-30 mt-1 w-80 rounded-[var(--radius-card)] border border-line bg-surface p-2 shadow-lg">
+        <div className="absolute right-0 z-30 mt-1 w-80 rounded-panel border border-line bg-surface p-2 shadow-raised">
           <div className="flex items-center justify-between px-2 pb-2">
             <span className="font-semibold">Notifications</span>
             <button

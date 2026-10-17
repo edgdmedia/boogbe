@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import { can, OrgSettingsResponse, type UpdateOrgSettingsInput } from '@boogbe/shared';
-import { Button, Card, Field, Input, Spinner } from '@boogbe/ui';
+import { Button, Card, Field, Input, PageHeader, Spinner } from '@boogbe/ui';
 import { api, ApiError, useApi } from '../../lib/api';
 import { useMe } from '../../lib/use-me';
 
@@ -105,10 +105,12 @@ export function OnlineBooking() {
   }, [data]);
   if (role && !can(role, 'org.settings.write'))
     return (
-      <Card className="max-w-2xl">
-        <h1 className="mb-1 text-xl font-semibold">Online booking</h1>
-        <p className="text-sm text-ink-muted">Only admins can change online booking.</p>
-      </Card>
+      <div className="flex max-w-3xl flex-col gap-5">
+        <PageHeader title="Online booking" />
+        <Card>
+          <p className="text-sm text-ink-muted">Only admins can change online booking.</p>
+        </Card>
+      </div>
     );
   if (!data || !v) return <Spinner />;
   const set = (patch: Partial<Form>) => {
@@ -117,102 +119,104 @@ export function OnlineBooking() {
   };
   const slug = data.org.slug;
   return (
-    <Card className="max-w-2xl">
-      <h1 className="mb-1 text-xl font-semibold">Online booking</h1>
-      <p className="mb-4 text-sm text-ink-muted">
-        Guests pick dates on your website and send a request. The dates are held while you confirm with them.
-      </p>
-      <form
-        className="grid gap-4"
-        noValidate
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const { input, errors: errs } = toInput(v);
-          setErrors(errs);
-          if (!input) return;
-          setBusy(true);
-          try {
-            await api('/v1/org/settings', { method: 'PATCH', body: input });
-          } catch (err) {
-            setErrors({ form: err instanceof ApiError ? err.message : 'Could not save. Try again.' });
-            setBusy(false);
-            return;
-          }
-          setSaved(true);
-          setBusy(false);
-          const fresh = await mutate().catch(() => undefined);
-          if (fresh) setV(fromSettings(fresh.settings));
-        }}
-      >
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={v.enabled} onChange={(e) => set({ enabled: e.target.checked })} />
-          Accept booking requests from your website
-        </label>
-        <Field
-          label="Hold requested dates for (minutes)"
-          hint="Unconfirmed requests are released after this."
-          error={errors.holdMinutes}
-        >
-          <Input
-            type="number"
-            min={15}
-            max={1440}
-            value={v.holdMinutes}
-            onChange={(e) => set({ holdMinutes: e.target.value })}
-          />
-        </Field>
-        <Field
-          label="Website address"
-          hint="The site that shows your booking form, e.g. https://yourbusiness.com"
-          error={errors.site}
-        >
-          <Input type="url" value={v.site} onChange={(e) => set({ site: e.target.value })} />
-        </Field>
-        <Field
-          label="Other sites that can show the booking form"
-          hint="Optional, e.g. a test copy of your site. Separate with commas."
-          error={errors.extra}
-        >
-          <Input value={v.extra} onChange={(e) => set({ extra: e.target.value })} />
-        </Field>
-        <Field
-          label="Also email new requests to"
-          hint={`Your contact email always gets them. Up to ${MAX_EMAILS}, separated by commas.`}
-          error={errors.emails}
-        >
-          <Input value={v.emails} onChange={(e) => set({ emails: e.target.value })} />
-        </Field>
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span>Your booking slug:</span>
-          <code className="rounded bg-surface-2 px-2 py-1">{slug}</code>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(slug);
-                setCopied(true);
-              } catch {
-                setCopied(false);
-              }
-            }}
-          >
-            <span aria-live="polite">{copied ? 'Copied' : 'Copy'}</span>
-          </Button>
-          <span className="text-ink-muted">Your website setup needs this.</span>
-        </div>
-        {errors.form && (
-          <p role="alert" className="text-sm text-danger">
-            {errors.form}
-          </p>
-        )}
-        <p aria-live="polite" className="text-sm text-ink-muted">
-          {saved ? 'Saved.' : ''}
+    <div className="flex max-w-3xl flex-col gap-5">
+      <PageHeader title="Online booking" />
+      <Card>
+        <p className="mb-4 text-sm text-ink-muted">
+          Guests pick dates on your website and send a request. The dates are held while you confirm with them.
         </p>
-        <Button type="submit" loading={busy}>
-          Save
-        </Button>
-      </form>
-    </Card>
+        <form
+          className="grid gap-4"
+          noValidate
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const { input, errors: errs } = toInput(v);
+            setErrors(errs);
+            if (!input) return;
+            setBusy(true);
+            try {
+              await api('/v1/org/settings', { method: 'PATCH', body: input });
+            } catch (err) {
+              setErrors({ form: err instanceof ApiError ? err.message : 'Could not save. Try again.' });
+              setBusy(false);
+              return;
+            }
+            setSaved(true);
+            setBusy(false);
+            const fresh = await mutate().catch(() => undefined);
+            if (fresh) setV(fromSettings(fresh.settings));
+          }}
+        >
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={v.enabled} onChange={(e) => set({ enabled: e.target.checked })} />
+            Accept booking requests from your website
+          </label>
+          <Field
+            label="Hold requested dates for (minutes)"
+            hint="Unconfirmed requests are released after this."
+            error={errors.holdMinutes}
+          >
+            <Input
+              type="number"
+              min={15}
+              max={1440}
+              value={v.holdMinutes}
+              onChange={(e) => set({ holdMinutes: e.target.value })}
+            />
+          </Field>
+          <Field
+            label="Website address"
+            hint="The site that shows your booking form, e.g. https://yourbusiness.com"
+            error={errors.site}
+          >
+            <Input type="url" value={v.site} onChange={(e) => set({ site: e.target.value })} />
+          </Field>
+          <Field
+            label="Other sites that can show the booking form"
+            hint="Optional, e.g. a test copy of your site. Separate with commas."
+            error={errors.extra}
+          >
+            <Input value={v.extra} onChange={(e) => set({ extra: e.target.value })} />
+          </Field>
+          <Field
+            label="Also email new requests to"
+            hint={`Your contact email always gets them. Up to ${MAX_EMAILS}, separated by commas.`}
+            error={errors.emails}
+          >
+            <Input value={v.emails} onChange={(e) => set({ emails: e.target.value })} />
+          </Field>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span>Your booking slug:</span>
+            <code className="rounded bg-surface-2 px-2 py-1">{slug}</code>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(slug);
+                  setCopied(true);
+                } catch {
+                  setCopied(false);
+                }
+              }}
+            >
+              <span aria-live="polite">{copied ? 'Copied' : 'Copy'}</span>
+            </Button>
+            <span className="text-ink-muted">Your website setup needs this.</span>
+          </div>
+          {errors.form && (
+            <p role="alert" className="text-sm text-danger">
+              {errors.form}
+            </p>
+          )}
+          <p aria-live="polite" className="text-sm text-ink-muted">
+            {saved ? 'Saved.' : ''}
+          </p>
+          <Button type="submit" loading={busy}>
+            Save
+          </Button>
+        </form>
+      </Card>
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import { Button, Card, Spinner } from '@boogbe/ui';
 import { authClient } from '../lib/auth-client';
 import { useMe } from '../lib/use-me';
 import { useRefreshSession } from '../lib/use-refresh-session';
+import { AuthFrame } from './auth/AuthFrame';
 
 export function ChooseOperator() {
   const { me } = useMe();
@@ -43,21 +44,23 @@ export function ChooseOperator() {
     );
   }
   return (
-    <main className="mx-auto flex max-w-sm flex-col gap-3 p-4 pt-16">
-      <h1 className="text-xl font-semibold">Choose an operator</h1>
+    <AuthFrame>
+      <div className="flex flex-col gap-3">
+      <h1 className="mb-3 text-[26px] font-bold tracking-[-0.02em]">Choose an operator</h1>
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
       {me.memberships.map((m) => (
-        <Card key={m.orgId} className="flex items-center justify-between">
+        <Card key={m.orgId} className="flex items-center justify-between gap-3 p-4">
           <span>
-            {m.orgName} <span className="text-sm text-ink-muted">{ROLE_LABELS[m.role]}</span>
+            <span className="font-semibold">{m.orgName}</span> <span className="text-sm text-ink-muted">{ROLE_LABELS[m.role]}</span>
           </span>
           <Button onClick={() => open(m.orgId)}>Open</Button>
         </Card>
       ))}
-    </main>
+      </div>
+    </AuthFrame>
   );
 }

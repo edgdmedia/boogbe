@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
 import { Operator } from '@boogbe/shared';
-import { Badge, Button, Card, EmptyState, Spinner } from '@boogbe/ui';
+import { Building2 } from 'lucide-react';
+import { Badge, Button, Card, EmptyState, PageHeader, Spinner } from '@boogbe/ui';
 import { useApi } from '../../lib/api';
 import { formatDate } from '../../lib/format';
 
@@ -10,14 +11,16 @@ export function OperatorsList() {
   if (isLoading || !data) return <Spinner />;
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Operators</h1>
-        <Link to="/platform/new">
-          <Button>New operator</Button>
-        </Link>
-      </div>
+      <PageHeader
+        title="Operators"
+        actions={
+          <Link to="/platform/new">
+            <Button>New operator</Button>
+          </Link>
+        }
+      />
       {data.items.length === 0 ? (
-        <EmptyState title="No operators yet" body="Create the first one — Tanuhomes." />
+        <EmptyState icon={<Building2 />} title="No operators yet" body="Create the first one — Tanuhomes." />
       ) : (
         data.items.map((o) => (
           <Link key={o.id} to={`/platform/operators/${o.id}`}>

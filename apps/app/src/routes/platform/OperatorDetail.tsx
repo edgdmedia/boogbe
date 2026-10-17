@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { OperatorDetail as Detail, ROLE_LABELS } from '@boogbe/shared';
-import { Badge, Button, Card, Field, Input, Spinner } from '@boogbe/ui';
+import { Badge, Button, Card, CardHeader, Field, Input, PageHeader, Spinner } from '@boogbe/ui';
 import { api, useApi } from '../../lib/api';
 
 export function OperatorDetail() {
@@ -16,13 +16,10 @@ export function OperatorDetail() {
     await mutate();
   };
   return (
-    <div className="flex max-w-2xl flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{data.name}</h1>
-        <Badge tone={data.status === 'active' ? 'success' : 'danger'}>{data.status}</Badge>
-      </div>
+    <div className="flex max-w-3xl flex-col gap-5">
+      <PageHeader title={data.name} meta={<Badge tone={data.status === 'active' ? 'success' : 'danger'}>{data.status}</Badge>} />
       <Card>
-        <h2 className="mb-3 font-medium">Invite an admin</h2>
+        <CardHeader title="Invite an admin" />
         <form
           className="flex gap-2"
           onSubmit={async (e) => {
@@ -55,13 +52,13 @@ export function OperatorDetail() {
         )}
       </Card>
       <Card>
-        <h2 className="mb-3 font-medium">Members</h2>
+        <CardHeader title="Members" />
         {data.members.map((m) => (
           <p key={m.id} className="text-sm">
             {m.name} · {m.email} · {ROLE_LABELS[m.role]}
           </p>
         ))}
-        <h2 className="mb-3 mt-4 font-medium">Invitations</h2>
+        <h2 className="mb-3 mt-6 text-[17px] font-bold">Invitations</h2>
         {data.invitations.map((i) => (
           <div key={i.id} className="flex items-center justify-between text-sm">
             <span>

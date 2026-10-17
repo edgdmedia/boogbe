@@ -9,6 +9,7 @@ import { authClient } from '../../lib/auth-client';
 import { safeNext } from '../../lib/safe-next';
 import { useMe } from '../../lib/use-me';
 import { useRefreshSession } from '../../lib/use-refresh-session';
+import { AuthFrame } from './AuthFrame';
 
 const Schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -48,9 +49,9 @@ export function SignIn() {
     );
   }
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center p-4">
-      <h1 className="mb-6 text-2xl font-semibold">Sign in to Boogbe</h1>
-      <Card>
+    <AuthFrame>
+      <h1 className="mb-6 text-[26px] font-bold tracking-[-0.02em]">Sign in to Boogbe</h1>
+      <Card className="p-6">
         <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
           <Field label="Email" error={formState.errors.email?.message}>
             <Input type="email" autoComplete="email" {...register('email')} />
@@ -71,6 +72,6 @@ export function SignIn() {
           </Link>
         </form>
       </Card>
-    </main>
+    </AuthFrame>
   );
 }

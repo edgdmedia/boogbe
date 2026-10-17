@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { createBrowserRouter, Outlet } from 'react-router-dom';
+import { FileText, KeyRound, Sparkles } from 'lucide-react';
 import { EmptyState } from '@boogbe/ui';
 import { AppShell } from './components/shell/AppShell';
 import { SettingsLayout } from './components/shell/SettingsLayout';
@@ -48,8 +49,8 @@ export const router = createBrowserRouter([
       {
         path: '/no-access',
         element: (
-          <main className="p-8">
-            <EmptyState title="No operator yet" body="Ask your operator to invite you." />
+          <main className="grid min-h-dvh place-items-center bg-surface-2 p-6">
+            <EmptyState icon={<KeyRound />} title="No operator yet" body="Ask your operator to invite you." />
           </main>
         ),
       },
@@ -72,16 +73,16 @@ export const router = createBrowserRouter([
       {
         path: '/hk',
         element: (
-          <main className="p-4">
-            <EmptyState title="Your tasks will appear here" />
+          <main className="grid min-h-dvh place-items-center bg-surface-2 p-6">
+            <EmptyState icon={<Sparkles />} title="Your tasks will appear here" />
           </main>
         ),
       },
       {
         path: '/owner',
         element: (
-          <main className="p-4">
-            <EmptyState title="Your statements will appear here" />
+          <main className="grid min-h-dvh place-items-center bg-surface-2 p-6">
+            <EmptyState icon={<FileText />} title="Your statements will appear here" />
           </main>
         ),
       },

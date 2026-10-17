@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { ORG_ROLES, ROLE_LABELS, type OrgRole } from '@boogbe/shared';
-import { Button, Card, Field, Input, Select, Spinner } from '@boogbe/ui';
+import { Button, Card, Field, Input, PageHeader, Select, Spinner } from '@boogbe/ui';
 import { authClient } from '../../lib/auth-client';
 import { useMe } from '../../lib/use-me';
 
@@ -24,8 +24,8 @@ export function Team() {
     await mutate();
   };
   return (
-    <div className="flex max-w-2xl flex-col gap-4">
-      <h1 className="text-xl font-semibold">Team</h1>
+    <div className="flex max-w-3xl flex-col gap-5">
+      <PageHeader title="Team" />
       <Card>
         <form
           className="grid gap-2 md:grid-cols-[1fr_180px_auto]"
