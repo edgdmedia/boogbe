@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { BookOpen, Building2, CalendarDays, Contact, Globe, ScrollText, Settings, ShieldCheck, TriangleAlert, UserRound, Users, Wallet } from 'lucide-react';
 import { createBrowserRouter, Outlet } from 'react-router-dom';
 import { EmptyState } from '@boogbe/ui';
-import { AppShell, type NavItem } from './components/shell/AppShell';
+import { AppShell } from './components/shell/AppShell';
+import { SettingsLayout } from './components/shell/SettingsLayout';
+import { OPERATOR_NAV, PLATFORM_NAV } from './nav';
 import { RequireAuth } from './components/shell/RequireAuth';
 import { RoleLanding } from './components/shell/RoleLanding';
 import { SignIn } from './routes/auth/SignIn';
@@ -31,23 +32,8 @@ import { OnlineBooking } from './routes/settings/OnlineBooking';
 import { MoneyPage } from './features/payments/MoneyPage';
 import { ChooseOperator } from './routes/ChooseOperator';
 
-/** Later milestones append to these arrays; keep one source of truth for nav. */
-export const OPERATOR_NAV: NavItem[] = [
-  { to: '/calendar', label: 'Calendar', icon: CalendarDays, permission: 'calendar.read' },
-  { to: '/settings/properties', label: 'Properties', icon: Building2, permission: 'inventory.read' },
-  { to: '/settings/owners', label: 'Owners', icon: UserRound, permission: 'owners.read' },
-  { to: '/money', label: 'Money', icon: Wallet, permission: 'payments.read' },
-  { to: '/bookings', label: 'Bookings', icon: BookOpen, permission: 'bookings.read' },
-  { to: '/guests', label: 'Guests', icon: Contact, permission: 'guests.read' },
-  { to: '/conflicts', label: 'Conflicts', icon: TriangleAlert, permission: 'bookings.read' },
-  { to: '/settings/team', label: 'Team', icon: Users, permission: 'members.write' },
-  { to: '/settings', label: 'Settings', icon: Settings, permission: 'org.settings.read' },
-  { to: '/settings/online-booking', label: 'Online booking', icon: Globe, permission: 'org.settings.write' },
-  { to: '/settings/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.read' },
-];
-const PLATFORM_NAV: NavItem[] = [{ to: '/platform', label: 'Operators', icon: ShieldCheck }];
-
 const operator = (children: ReactNode) => <AppShell nav={OPERATOR_NAV}>{children}</AppShell>;
+const settings = (children: ReactNode) => operator(<SettingsLayout nav={OPERATOR_NAV}>{children}</SettingsLayout>);
 
 export const router = createBrowserRouter([
   { path: '/auth/sign-in', element: <SignIn /> },
@@ -68,14 +54,14 @@ export const router = createBrowserRouter([
         ),
       },
       { path: '/calendar', element: operator(<CalendarPage />) },
-      { path: '/settings', element: operator(<OrgProfile />) },
-      { path: '/settings/team', element: operator(<Team />) },
-      { path: '/settings/online-booking', element: operator(<OnlineBooking />) },
-      { path: '/settings/sessions', element: operator(<Sessions />) },
-      { path: '/settings/audit', element: operator(<AuditLog />) },
-      { path: '/settings/properties', element: operator(<PropertiesPage />) },
-      { path: '/settings/properties/:id', element: operator(<PropertyDetail />) },
-      { path: '/settings/owners', element: operator(<OwnersPage />) },
+      { path: '/settings', element: settings(<OrgProfile />) },
+      { path: '/settings/team', element: settings(<Team />) },
+      { path: '/settings/online-booking', element: settings(<OnlineBooking />) },
+      { path: '/settings/sessions', element: settings(<Sessions />) },
+      { path: '/settings/audit', element: settings(<AuditLog />) },
+      { path: '/settings/properties', element: settings(<PropertiesPage />) },
+      { path: '/settings/properties/:id', element: settings(<PropertyDetail />) },
+      { path: '/settings/owners', element: settings(<OwnersPage />) },
       { path: '/money', element: operator(<MoneyPage />) },
       { path: '/bookings', element: operator(<BookingsPage />) },
       { path: '/bookings/new', element: operator(<NewBookingPage />) },
