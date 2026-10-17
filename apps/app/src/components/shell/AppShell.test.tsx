@@ -104,6 +104,14 @@ describe('AppShell', () => {
     expect(within(menu).getByRole('link', { name: 'Settings' })).toBeInTheDocument();
   });
 
+  it('menu drawer backdrop stays dark in dark mode', () => {
+    shell();
+    fireEvent.click(screen.getByRole('button', { name: 'More' }));
+    const cls = screen.getByRole('dialog', { name: 'Menu' }).className;
+    expect(cls).toContain('backdrop:bg-black/50');
+    expect(cls).not.toContain('backdrop:bg-ink');
+  });
+
   it('remembers a collapsed sidebar', () => {
     const set = vi.spyOn(Storage.prototype, 'setItem');
     shell();

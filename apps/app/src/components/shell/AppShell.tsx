@@ -237,7 +237,7 @@ function MenuDrawer({ open, onClose, children }: { open: boolean; onClose: () =>
       ref={ref}
       onClose={onClose}
       aria-label="Menu"
-      className="m-0 h-dvh max-h-none w-[min(300px,85vw)] bg-sidebar p-0 text-sidebar-ink backdrop:bg-ink/50 backdrop:backdrop-blur-sm"
+      className="m-0 h-dvh max-h-none w-[min(300px,85vw)] bg-sidebar p-0 text-sidebar-ink backdrop:bg-black/50 backdrop:backdrop-blur-sm"
     >
       {open && (
         <div className="flex h-full flex-col gap-5 px-3.5 py-5">
