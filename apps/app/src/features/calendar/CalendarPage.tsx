@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addDays, todayIn, type CalendarItem } from '@boogbe/shared';
-import { Button, Dialog, EmptyState, Input, Spinner } from '@boogbe/ui';
+import { Button, Dialog, EmptyState, Input, PageHeader, Spinner } from '@boogbe/ui';
 import { api } from '../../lib/api';
 import { useMe } from '../../lib/use-me';
 import { BlockForm } from './BlockDialog';
@@ -37,10 +37,11 @@ export function CalendarPage() {
   if (!data) return <Spinner />;
   if (!data.properties.length) return <EmptyState title="No units yet" body="Add your properties and units in Settings → Properties." />;
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="mr-auto text-xl font-semibold">Calendar</h1>
-        {narrow ? (
+    <div className="flex flex-col gap-4">
+      <PageHeader
+        title="Calendar"
+        actions={
+        narrow ? (
           <>
             <Button variant="secondary" onClick={() => setDay(addDays(day, -1))} aria-label="Previous day">
               ‹
@@ -63,8 +64,9 @@ export function CalendarPage() {
             </Button>
             <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} aria-label="Jump to date" className="w-40" />
           </>
-        )}
-      </div>
+        )
+        }
+      />
       {narrow ? (
         <DayList
           data={data}

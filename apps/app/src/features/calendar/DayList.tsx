@@ -23,41 +23,43 @@ export function DayList({
   return (
     <div className="flex flex-col gap-4">
       {sections.map((s) => (
-        <section key={s.title} aria-label={s.title}>
-          <h2 className="mb-2 text-sm font-semibold text-ink-muted">{s.title} ({s.items.length})</h2>
+        <Card key={s.title} role="region" aria-label={s.title} className="flex flex-col gap-2">
+          <h2 className="mb-2 text-[17px] font-bold tracking-[-0.01em] text-ink">
+            {s.title} ({s.items.length})
+          </h2>
           {s.items.length === 0 ? (
             <p className="text-sm text-ink-muted">None</p>
           ) : (
             s.items.map((i) => (
-              <button key={`${i.kind}-${i.id}`} className="mb-2 block w-full text-left" onClick={() => onItemClick(i)}>
-                <Card>
-                  <p className="font-medium">{name(i.unitId)}</p>
-                  <p className="text-sm text-ink-muted">
-                    {i.kind === 'booking' ? `${i.guestName ?? 'Guest'} · ${i.ref}` : i.label}
-                  </p>
-                </Card>
+              <button
+                key={`${i.kind}-${i.id}`}
+                className="block min-h-11 w-full rounded-control border border-line px-3 py-2.5 text-left hover:bg-surface-2"
+                onClick={() => onItemClick(i)}
+              >
+                <p className="font-semibold">{name(i.unitId)}</p>
+                <p className="text-sm text-ink-muted">{i.kind === 'booking' ? `${i.guestName ?? 'Guest'} · ${i.ref}` : i.label}</p>
               </button>
             ))
           )}
-        </section>
+        </Card>
       ))}
-      <section aria-label="Free tonight">
-        <h2 className="mb-2 text-sm font-semibold text-ink-muted">Free tonight ({free.length})</h2>
+      <Card role="region" aria-label="Free tonight" className="flex flex-col gap-2">
+        <h2 className="mb-2 text-[17px] font-bold tracking-[-0.01em] text-ink">Free tonight ({free.length})</h2>
         {free.length === 0 ? (
           <EmptyState title="Fully booked tonight" />
         ) : (
           free.map((u) => (
-            <Card key={u.id} className="mb-2 flex items-center justify-between">
+            <div key={u.id} className="flex items-center justify-between gap-2 rounded-control border border-line px-3 py-2">
               <span>
-                {u.name} <span className="text-sm text-ink-muted">{u.property}</span>
+                <span className="font-semibold">{u.name}</span> <span className="text-sm text-ink-muted">{u.property}</span>
               </span>
               <Button variant="secondary" onClick={() => onNew(u.id)}>
                 Block / book
               </Button>
-            </Card>
+            </div>
           ))
         )}
-      </section>
+      </Card>
     </div>
   );
 }

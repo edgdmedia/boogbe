@@ -1,7 +1,8 @@
+import clsx from 'clsx';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CHANNEL_LABELS, type SyncConflict } from '@boogbe/shared';
-import { Button, Card, Dialog, EmptyState, Spinner } from '@boogbe/ui';
+import { Button, Card, Dialog, EmptyState, PageHeader, Spinner } from '@boogbe/ui';
 import { api, ApiError } from '../../lib/api';
 import { formatDate } from '../../lib/format';
 import { useConflicts } from './hooks';
@@ -22,15 +23,23 @@ export function ConflictsPage() {
   };
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <h1 className="mr-auto text-xl font-semibold">Channel conflicts</h1>
-        <Button variant={tab === 'open' ? 'primary' : 'secondary'} onClick={() => setTab('open')}>
-          Open
-        </Button>
-        <Button variant={tab === 'resolved' ? 'primary' : 'secondary'} onClick={() => setTab('resolved')}>
-          Resolved
-        </Button>
-      </div>
+      <PageHeader
+        title="Channel conflicts"
+        actions={
+          <div role="group" aria-label="Show" className="inline-flex rounded-control bg-surface-2 p-1">
+            {(['open', 'resolved'] as const).map((t) => (
+              <button
+                key={t}
+                aria-pressed={tab === t}
+                onClick={() => setTab(t)}
+                className={clsx('min-h-10 rounded-[10px] px-4 text-sm font-semibold', tab === t ? 'bg-surface text-ink shadow-card' : 'text-ink-muted')}
+              >
+                {t === 'open' ? 'Open' : 'Resolved'}
+              </button>
+            ))}
+          </div>
+        }
+      />
       {!data ? (
         <Spinner />
       ) : data.items.length === 0 ? (

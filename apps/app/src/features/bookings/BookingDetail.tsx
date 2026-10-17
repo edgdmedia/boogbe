@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { SOURCE_LABELS, STATUS_LABELS } from '@boogbe/shared';
-import { Badge, Button, Card, Dialog, Spinner } from '@boogbe/ui';
+import { Badge, Button, Card, CardHeader, Dialog, PageHeader, Spinner } from '@boogbe/ui';
 import { api } from '../../lib/api';
 import { formatDate } from '../../lib/format';
 import { EditBookingForm } from './EditBookingDialog';
@@ -23,17 +24,39 @@ export function BookingDetail() {
   if (!b) return <Spinner />;
   const editable = ['tentative', 'confirmed', 'checked_in'].includes(b.status);
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-      <div className="flex flex-col gap-4">
+    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="xl:col-span-2">
+        <PageHeader
+          title={b.ref}
+          back={
+            <Link to="/bookings" aria-label="Back to bookings" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-brand">
+              <ChevronLeft size={16} aria-hidden />
+              Bookings
+            </Link>
+          }
+          meta={
+            <>
+              <Badge tone={TONE[b.status]}>{STATUS_LABELS[b.status]}</Badge>
+              <WebsiteBadge source={b.source} />
+              {b.status === 'tentative' && b.holdUntil && <HoldCountdown holdUntil={b.holdUntil} />}
+            </>
+          }
+          actions={
+            <>
+              <StatusActions booking={b} onChanged={() => mutate()} />
+              {editable && (
+                <Button variant="secondary" onClick={() => setEdit(true)}>
+                  Edit
+                </Button>
+              )}
+            </>
+          }
+        />
+      </div>
+      <div className="flex min-w-0 flex-col gap-5">
         <Card className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-semibold">{b.ref}</h1>
-            <Badge tone={TONE[b.status]}>{STATUS_LABELS[b.status]}</Badge>
-            <WebsiteBadge source={b.source} />
-            {b.status === 'tentative' && b.holdUntil && <HoldCountdown holdUntil={b.holdUntil} />}
-          </div>
-          <p>
-            <Link to={`/guests/${b.guest.id}`} className="font-medium text-brand">
+          <p className="text-[17px] font-bold">
+            <Link to={`/guests/${b.guest.id}`} className="text-brand">
               {b.guest.fullName}
             </Link>{' '}
             · {b.guest.phoneE164}
@@ -43,23 +66,15 @@ export function BookingDetail() {
             {b.nights === 1 ? '' : 's'} · {b.guestCount} guests · via {SOURCE_LABELS[b.source]}
           </p>
           {b.notes && <p className="text-sm text-ink-muted">{b.notes}</p>}
-          <div className="flex flex-wrap gap-2 pt-2">
-            <StatusActions booking={b} onChanged={() => mutate()} />
-            {editable && (
-              <Button variant="secondary" onClick={() => setEdit(true)}>
-                Edit
-              </Button>
-            )}
-          </div>
         </Card>
         {BOOKING_PANELS.map((Panel, i) => (
           <Panel key={i} booking={b} refresh={() => mutate()} />
         ))}
         <Card>
-          <h2 className="mb-2 font-semibold">History</h2>
-          <ol className="flex flex-col gap-1 text-sm">
+          <CardHeader title="History" />
+          <ol className="relative ml-2 flex flex-col gap-3 border-l border-line pl-4 text-sm">
             {b.history.map((h, i) => (
-              <li key={i}>
+              <li key={i} className="relative before:absolute before:-left-[21px] before:top-1.5 before:size-2 before:rounded-full before:bg-brand">
                 {new Date(h.at).toLocaleString('en-NG')} — {STATUS_LABELS[h.to]}
                 {h.actorName && ` by ${h.actorName}`}
                 {h.reason && ` (${h.reason === 'hold_expired' ? 'hold expired' : h.reason})`}
@@ -69,9 +84,9 @@ export function BookingDetail() {
         </Card>
       </div>
       <Card className="h-fit">
-        <h2 className="mb-2 font-semibold">Price</h2>
+        <CardHeader title="Price" />
         {b.priceStale && (
-          <div role="status" className="mb-2 rounded bg-warning/10 p-2 text-sm text-warning">
+          <div role="status" className="mb-3 rounded-control border border-warning/25 bg-warning/8 p-3 text-sm text-warning">
             Dates or guests changed since this price was set.{' '}
             <Button
               variant="ghost"

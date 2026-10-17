@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Guest } from '@boogbe/shared';
-import { Button, Dialog, EmptyState, Input, Spinner, Table } from '@boogbe/ui';
+import { Button, Dialog, EmptyState, Input, PageHeader, Spinner, Table } from '@boogbe/ui';
 import { formatDate, formatNaira } from '../../lib/format';
 import { GuestForm } from './GuestForm';
 import { useGuests } from './hooks';
@@ -50,17 +50,21 @@ export function GuestsPage() {
   const loadingPage = !!cursor && !data;
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="mr-auto text-xl font-semibold">Guests</h1>
-        <Input
-          aria-label="Search guests"
-          placeholder="Search name, phone, email"
-          value={q}
-          onChange={(e) => search(e.target.value)}
-          className="w-64"
-        />
-        <Button onClick={() => setOpen(true)}>Add guest</Button>
-      </div>
+      <PageHeader
+        title="Guests"
+        actions={
+          <>
+            <Input
+              aria-label="Search guests"
+              placeholder="Search name, phone, email"
+              value={q}
+              onChange={(e) => search(e.target.value)}
+              className="w-full md:w-64"
+            />
+            <Button onClick={() => setOpen(true)}>Add guest</Button>
+          </>
+        }
+      />
       {rows.length === 0 && !data ? (
         <Spinner />
       ) : rows.length === 0 ? (
