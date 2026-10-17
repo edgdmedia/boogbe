@@ -98,4 +98,17 @@ describe('ui kit', () => {
     expect(container.querySelector('th')).toHaveAttribute('role', 'columnheader');
     expect(container.querySelector('td')).toHaveAttribute('role', 'cell');
   });
+
+  it('a width passed by the page wins over the full-width default (w-40 date pickers in headers)', () => {
+    render(
+      <>
+        <Input aria-label="Day" className="w-40" />
+        <Input aria-label="Name" />
+      </>,
+    );
+    const day = screen.getByRole('textbox', { name: 'Day' }).className.split(' ');
+    expect(day).toContain('w-40');
+    expect(day).not.toContain('w-full');
+    expect(screen.getByRole('textbox', { name: 'Name' }).className.split(' ')).toContain('w-full');
+  });
 });
