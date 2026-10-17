@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { ORG_ROLES, ROLE_LABELS, type OrgRole } from '@boogbe/shared';
-import { Button, Card, Field, Input, Select, Spinner } from '@boogbe/ui';
+import { Button, Card, Field, Input, PageHeader, Select, Spinner } from '@boogbe/ui';
 import { authClient } from '../../lib/auth-client';
 import { useMe } from '../../lib/use-me';
 
@@ -24,8 +24,8 @@ export function Team() {
     await mutate();
   };
   return (
-    <div className="flex max-w-2xl flex-col gap-4">
-      <h1 className="text-xl font-semibold">Team</h1>
+    <div className="flex max-w-3xl flex-col gap-5">
+      <PageHeader title="Team" />
       <Card>
         <form
           className="grid gap-2 md:grid-cols-[1fr_180px_auto]"
@@ -59,9 +59,9 @@ export function Team() {
           </p>
         )}
       </Card>
-      <Card className="flex flex-col gap-2">
+      <Card className="flex flex-col">
         {data.members.map((m) => (
-          <div key={m.id} className="flex flex-wrap items-center justify-between gap-2">
+          <div key={m.id} className="flex flex-wrap items-center justify-between gap-2 border-t border-line py-3 first:border-t-0">
             <span>
               {m.user.name} <span className="text-sm text-ink-muted">{m.user.email}</span>
             </span>
@@ -100,7 +100,7 @@ export function Team() {
         {data.invitations
           .filter((i) => i.status === 'pending')
           .map((i) => (
-            <div key={i.id} className="flex items-center justify-between text-sm text-ink-muted">
+            <div key={i.id} className="flex items-center justify-between gap-2 border-t border-line py-3 text-sm text-ink-muted first:border-t-0">
               <span>
                 {i.email} · {ROLE_LABELS[i.role as OrgRole]} · invited
               </span>

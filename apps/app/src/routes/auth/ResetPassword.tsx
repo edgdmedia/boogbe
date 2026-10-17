@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Card, Field, Input } from '@boogbe/ui';
 import { authClient } from '../../lib/auth-client';
+import { AuthFrame } from './AuthFrame';
 
 export function ResetPassword() {
   const [params] = useSearchParams();
@@ -11,9 +12,9 @@ export function ResetPassword() {
   const [busy, setBusy] = useState(false);
   const token = params.get('token') ?? '';
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center p-4">
-      <h1 className="mb-6 text-2xl font-semibold">Choose a new password</h1>
-      <Card>
+    <AuthFrame>
+      <h1 className="mb-6 text-[26px] font-bold tracking-[-0.02em]">Choose a new password</h1>
+      <Card className="p-6">
         <form
           className="flex flex-col gap-4"
           onSubmit={async (e) => {
@@ -34,6 +35,6 @@ export function ResetPassword() {
           </Button>
         </form>
       </Card>
-    </main>
+    </AuthFrame>
   );
 }

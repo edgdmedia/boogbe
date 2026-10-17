@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { z } from 'zod';
 import { AuditEntry } from '@boogbe/shared';
-import { Input, Spinner, Table } from '@boogbe/ui';
+import { Input, PageHeader, Spinner, Table } from '@boogbe/ui';
 import { useApi } from '../../lib/api';
 
 export function AuditLog() {
@@ -11,19 +11,21 @@ export function AuditLog() {
   const { data } = useApi(`/v1/audit?${qs}`, z.object({ items: z.array(AuditEntry), nextCursor: z.string().nullable() }));
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <h1 className="mr-auto text-xl font-semibold">Audit log</h1>
-        <Input
-          aria-label="Filter by type"
-          placeholder="e.g. booking, payment"
-          value={entity}
-          onChange={(e) => {
-            setCursor(null);
-            setEntity(e.target.value);
-          }}
-          className="w-56"
-        />
-      </div>
+      <PageHeader
+        title="Audit log"
+        actions={
+          <Input
+            aria-label="Filter by type"
+            placeholder="e.g. booking, payment"
+            value={entity}
+            onChange={(e) => {
+              setCursor(null);
+              setEntity(e.target.value);
+            }}
+            className="w-56"
+          />
+        }
+      />
       {!data ? (
         <Spinner />
       ) : (
