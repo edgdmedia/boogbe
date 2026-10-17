@@ -111,8 +111,8 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-UI-01 | Redesign: tokens, Inter, restyled primitives, PageHeader/StatTile/Textarea | ui | — | claude | done | [#90](https://github.com/edgdmedia/boogbe/pull/90) | Merged 2026-10-17; int 254/254, E2E 13/13. Reviewer: 3 Important fixed (dark backdrop, forced-colors focus, table roles) + width override; warning badge tint /8 for AA |
 | T-UI-02 | Redesign: shell — dark sidebar + rail, phone tabs + More drawer, settings layout | ui | T-UI-01 | claude | done | [#91](https://github.com/edgdmedia/boogbe/pull/91) | Merged 2026-10-17; int 254/254, E2E 13/13. Reviewer: 1 Critical (dark operator switcher unreadable) + 3 Important fixed (operator hidden with the rail, label padding, role test) |
 | T-UI-03 | Redesign: bookings, calendar, guests, conflicts | ui | T-UI-02 | claude | done | [#92](https://github.com/edgdmedia/boogbe/pull/92) | Merged 2026-10-17; int 254/254, E2E 13/13. Reviewer: 1 Important fixed (status tints opaque so badge/pill text keeps AA off white) |
-| T-UI-04 | Redesign: money, inventory | ui | T-UI-02 | claude | in_progress | | Plan Task 4 |
-| T-UI-05 | Redesign: settings, auth, platform, placeholders | ui | T-UI-02 | — | todo | | Plan Task 5 |
+| T-UI-04 | Redesign: money, inventory | ui | T-UI-02 | claude | done | [#93](https://github.com/edgdmedia/boogbe/pull/93) | Merged 2026-10-17; int 254/254, E2E 13/13. Reviewer: no Critical/Important |
+| T-UI-05 | Redesign: settings, auth, platform, placeholders | ui | T-UI-02 | claude | in_progress | | Plan Task 5 |
 
 ## Parallelism map (by milestone)
 
