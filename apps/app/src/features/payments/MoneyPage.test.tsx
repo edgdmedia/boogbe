@@ -40,4 +40,17 @@ describe('MoneyPage', () => {
     expect(screen.getByRole('link', { name: 'TAN-2610-0002' })).toHaveAttribute('href', '/bookings/b2');
     expect(screen.getByRole('link', { name: 'TAN-2610-0001' })).toHaveAttribute('href', '/bookings/b1');
   });
+
+  it('shows the three totals as stat tiles and the owed list as a card', () => {
+    render(
+      <SWRConfig value={{ provider: () => new Map() }}>
+        <MemoryRouter>
+          <MoneyPage />
+        </MemoryRouter>
+      </SWRConfig>,
+    );
+    expect(screen.getByRole('heading', { level: 1, name: 'Money' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Guests who still owe' })).toBeInTheDocument();
+    expect(screen.getByText('Received')).toHaveClass('eyebrow'); // StatTile label
+  });
 });

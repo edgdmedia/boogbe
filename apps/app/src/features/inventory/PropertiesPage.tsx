@@ -1,7 +1,8 @@
+import { Building2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { can } from '@boogbe/shared';
-import { Badge, Button, Dialog, EmptyState, Spinner, Table } from '@boogbe/ui';
+import { Badge, Button, Dialog, EmptyState, PageHeader, Spinner, Table } from '@boogbe/ui';
 import { formatNaira } from '../../lib/format';
 import { useMe } from '../../lib/use-me';
 import { useProperties } from './hooks';
@@ -17,14 +18,9 @@ export function PropertiesPage() {
   if (!data) return <Spinner />;
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Properties</h1>
-        {canWrite && (
-          <Button onClick={() => setOpen(true)}>Add property</Button>
-        )}
-      </div>
+      <PageHeader title="Properties" actions={canWrite && <Button onClick={() => setOpen(true)}>Add property</Button>} />
       {data.items.length === 0 ? (
-        <EmptyState title="No properties yet" body="Add a building or address, then its units." />
+        <EmptyState icon={<Building2 />} title="No properties yet" body="Add a building or address, then its units." />
       ) : (
         <Table
           rows={data.items}

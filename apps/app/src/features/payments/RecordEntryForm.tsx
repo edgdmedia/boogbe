@@ -79,7 +79,7 @@ export function RecordEntryForm({
       <Field label="Amount" error={local ?? undefined}>
         <MoneyInput value={v.amountKobo} onChange={(k) => setV({ ...v, amountKobo: k })} />
       </Field>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid gap-2 md:grid-cols-2">
         <Field label="Method">
           <Select value={v.method} onChange={(e) => setV({ ...v, method: e.target.value as PaymentMethod })}>
             {PaymentMethod.options

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { can, type Unit } from '@boogbe/shared';
-import { Badge, Button, Card, Dialog, EmptyState, Spinner } from '@boogbe/ui';
+import { Badge, Button, Card, CardHeader, Dialog, EmptyState, PageHeader, Spinner } from '@boogbe/ui';
 import { api } from '../../lib/api';
 import { formatNaira } from '../../lib/format';
 import { useMe } from '../../lib/use-me';
@@ -47,43 +48,55 @@ export function PropertyDetail() {
   if (!p || !units) return <Spinner />;
   const close = () => setDialog(null);
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h1 className="text-xl font-semibold">{p.name}</h1>
-          <p className="text-sm text-ink-muted">{p.address}</p>
-          <p className="mt-1 text-sm">{feeSummary(p, formatNaira)}</p>
-          <p className="mt-1 text-sm">Default owner: <span className="font-medium">{p.defaultOwnerName ?? 'Operator'}</span></p>
-        </div>
-        {canWrite && (
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => setDialog({ kind: 'edit' })}>
-              Edit
-            </Button>
-            <Button onClick={() => setDialog({ kind: 'unit' })}>Add unit</Button>
-            {canOwners && (
-              <Button variant="secondary" onClick={() => setDialog({ kind: 'propowner' })}>
-                Default owner
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        title={p.name}
+        back={
+          <Link to="/settings/properties" aria-label="Back to properties" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-brand">
+            <ChevronLeft size={16} aria-hidden />
+            Properties
+          </Link>
+        }
+        actions={
+          canWrite && (
+            <>
+              <Button variant="secondary" onClick={() => setDialog({ kind: 'edit' })}>
+                Edit
               </Button>
-            )}
-          </div>
-        )}
+              <Button onClick={() => setDialog({ kind: 'unit' })}>Add unit</Button>
+              {canOwners && (
+                <Button variant="secondary" onClick={() => setDialog({ kind: 'propowner' })}>
+                  Default owner
+                </Button>
+              )}
+            </>
+          )
+        }
+      />
+      <Card className="flex flex-col gap-1">
+        <p className="text-sm text-ink-muted">{p.address}</p>
+        <p className="text-sm">{feeSummary(p, formatNaira)}</p>
+        <p className="text-sm">Default owner: <span className="font-semibold">{p.defaultOwnerName ?? 'Operator'}</span></p>
       </Card>
       {units.items.length === 0 ? (
         <EmptyState title="No units yet" body="Add the apartments guests can book." />
       ) : (
         units.items.map((u) => (
-          <Card key={u.id} className="flex flex-wrap items-center justify-between gap-2">
+          <Card key={u.id} className="flex flex-col gap-3">
             <div>
-              <p className="font-medium">
-                {u.name} {!u.active && <Badge>Archived</Badge>}
-              </p>
-              <p className="text-sm text-ink-muted">
+              <CardHeader
+                title={
+                  <span className="flex flex-wrap items-center gap-2">
+                    {u.name} {!u.active && <Badge>Archived</Badge>}
+                  </span>
+                }
+              />
+              <p className="num -mt-2 text-sm text-ink-muted">
                 {u.bedrooms} bed · up to {u.maxGuests} guests · {formatNaira(u.nightlyRateKobo)} / night
               </p>
               <p className="text-sm">{u.currentOwner ? `${u.currentOwner.name}${SOURCE[u.currentOwnerSource]}` : 'Operator-owned'}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="-mx-2 flex flex-wrap gap-1 border-t border-line pt-2">
               {canWrite && (
                 <Button variant="ghost" onClick={() => setDialog({ kind: 'unit', unit: u })}>
                   Edit

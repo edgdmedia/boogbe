@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import type { Owner } from '@boogbe/shared';
-import { Badge, Button, Dialog, EmptyState, Spinner, Table } from '@boogbe/ui';
+import { UserRound } from 'lucide-react';
+import { Badge, Button, Dialog, EmptyState, PageHeader, Spinner, Table } from '@boogbe/ui';
 import { api } from '../../lib/api';
 import { useOwners } from './hooks';
 import { OwnerForm } from './OwnerForm';
@@ -18,17 +19,14 @@ export function OwnersPage() {
   if (!data) return <Spinner />;
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Property owners</h1>
-        <Button onClick={() => setEdit('new')}>Add owner</Button>
-      </div>
+      <PageHeader title="Property owners" actions={<Button onClick={() => setEdit('new')}>Add owner</Button>} />
       {msg && (
         <p role="status" className="text-sm">
           {msg}
         </p>
       )}
       {data.items.length === 0 ? (
-        <EmptyState title="No owners yet" body="Add the people whose properties you manage." />
+        <EmptyState icon={<UserRound />} title="No owners yet" body="Add the people whose properties you manage." />
       ) : (
         <Table
           rows={data.items}
