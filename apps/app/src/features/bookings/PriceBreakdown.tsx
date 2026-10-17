@@ -9,12 +9,12 @@ export function PriceBreakdown({ lines, totalKobo, depositKobo }: { lines: Price
       {charges.map((l, i) => (
         <div key={i} className="flex justify-between">
           <dt>{l.label}</dt>
-          <dd className={l.amountKobo < 0 ? 'text-success' : ''}>{formatNaira(l.amountKobo)}</dd>
+          <dd className={l.amountKobo < 0 ? 'num text-success' : 'num'}>{formatNaira(l.amountKobo)}</dd>
         </div>
       ))}
-      <div className="mt-1 flex justify-between border-t border-line pt-1 font-semibold">
+      <div className="mt-1 flex justify-between border-t border-line pt-2 font-bold">
         <dt>Total</dt>
-        <dd>{formatNaira(totalKobo)}</dd>
+        <dd className="num">{formatNaira(totalKobo)}</dd>
       </div>
       {deposits.map((l, i) => (
         <div key={`d${i}`} className="flex justify-between text-ink-muted">

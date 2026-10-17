@@ -28,7 +28,7 @@ export function HoldCountdown({ holdUntil }: { holdUntil: string }) {
     <span
       data-urgent={String(urgent)}
       title={`Held until ${new Date(holdUntil).toLocaleString('en-NG')}`}
-      className={urgent ? 'text-xs font-semibold text-danger' : 'text-xs text-ink-muted'}
+      className={`inline-flex h-6 items-center whitespace-nowrap rounded-full border px-2.5 text-xs font-semibold ${urgent ? 'border-danger/25 bg-[color-mix(in_srgb,var(--color-danger)_10%,var(--color-surface))] text-danger' : 'border-warning/25 bg-[color-mix(in_srgb,var(--color-warning)_8%,var(--color-surface))] text-warning'}`}
     >
       {text}
     </span>

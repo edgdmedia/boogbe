@@ -112,3 +112,12 @@ describe('ui kit', () => {
     expect(screen.getByRole('textbox', { name: 'Name' }).className.split(' ')).toContain('w-full');
   });
 });
+
+describe('Badge contrast', () => {
+  it('status tints are opaque (mixed with surface), so badges in the grey page header keep AA', () => {
+    render(<Badge tone="warning">Tentative</Badge>);
+    const cls = screen.getByText('Tentative').className;
+    expect(cls).toContain('color-mix');
+    expect(cls).not.toMatch(/bg-warning\/\d/);
+  });
+});

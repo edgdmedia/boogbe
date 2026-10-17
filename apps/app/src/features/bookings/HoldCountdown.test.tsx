@@ -28,3 +28,12 @@ describe('HoldCountdown', () => {
     expect(screen.getByText('Hold expired')).toBeInTheDocument();
   });
 });
+
+describe('HoldCountdown contrast', () => {
+  it('uses an opaque tint so the text keeps AA on any background (page header, brand-soft card)', () => {
+    render(<HoldCountdown holdUntil={new Date(Date.now() + 90 * 60_000).toISOString()} />);
+    const pill = screen.getByText(/^Held/);
+    expect(pill.className).toContain('color-mix');
+    expect(pill.className).not.toMatch(/bg-warning\/\d/);
+  });
+});

@@ -2,12 +2,14 @@ import clsx from 'clsx';
 import type { ReactNode } from 'react';
 
 type Tone = 'neutral' | 'success' | 'warning' | 'danger' | 'info';
+// Tints are mixed with surface (opaque), not translucent: a translucent tint's contrast depends on what is
+// behind it — warning text fell to ~4.2:1 on the grey page header. Opaque, warning/8 is 4.58:1 everywhere.
 const tones: Record<Tone, string> = {
   neutral: 'border-line bg-surface-2 text-ink-muted',
-  success: 'border-success/25 bg-success/10 text-success',
-  warning: 'border-warning/25 bg-warning/8 text-warning', // /10 gives 4.46:1 on white; /8 gives 4.58
-  danger: 'border-danger/25 bg-danger/10 text-danger',
-  info: 'border-info/25 bg-info/10 text-info',
+  success: 'border-success/25 bg-[color-mix(in_srgb,var(--color-success)_10%,var(--color-surface))] text-success',
+  warning: 'border-warning/25 bg-[color-mix(in_srgb,var(--color-warning)_8%,var(--color-surface))] text-warning',
+  danger: 'border-danger/25 bg-[color-mix(in_srgb,var(--color-danger)_10%,var(--color-surface))] text-danger',
+  info: 'border-info/25 bg-[color-mix(in_srgb,var(--color-info)_10%,var(--color-surface))] text-info',
 };
 
 /** The text is the signal; the dot is decoration, so colour is never the only cue. */

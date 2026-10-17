@@ -49,7 +49,7 @@ export function CalendarGrid({
     <div
       role="grid"
       aria-label="Calendar"
-      className="overflow-x-auto rounded-[var(--radius-card)] border border-line bg-surface"
+      className="overflow-x-auto rounded-card border border-line bg-surface shadow-card"
       onMouseLeave={() => setDrag(null)}
     >
       <div style={{ minWidth: 180 + days.length * CELL }}>
@@ -61,7 +61,7 @@ export function CalendarGrid({
               key={d}
               aria-label={`${short(d)}${d === data.today ? ' today' : ''}`}
               style={{ width: CELL }}
-              className={clsx('shrink-0 py-1 text-center text-xs', d === data.today ? 'font-semibold text-brand' : 'text-ink-muted')}
+              className={clsx('eyebrow shrink-0 py-2 text-center', d === data.today ? 'text-brand' : 'text-ink-muted')}
             >
               {new Date(`${d}T00:00:00Z`).toLocaleDateString('en-NG', { weekday: 'narrow', timeZone: 'UTC' })}
               <br />
@@ -71,7 +71,7 @@ export function CalendarGrid({
         </div>
         {data.properties.map((p) => (
           <div key={p.id}>
-            <div className="sticky left-0 bg-surface-2 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+            <div className="eyebrow sticky left-0 bg-surface-2 px-3 py-1.5 text-ink-muted">
               {p.name}
             </div>
             {p.units.map((u) => {
@@ -94,7 +94,7 @@ export function CalendarGrid({
                       role="gridcell"
                       data-testid={`cell-${u.id}-${d}`}
                       style={{ width: CELL }}
-                      className={clsx('shrink-0 border-l border-line', d === data.today && 'bg-brand/5', inDrag(u.id, d) && 'bg-brand/20')}
+                      className={clsx('shrink-0 border-l border-line', d === data.today && 'bg-brand-soft', inDrag(u.id, d) && 'bg-brand/20')}
                       onMouseDown={() => setDrag({ unitId: u.id, a: d, b: d })}
                       onMouseEnter={() => drag?.unitId === u.id && setDrag({ ...drag, b: d })}
                       onMouseUp={finish}
@@ -107,10 +107,10 @@ export function CalendarGrid({
                       onClick={() => onItemClick(item)}
                       aria-label={`${spoken(item)}, ${short(item.start)} – ${short(item.end)}${item.kind === 'booking' && item.hasConflict ? ', possible double booking' : ''}`}
                       className={clsx(
-                        'absolute top-1.5 z-[4] h-9 truncate border px-2 text-left text-xs font-medium', item.kind === 'booking' && item.hasConflict ? 'ring-2 ring-danger' : '',
+                        'absolute top-1.5 z-[4] h-9 truncate border px-2 text-left text-xs font-semibold shadow-sm', item.kind === 'booking' && item.hasConflict ? 'ring-2 ring-danger' : '',
                         tone(item),
-                        clippedStart ? 'rounded-l-none' : 'rounded-l-md',
-                        clippedEnd ? 'rounded-r-none' : 'rounded-r-md',
+                        clippedStart ? 'rounded-l-none' : 'rounded-l-chip',
+                        clippedEnd ? 'rounded-r-none' : 'rounded-r-chip',
                       )}
                       style={{
                         left: 180 + col * CELL + (clippedStart ? 0 : CELL / 2),

@@ -15,9 +15,9 @@ export function GuestPicker({ value, onChange }: { value: Guest | null; onChange
   const { data } = useGuests(debounced);
   if (value)
     return (
-      <div className="flex items-center justify-between rounded-lg border border-line p-3">
+      <div className="flex items-center justify-between gap-2 rounded-control border border-brand/30 bg-brand-soft px-3 py-2">
         <span>
-          <span className="font-medium">{value.fullName}</span> <span className="text-sm text-ink-muted">{value.phoneE164}</span>
+          <span className="font-semibold text-brand">{value.fullName}</span> <span className="text-sm text-ink-muted">{value.phoneE164}</span>
         </span>
         <Button variant="ghost" onClick={() => onChange(null)}>
           Change
@@ -39,12 +39,12 @@ export function GuestPicker({ value, onChange }: { value: Guest | null; onChange
     );
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium" htmlFor="guest-q">
+      <label className="text-[13px] font-semibold" htmlFor="guest-q">
         Find guest
       </label>
       <Input id="guest-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name, phone or email" autoComplete="off" />
       {debounced && (
-        <ul role="listbox" aria-label="Guests" className="max-h-60 overflow-y-auto rounded-lg border border-line">
+        <ul role="listbox" aria-label="Guests" className="max-h-60 overflow-y-auto rounded-control border border-line bg-surface shadow-raised">
           {data?.items.map((g) => (
             <li
               key={g.id}
@@ -53,7 +53,7 @@ export function GuestPicker({ value, onChange }: { value: Guest | null; onChange
               tabIndex={0}
               onClick={() => onChange(g)}
               onKeyDown={(e) => e.key === 'Enter' && onChange(g)}
-              className="cursor-pointer px-3 py-2 hover:bg-surface-2"
+              className="min-h-11 cursor-pointer px-3 py-2.5 hover:bg-surface-2"
             >
               {g.fullName} <span className="text-sm text-ink-muted">{g.phoneE164}</span>
             </li>
