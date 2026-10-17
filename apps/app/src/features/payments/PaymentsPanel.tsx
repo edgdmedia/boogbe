@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { can, ENTRY_LABELS, formatNaira, METHOD_LABELS, type Booking, type PaymentEntry, type RecordEntryInput } from '@boogbe/shared';
-import { Button, Card, Dialog, Spinner } from '@boogbe/ui';
+import { Button, Card, CardHeader, Dialog, Spinner } from '@boogbe/ui';
 import { useMe } from '../../lib/use-me';
 import { useLedger } from './hooks';
 import { RecordEntryForm } from './RecordEntryForm';
@@ -45,25 +45,25 @@ export function PaymentsPanel({
   const canVoid = !!role && can(role, 'payments.void');
   return (
     <Card className="flex flex-col gap-3">
-      <h2 className="font-semibold">Payments</h2>
+      <CardHeader title="Payments" />
       <dl className="grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
         <div>
-          <dt className="text-ink-muted">Total</dt>
-          <dd className="font-medium">{formatNaira(booking.finalTotalKobo)}</dd>
+          <dt className="eyebrow text-ink-muted">Total</dt>
+          <dd className="num text-[15px] font-semibold">{formatNaira(booking.finalTotalKobo)}</dd>
         </div>
         <div>
-          <dt className="text-ink-muted">Paid</dt>
-          <dd className="font-medium">{formatNaira(t.netPaidKobo)}</dd>
+          <dt className="eyebrow text-ink-muted">Paid</dt>
+          <dd className="num text-[15px] font-semibold">{formatNaira(t.netPaidKobo)}</dd>
         </div>
         <div>
-          <dt className="text-ink-muted">{balanceLabel}</dt>
-          <dd className={`font-medium ${balanceLabel === 'Balance' && t.balanceKobo > 0 ? 'text-danger' : ''}`}>
+          <dt className="eyebrow text-ink-muted">{balanceLabel}</dt>
+          <dd className={`num text-[15px] font-semibold ${balanceLabel === 'Balance' && t.balanceKobo > 0 ? 'text-danger' : ''}`}>
             {formatNaira(balanceValue)}
           </dd>
         </div>
         <div>
-          <dt className="text-ink-muted">Deposit held</dt>
-          <dd className="font-medium">{formatNaira(t.depositHeldKobo)}</dd>
+          <dt className="eyebrow text-ink-muted">Deposit held</dt>
+          <dd className="num text-[15px] font-semibold">{formatNaira(t.depositHeldKobo)}</dd>
         </div>
       </dl>
       {data.entries.length > 0 && (

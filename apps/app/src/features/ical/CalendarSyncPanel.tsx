@@ -39,7 +39,7 @@ export function CalendarSyncPanel({ unitId, canWrite }: { unitId: string; canWri
         <h3 className="font-semibold">Bring bookings in</h3>
         {data.feeds.length === 0 && <p className="text-sm text-ink-muted">No channels connected.</p>}
         {data.feeds.map((f) => (
-          <div key={f.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line p-2 text-sm">
+          <div key={f.id} className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-line p-3 text-sm">
             <span>
               <span className="font-medium">{f.label}</span> · {f.urlHost} · {f.blockCount} dates {status(f)}
             </span>
@@ -91,12 +91,12 @@ export function CalendarSyncPanel({ unitId, canWrite }: { unitId: string; canWri
         {[...channels, 'all' as const].map((c) => {
           const ex = exportFor(c);
           return (
-            <div key={c} className="rounded-lg border border-line p-2 text-sm">
+            <div key={c} className="rounded-control border border-line p-3 text-sm">
               <p className="font-medium">{CHANNEL_LABELS[c]}</p>
               <p className="text-ink-muted">{EXPORT_HELP[c]}</p>
               {ex ? (
                 <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <code className="max-w-full truncate rounded bg-surface-2 px-2 py-1 text-xs">{ex.url}</code>
+                  <code className="max-w-full truncate rounded-chip bg-surface-2 px-2 py-1 text-xs">{ex.url}</code>
                   <Button
                     variant="secondary"
                     aria-label={`Copy ${CHANNEL_LABELS[c]} link`}

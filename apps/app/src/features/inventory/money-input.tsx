@@ -24,13 +24,13 @@ export function MoneyInput({ value, onChange, ...rest }: Base & { value: number;
   }, [value]);
   return (
     <div className="relative">
-      <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted">
+      <span aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-ink-muted">
         ₦
       </span>
       <Input
         {...rest}
         inputMode="decimal"
-        className={`pl-7 ${rest.className ?? ''}`}
+        className={`num pl-8 ${rest.className ?? ''}`}
         value={text}
         onChange={(e) => {
           const t = e.target.value.replace(/[^\d.,]/g, '');
@@ -65,7 +65,7 @@ export function PercentInput({
           onChange(Math.min(10_000, Math.round(Number(t || 0) * 100)));
         }}
       />
-      <span aria-hidden className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted">
+      <span aria-hidden className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-ink-muted">
         %
       </span>
     </div>
