@@ -86,7 +86,7 @@ export function BookingDetail() {
       <Card className="h-fit">
         <CardHeader title="Price" />
         {b.priceStale && (
-          <div role="status" className="mb-3 rounded-control border border-warning/25 bg-warning/8 p-3 text-sm text-warning">
+          <div role="status" className="mb-3 rounded-control border border-warning/25 bg-[color-mix(in_srgb,var(--color-warning)_8%,var(--color-surface))] p-3 text-sm text-warning">
             Dates or guests changed since this price was set.{' '}
             <Button
               variant="ghost"
