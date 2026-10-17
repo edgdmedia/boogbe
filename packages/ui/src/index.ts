@@ -8,3 +8,6 @@ export * from './Spinner';
 export * from './EmptyState';
 export * from './Dialog';
 export * from './Table';
+export * from './Textarea';
+export * from './PageHeader';
+export * from './StatTile';
