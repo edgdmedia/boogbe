@@ -41,6 +41,8 @@ const LABEL: Record<Mode, string> = { rail: 'sr-only', auto: 'sr-only xl:not-sr-
 const ONLY_FULL: Record<Mode, string> = { rail: 'hidden', auto: 'hidden xl:flex', full: 'flex' };
 const ROW: Record<Mode, string> = { rail: 'justify-center', auto: 'justify-center xl:justify-start xl:px-3', full: 'px-3' };
 const BAR: Record<Mode, string> = { rail: 'hidden', auto: 'hidden xl:block', full: 'block' };
+// Padding sits on the label's wrapper: xl:not-sr-only resets padding to 0 on the element it is on.
+const PAD: Record<Mode, string> = { rail: '', auto: 'xl:px-3 xl:pb-1', full: 'px-3 pb-1' };
 const COUNT: Record<Mode, string> = { rail: 'absolute right-1 top-1', auto: 'absolute right-1 top-1 xl:static xl:ml-auto', full: 'ml-auto' };
 
 // No px-* here: ROW sets it, and Tailwind resolves conflicting utilities by stylesheet order, not class order.
@@ -111,13 +113,19 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
         <OrgSwitcher tone="dark" />
       </div>
       <nav aria-label="Sidebar" className="no-scrollbar flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
-        {main.length > 0 && <p className={clsx(LABEL[mode], 'eyebrow px-3 pb-1 pt-2 text-sidebar-muted')}>Operations</p>}
+        {main.length > 0 && (
+          <p className={clsx('eyebrow text-sidebar-muted', PAD[mode], mode !== 'rail' && (mode === 'auto' ? 'xl:pt-2' : 'pt-2'))}>
+            <span className={LABEL[mode]}>Operations</span>
+          </p>
+        )}
         {main.map((n) => (
           <SideLink key={n.to} item={n} mode={mode} badge={n.to === '/conflicts' ? openConflicts : undefined} />
         ))}
         {settingsItems.length > 0 && (
           <>
-            <p className={clsx(LABEL[mode], 'eyebrow px-3 pb-1 pt-5 text-sidebar-muted')}>Setup</p>
+            <p className={clsx('eyebrow text-sidebar-muted', PAD[mode], mode !== 'rail' && (mode === 'auto' ? 'xl:pt-5' : 'pt-5'))}>
+              <span className={LABEL[mode]}>Setup</span>
+            </p>
             <SideLink item={{ ...settingsItems[0]!, label: 'Settings', icon: SettingsIcon, end: false }} active={inSettings} mode={mode} />
           </>
         )}
@@ -186,7 +194,11 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
         </span>
       </header>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="hidden justify-end px-6 pt-3 md:flex xl:px-[26px]">
+        <div data-testid="top-strip" className="hidden items-center justify-end gap-3 px-6 pt-3 md:flex xl:px-[26px]">
+          {/* The rail has no room for the operator; show it here whenever the sidebar is a rail. */}
+          <div className={clsx('mr-auto min-w-0 max-w-xs items-center', collapsed ? 'flex' : 'flex xl:hidden')}>
+            <OrgSwitcher />
+          </div>
           <NotificationBell />
         </div>
         <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 pb-28 pt-4 md:px-6 md:pb-8 md:pt-2 xl:px-[26px]">{children}</main>

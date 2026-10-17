@@ -4,12 +4,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BookOpen, Building2, CalendarDays, Contact, Settings, TriangleAlert, Users, Wallet } from 'lucide-react';
 import { AppShell, type NavItem } from './AppShell';
 
+const who = vi.hoisted(() => ({ role: 'frontdesk', memberships: 1 }));
 vi.mock('../../lib/use-me', () => ({
   useMe: () => ({
     me: {
       user: { id: 'u', name: 'Ada', email: 'a@x', isPlatformAdmin: false },
-      activeOrg: { id: 'o', name: 'Tanuhomes', slug: 't', role: 'frontdesk', timezone: 'Africa/Lagos', currency: 'NGN' },
-      memberships: [{ orgId: 'o', orgName: 'Tanuhomes', role: 'frontdesk' }],
+      activeOrg: { id: 'o', name: 'Tanuhomes', slug: 't', role: who.role, timezone: 'Africa/Lagos', currency: 'NGN' },
+      memberships: [
+        { orgId: 'o', orgName: 'Tanuhomes', role: who.role },
+        ...(who.memberships > 1 ? [{ orgId: 'o2', orgName: 'Lumina Stays', role: 'admin' }] : []),
+      ],
     },
   }),
 }));
@@ -25,6 +29,7 @@ const NAV: NavItem[] = [
   { to: '/settings', label: 'Business', icon: Settings, permission: 'org.settings.read', section: 'settings', end: true },
   { to: '/settings/properties', label: 'Properties', icon: Building2, permission: 'inventory.read', section: 'settings' },
   { to: '/settings/team', label: 'Team', icon: Users, permission: 'members.write', section: 'settings' },
+  { to: '/settings/sessions', label: 'Signed-in devices', icon: Users, section: 'settings' },
 ];
 const shell = (path = '/calendar') =>
   render(
@@ -35,7 +40,12 @@ const shell = (path = '/calendar') =>
     </MemoryRouter>,
   );
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  localStorage.clear(); // the collapse test writes '1'; later tests must start expanded
+  who.role = 'frontdesk';
+  who.memberships = 1;
+});
 
 describe('AppShell', () => {
   it('hides nav items the role cannot use', () => {
@@ -126,5 +136,37 @@ describe('AppShell', () => {
     });
     shell();
     expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
+  });
+
+  // Review fixes (#91)
+  it("Settings opens the first settings page the role can see, even when Business is hidden", () => {
+    who.role = 'housekeeper'; // no org.settings.read / inventory.read — only Signed-in devices
+    shell('/settings/sessions');
+    const settings = within(screen.getByRole('complementary')).getByRole('link', { name: 'Settings' });
+    expect(settings).toHaveAttribute('href', '/settings/sessions');
+    expect(within(screen.getByRole('complementary')).queryByRole('link', { name: 'Calendar' })).toBeNull();
+  });
+
+  it('the sidebar operator switcher does not inherit the light field colours (unreadable on the dark sidebar)', () => {
+    who.memberships = 2;
+    shell();
+    const side = within(screen.getByRole('complementary')).getByRole('combobox', { name: 'Operator' });
+    expect(side.className).not.toMatch(/(^|\s)(bg-surface-2|focus:bg-surface|text-ink)(\s|$)/);
+    expect(side.className).toContain('bg-sidebar-hover');
+  });
+
+  it('the operator stays visible and switchable when the sidebar is a rail (md–xl or collapsed)', () => {
+    who.memberships = 2;
+    localStorage.setItem('boogbe:sidebar-collapsed', '1');
+    shell();
+    const strip = screen.getByTestId('top-strip');
+    expect(within(strip).getByRole('combobox', { name: 'Operator' })).toBeInTheDocument();
+  });
+
+  it('section labels keep their padding when they turn visible at xl', () => {
+    shell();
+    const label = within(screen.getByRole('complementary')).getByText('Operations');
+    // the element toggling sr-only must not carry the padding: not-sr-only resets padding to 0
+    if (label.className.includes('not-sr-only')) expect(label.className).not.toMatch(/(^|\s)(px|pt|pb)-/);
   });
 });
