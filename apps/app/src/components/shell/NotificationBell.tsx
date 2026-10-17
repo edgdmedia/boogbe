@@ -18,7 +18,7 @@ export function NotificationBell() {
         className="relative grid min-h-11 min-w-11 place-items-center rounded-lg hover:bg-surface-2"
       >
         <Bell size={20} aria-hidden />
-        {unread > 0 && <span className="absolute right-1 top-1 rounded-full bg-danger px-1.5 text-[10px] font-semibold text-white">{unread}</span>}
+        {unread > 0 && <span className="absolute right-1 top-1 rounded-full bg-danger px-1.5 text-[10px] font-semibold text-danger-ink">{unread}</span>}
       </button>
       {open && (
         <div className="absolute right-0 z-30 mt-1 w-80 rounded-[var(--radius-card)] border border-line bg-surface p-2 shadow-lg">

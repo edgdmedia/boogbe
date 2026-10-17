@@ -14,8 +14,8 @@ export function Field({
   const id = useId();
   const describedBy = error ? `${id}-err` : hint ? `${id}-hint` : undefined;
   return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-sm font-medium text-ink">
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="text-[13px] font-semibold text-ink">
         {label}
       </label>
       {isValidElement(children)
@@ -31,7 +31,7 @@ export function Field({
         </p>
       )}
       {error && (
-        <p id={`${id}-err`} role="alert" className="text-xs text-danger">
+        <p id={`${id}-err`} role="alert" className="text-xs font-medium text-danger">
           {error}
         </p>
       )}

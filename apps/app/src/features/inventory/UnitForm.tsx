@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useId } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Unit, UnitInput } from '@boogbe/shared';
-import { Button, Field, Input, Select } from '@boogbe/ui';
+import { Button, Field, Input, Select, Textarea } from '@boogbe/ui';
 import { api, ApiError } from '../../lib/api';
 import { MoneyInput, PercentInput } from './money-input';
 
@@ -70,7 +70,7 @@ export function UnitForm({
         <Input type="number" min={1} {...f.register('maxGuests', { valueAsNumber: true })} />
       </Field>
       <Field label="Check-in instructions" hint="Sent to guests the day before arrival. Owners never see this.">
-        <textarea className="min-h-24 rounded-lg border border-line bg-surface p-3 text-ink" {...f.register('checkInInstructions')} />
+        <Textarea {...f.register('checkInInstructions')} />
       </Field>
       <div className="flex flex-col gap-1 md:col-span-2">
         <label className="flex items-center gap-2 text-sm">

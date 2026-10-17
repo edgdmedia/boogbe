@@ -50,7 +50,7 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
             <n.icon size={18} aria-hidden />
             {n.label}
             {n.to === '/conflicts' && openConflicts > 0 && (
-              <span className="ml-auto rounded-full bg-danger px-1.5 text-[10px] font-semibold text-white">{openConflicts}</span>
+              <span className="ml-auto rounded-full bg-danger px-1.5 text-[10px] font-semibold text-danger-ink">{openConflicts}</span>
             )}
           </NavLink>
         ))}
@@ -77,7 +77,7 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
             <NavLink to="/conflicts" className="flex items-center gap-1 text-xs text-ink-muted">
               <TriangleAlert size={16} aria-hidden />
               Conflicts
-              <span className="rounded-full bg-danger px-1.5 text-[10px] font-semibold text-white">{openConflicts}</span>
+              <span className="rounded-full bg-danger px-1.5 text-[10px] font-semibold text-danger-ink">{openConflicts}</span>
             </NavLink>
           )}
           <NotificationBell />

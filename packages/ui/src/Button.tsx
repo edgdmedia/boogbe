@@ -3,28 +3,33 @@ import type { ButtonHTMLAttributes } from 'react';
 import { Spinner } from './Spinner';
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
+type Size = 'sm' | 'md';
 const styles: Record<Variant, string> = {
-  primary: 'bg-brand text-brand-ink hover:opacity-90',
-  secondary: 'bg-surface text-ink border border-line hover:bg-surface-2',
-  danger: 'bg-danger text-white hover:opacity-90',
-  ghost: 'text-ink hover:bg-surface-2',
+  primary: 'bg-brand text-brand-ink shadow-button hover:brightness-110',
+  secondary: 'border border-line-strong bg-surface text-ink hover:bg-surface-2',
+  danger: 'bg-danger text-danger-ink hover:brightness-110',
+  ghost: 'text-ink-muted hover:bg-surface-2 hover:text-ink',
 };
+// md is the 44px touch target; sm (36px) is only for dense desktop rows.
+const sizes: Record<Size, string> = { sm: 'min-h-9 px-3 text-[13px]', md: 'min-h-11 px-4 text-sm' };
 
 export function Button({
   variant = 'primary',
+  size = 'md',
   loading,
   disabled,
   className,
   children,
   ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; loading?: boolean }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size; loading?: boolean }) {
   return (
     <button
       {...rest}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={clsx(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium disabled:opacity-50',
+        'inline-flex items-center justify-center gap-2 rounded-control font-semibold transition-[filter,background-color,color] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50',
+        sizes[size],
         styles[variant],
         className,
       )}

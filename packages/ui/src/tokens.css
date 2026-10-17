@@ -1,3 +1,11 @@
+/* Boogbe tokens. The eleven names first in @theme are the brand (DESIGN-PROMPT): keep their values, light and dark.
+   Layout and shape follow Unclutter Desk; colour stays Boogbe's. */
+:root {
+  --elev-card: 0 1px 3px rgb(24 45 50 / 0.06), 0 1px 2px rgb(24 45 50 / 0.04);
+  --elev-raised: 0 12px 34px rgb(24 45 50 / 0.09);
+  --elev-modal: 0 24px 80px rgb(24 45 50 / 0.24);
+  --elev-button: 0 6px 18px rgb(15 107 92 / 0.22);
+}
 @theme {
   --color-ink: #182d32;
   --color-ink-muted: #5b6d72;
@@ -10,8 +18,33 @@
   --color-warning: #a35d00;
   --color-danger: #b42318;
   --color-info: #175cd3;
-  --radius-card: 14px;
-  --font-sans: 'Inter', system-ui, sans-serif;
+  /* added for the redesign */
+  --color-line-strong: #c9d3d0;
+  --color-danger-ink: #ffffff;
+  --color-brand-soft: #ecf6f3;
+  --color-brand-50: #ecf6f3;
+  --color-brand-100: #d3ebe4;
+  --color-brand-200: #a8d6c9;
+  --color-brand-300: #6fb9a6;
+  --color-brand-400: #3fb59b;
+  --color-brand-500: #1c8a75;
+  --color-brand-600: #0f6b5c;
+  --color-brand-700: #0c574b;
+  --color-brand-800: #0a463c;
+  --color-brand-900: #08362f;
+  --color-sidebar: #0b1f1b;
+  --color-sidebar-hover: #153530;
+  --color-sidebar-ink: #e8eeec;
+  --color-sidebar-muted: #9fb0ab;
+  --radius-card: 24px;
+  --radius-panel: 20px;
+  --radius-control: 14px;
+  --radius-chip: 12px;
+  --shadow-card: var(--elev-card);
+  --shadow-raised: var(--elev-raised);
+  --shadow-modal: var(--elev-modal);
+  --shadow-button: var(--elev-button);
+  --font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -22,5 +55,44 @@
     --color-line: #26332f;
     --color-brand: #3fb59b;
     --color-brand-ink: #06231d;
+    --color-line-strong: #34443f;
+    --color-danger-ink: #2a0703;
+    --color-brand-soft: #13302a;
+    --color-sidebar: #08120f;
+    --color-sidebar-hover: #12231f;
+    --color-success: #4fbf86;
+    --color-warning: #e0a24a;
+    --color-danger: #f2766b;
+    --color-info: #7aa7ff;
+    --elev-card: none;
+    --elev-raised: none;
+    --elev-modal: none;
+    --elev-button: none;
+  }
+}
+/* Size, weight, case and tracking only — set the colour with a text-* class. */
+@utility eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+@utility num {
+  font-variant-numeric: tabular-nums;
+}
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: var(--color-brand);
   }
 }
