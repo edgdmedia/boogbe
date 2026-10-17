@@ -25,7 +25,7 @@ export function Dialog({
       ref={ref}
       onClose={onClose}
       aria-labelledby={titleId}
-      className="m-auto w-[min(560px,calc(100vw-32px))] rounded-card border border-line bg-surface p-0 text-ink shadow-modal backdrop:bg-ink/40 backdrop:backdrop-blur-sm max-md:mb-0 max-md:w-full max-md:max-w-none max-md:rounded-b-none max-md:border-x-0 max-md:border-b-0"
+      className="m-auto w-[min(560px,calc(100vw-32px))] rounded-card border border-line bg-surface p-0 text-ink shadow-modal backdrop:bg-black/40 backdrop:backdrop-blur-sm max-md:mb-0 max-md:w-full max-md:max-w-none max-md:rounded-b-none max-md:border-x-0 max-md:border-b-0"
     >
       <div aria-hidden="true" className="mx-auto mt-2 h-1 w-10 rounded-full bg-line-strong md:hidden" />
       <div className="flex items-center justify-between gap-2 border-b border-line py-2 pl-5 pr-2">

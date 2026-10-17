@@ -21,21 +21,23 @@ export function Table<T extends { id: string }>({
 }) {
   return (
     <div className="md:overflow-x-auto md:rounded-card md:border md:border-line md:bg-surface md:shadow-card">
-      <table className="w-full text-left text-sm max-md:block">
-        <thead className="border-b border-line max-md:sr-only">
-          <tr>
+      {/* Explicit roles: the phone layout sets display:block/flex, which can drop implicit table semantics in some screen readers. */}
+      <table role="table" className="w-full text-left text-sm max-md:block">
+        <thead role="rowgroup" className="border-b border-line max-md:sr-only">
+          <tr role="row">
             {columns.map((c) => (
-              <th key={c.key} scope="col" className={clsx('eyebrow px-4 py-3 text-ink-muted', c.className)}>
+              <th key={c.key} scope="col" role="columnheader" className={clsx('eyebrow px-4 py-3 text-ink-muted', c.className)}>
                 {c.header}
               </th>
             ))}
           </tr>
         </thead>
         {/* Below md each row is a card: same <tr>/<td> DOM, labels from data-label (no duplicated text). */}
-        <tbody className="max-md:flex max-md:flex-col max-md:gap-3">
+        <tbody role="rowgroup" className="max-md:flex max-md:flex-col max-md:gap-3">
           {rows.map((r) => (
             <tr
               key={r.id}
+              role="row"
               onClick={onRowClick && (() => onRowClick(r))}
               className={clsx(
                 'border-t border-line first:border-t-0 max-md:block max-md:rounded-panel max-md:border max-md:bg-surface max-md:p-4 max-md:shadow-card',
@@ -45,6 +47,7 @@ export function Table<T extends { id: string }>({
               {columns.map((c) => (
                 <td
                   key={c.key}
+                  role="cell"
                   data-label={c.header}
                   className={clsx(
                     'px-4 py-3 max-md:flex max-md:items-baseline max-md:justify-between max-md:gap-3 max-md:px-0 max-md:py-1 max-md:text-right max-md:before:eyebrow max-md:before:shrink-0 max-md:before:text-left max-md:before:text-ink-muted max-md:before:content-[attr(data-label)]',

@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { Badge, Dialog, PageHeader, StatTile, Table, Textarea, Field, CardHeader } from '@boogbe/ui';
+import { Badge, Dialog, PageHeader, StatTile, Table, Textarea, Field, CardHeader, Input } from '@boogbe/ui';
 
 describe('ui kit', () => {
   it('two open dialogs each get their own accessible name', () => {
@@ -69,5 +69,33 @@ describe('ui kit', () => {
     );
     expect(screen.getByLabelText('Notes').tagName).toBe('TEXTAREA');
     expect(within(document.body).getByRole('textbox', { name: 'Notes' })).toBeInTheDocument();
+  });
+
+  // Review fixes (#90): these pin classes/attributes jsdom cannot check by behaviour.
+  it('dialog backdrop stays dark in dark mode (not the light ink colour)', () => {
+    render(
+      <Dialog open onClose={() => {}} title="Edit">
+        <p>a</p>
+      </Dialog>,
+    );
+    const cls = screen.getByRole('dialog').className;
+    expect(cls).toContain('backdrop:bg-black/40');
+    expect(cls).not.toContain('backdrop:bg-ink');
+  });
+
+  it('fields keep a forced-colors-safe focus outline', () => {
+    render(<Input aria-label="Name" />);
+    const cls = screen.getByRole('textbox', { name: 'Name' }).className;
+    expect(cls).toContain('focus:outline-hidden');
+    expect(cls).not.toContain('focus:outline-none');
+  });
+
+  it('table keeps explicit table roles when the phone layout restyles it as blocks', () => {
+    const { container } = render(<Table rows={[{ id: 'r1' }]} columns={[{ key: 'a', header: 'A', cell: () => 'x' }]} />);
+    expect(container.querySelector('table')).toHaveAttribute('role', 'table');
+    expect(container.querySelectorAll('[role="rowgroup"]')).toHaveLength(2);
+    expect(container.querySelectorAll('tr[role="row"]')).toHaveLength(2);
+    expect(container.querySelector('th')).toHaveAttribute('role', 'columnheader');
+    expect(container.querySelector('td')).toHaveAttribute('role', 'cell');
   });
 });
