@@ -47,7 +47,7 @@ export function teamEmail(b: TeamEmailBooking, opts: { appOrigin: string }) {
     `[WhatsApp the guest](${wa})`,
   ];
   return {
-    subject: `New website request: ${plain(b.propertyName)} · ${plain(b.unitName)}, ${b.checkIn} – ${b.checkOut} (${b.ref})`,
+    subject: `New booking request: ${plain(b.propertyName)} · ${plain(b.unitName)}, ${b.checkIn} – ${b.checkOut} (${b.ref})`,
     bodyMarkdown: lines.join('\n\n'),
   };
 }

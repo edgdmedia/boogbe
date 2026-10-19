@@ -101,7 +101,7 @@ export class PublicRequestsService {
   private async notifyTeam(tx: OrgTx, org: PublicOrg, b: Booking, input: BookingRequestInput) {
     await this.notifications.notifyRoles(tx, org.orgId, ['admin', 'frontdesk'], {
       kind: 'website_request',
-      title: `Website request: ${b.ref}`,
+      title: `New booking request: ${b.ref}`,
       body: `${b.unit.name}, ${b.checkIn} – ${b.checkOut}`,
       link: `/bookings/${b.id}`,
       dedupeKey: `website_request:${b.id}`,

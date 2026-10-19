@@ -97,7 +97,7 @@ describe('public booking requests [WB]', () => {
       ['team@op.ng', null],
     ]);
     const team = mail.find((x) => x.recipient === 'team@op.ng')!;
-    expect(team.subject).toMatch(/^New website request: Destiny · 1 bedroom, /);
+    expect(team.subject).toMatch(/^New booking request: Destiny · 1 bedroom, /);
     // Deep link to the booking (rendered as a link for the https app origin in production; the test origin is http).
     expect(team.body_text).toContain(`${process.env.APP_ORIGIN}/bookings/${b.id}`);
     expect(team.body_html).toContain('href="https://wa.me/2348030000000');

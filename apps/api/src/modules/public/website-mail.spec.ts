@@ -28,7 +28,7 @@ describe('website request team email', () => {
 
   it('carries the deep link, a wa.me link and the hold expiry; guest text stays plain', () => {
     const m = teamEmail(BOOKING, { appOrigin: 'https://app.boogbe.com' });
-    expect(m.subject).toBe('New website request: Destiny · 1 bedroom, 1 Nov 2026 – 3 Nov 2026 (TAN-2611-0001)');
+    expect(m.subject).toBe('New booking request: Destiny · 1 bedroom, 1 Nov 2026 – 3 Nov 2026 (TAN-2611-0001)');
     expect(m.bodyMarkdown).toContain('[Confirm in Boogbe](https://app.boogbe.com/bookings/b1)');
     expect(m.bodyMarkdown).toContain('[WhatsApp the guest](https://wa.me/2348030000000?text=');
     expect(m.bodyMarkdown).toContain('Held until 1 Nov 2026, 4:30 pm');

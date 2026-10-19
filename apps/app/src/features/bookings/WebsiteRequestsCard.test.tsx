@@ -44,7 +44,7 @@ describe('WebsiteRequestsCard', () => {
       nextCursor: null,
     });
     renderCard();
-    expect(await screen.findByRole('heading', { name: 'New website requests' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'New booking requests' })).toBeInTheDocument();
     const links = screen.getAllByRole('link', { name: /TAN-/ });
     expect(links.map((l) => l.getAttribute('href'))).toEqual(['/bookings/b1', '/bookings/b2']);
     expect(links[0]).toHaveTextContent('TAN-2611-0001');

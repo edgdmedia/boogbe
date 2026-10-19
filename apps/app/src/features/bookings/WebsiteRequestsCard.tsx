@@ -18,7 +18,7 @@ export function WebsiteRequestsCard() {
   const rows = [...data.items].sort((a, b) => expiry(a) - expiry(b));
   return (
     <Card className="flex flex-col border-brand/30 bg-brand-soft">
-      <CardHeader title="New website requests" />
+      <CardHeader title="New booking requests" />
       <ul className="flex flex-col divide-y divide-line">
         {rows.map((b) => (
           <li key={b.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm">
