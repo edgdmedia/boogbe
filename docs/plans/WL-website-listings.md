@@ -88,17 +88,17 @@
 - `CHECK (category IN (…8 values…))`, `alt text NOT NULL DEFAULT ''` (blank allowed while editing; publishing is blocked instead), `CHECK (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' AND length(slug) <= 60)`.
 - `file.kind`: if a CHECK constraint exists, recreate it with `listing_photo` added.
 
-- [ ] **Step 1: Write the failing test** `listings-schema.int.ts`, covering:
+- [x] **Step 1: Write the failing test** `listings-schema.int.ts`, covering:
   - org A cannot read org B's listing, photo or slug history (RLS)
   - a duplicate slug in one org is rejected, and the same slug in two orgs is allowed
   - a photo with category `'Garden'` is rejected
   - deleting a listing deletes its photos and sets `unit.listing_id` to null
   - `public_site_lookup('tanuhomes')` returns the org when `public_enabled = false`, and nothing when the org is suspended
   - `site_version` defaults to 1
-- [ ] **Step 2: Run it.** `pnpm --filter @boogbe/api run test:int -- listings-schema` gives FAIL, because the relation `listing` doesn't exist.
-- [ ] **Step 3: Write the migration and the Prisma models.** Follow the `0003_inventory` and `0008_public_booking` patterns, plus the grants loop from `0002`. Then run `pnpm db:migrate`.
-- [ ] **Step 4: Run the test** and the existing `migrations.int.ts`. Both PASS.
-- [ ] **Step 5: Commit.** `feat(db): website listings, photos, site_version [T-WL-01]`
+- [x] **Step 2: Run it.** `pnpm --filter @boogbe/api run test:int -- listings-schema` gives FAIL, because the relation `listing` doesn't exist.
+- [x] **Step 3: Write the migration and the Prisma models.** Follow the `0003_inventory` and `0008_public_booking` patterns, plus the grants loop from `0002`. Then run `pnpm db:migrate`. (Done 2026-10-20: grants ride 0001's default privileges; `pnpm db:migrate` script was broken — outer-shell expansion of `$DATABASE_MIGRATE_URL` — applied via direct `prisma migrate dev`, script fixed on dev.)
+- [x] **Step 4: Run the test** and the existing `migrations.int.ts`. Both PASS. (7/7 + 2/2; full int gate 261/261)
+- [x] **Step 5: Commit.** `feat(db): website listings, photos, site_version [T-WL-01]` — merged via [#95](https://github.com/edgdmedia/boogbe/pull/95)
 
 ---
 
