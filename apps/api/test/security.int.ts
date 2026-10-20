@@ -45,6 +45,9 @@ describe('cookie & CSRF hardening [NFR-02 AUTH-01]', () => {
     process.env.R2_BUCKET = 'boogbe-test';
     process.env.R2_ACCESS_KEY_ID = 'dummy';
     process.env.R2_SECRET_ACCESS_KEY = 'dummy';
+    // WL likewise requires the media pair in production; same dummies.
+    process.env.MEDIA_R2_BUCKET = 'boogbe-media-test';
+    process.env.MEDIA_PUBLIC_BASE = 'https://media.boogbe.com';
     let prod: NestExpressApplication | undefined;
     try {
       prod = await buildApp();
@@ -66,7 +69,7 @@ describe('cookie & CSRF hardening [NFR-02 AUTH-01]', () => {
       expect(cookies.some((c) => c.startsWith('__Secure-'))).toBe(true);
     } finally {
       await prod?.close();
-      for (const k of ['NODE_ENV', 'DATABASE_URL', 'BETTER_AUTH_SECRET', 'BETTER_AUTH_URL', 'APP_ORIGIN', 'API_PUBLIC_ORIGIN', 'R2_ENDPOINT', 'R2_BUCKET', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY']) delete process.env[k];
+      for (const k of ['NODE_ENV', 'DATABASE_URL', 'BETTER_AUTH_SECRET', 'BETTER_AUTH_URL', 'APP_ORIGIN', 'API_PUBLIC_ORIGIN', 'R2_ENDPOINT', 'R2_BUCKET', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'MEDIA_R2_BUCKET', 'MEDIA_PUBLIC_BASE']) delete process.env[k];
       Object.assign(process.env, saved);
     }
   });
