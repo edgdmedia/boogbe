@@ -17,6 +17,7 @@ import { MessagingModule } from './modules/messaging/messaging.module';
 import { WebsiteEmailsModule } from './modules/public/website-emails.service';
 import { IcalImportJob } from './modules/ical/ical-import.job';
 import { MessageDispatchJob } from './modules/messaging/message-dispatch.job';
+import { ListingPhotosJob } from './modules/website/listing-photos.job';
 
 /** Cron jobs only. Later milestones add their *.jobs.ts providers here. */
 @Module({
@@ -38,6 +39,6 @@ import { MessageDispatchJob } from './modules/messaging/message-dispatch.job';
     WebsiteEmailsModule, // website guest emails on hold expiry (booking-holds.job runs here)
   ],
   // Crons live only here (D-019): the API process never runs jobs.
-  providers: [BookingHoldsJob, IcalImportJob, MessageDispatchJob],
+  providers: [BookingHoldsJob, IcalImportJob, MessageDispatchJob, ListingPhotosJob],
 })
 export class WorkerModule {}

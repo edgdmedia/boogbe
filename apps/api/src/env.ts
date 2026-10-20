@@ -41,6 +41,9 @@ const schema = z
     R2_BUCKET: blankIsUnset(z.string().optional()),
     R2_ACCESS_KEY_ID: blankIsUnset(z.string().optional()),
     R2_SECRET_ACCESS_KEY: blankIsUnset(z.string().optional()),
+    // Public media bucket for listing-photo variants (WL). Reuses R2_ENDPOINT and the keys above.
+    MEDIA_R2_BUCKET: blankIsUnset(z.string().optional()),
+    MEDIA_PUBLIC_BASE: blankIsUnset(z.string().url().optional()),
     // Cloudflare Turnstile secret for public booking requests (WB). Unset: requests fail closed (VERIFICATION_FAILED).
     TURNSTILE_SECRET_KEY: blankIsUnset(z.string().optional()),
   })
@@ -52,6 +55,10 @@ const schema = z
       !(env.R2_ENDPOINT && env.R2_BUCKET && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY)
     ) {
       ctx.addIssue({ code: 'custom', path: ['R2_ENDPOINT'], message: 'R2_* required in production' });
+    }
+    // Without the media pair, photo variants would be written to, or served from, nowhere (WL).
+    if (env.NODE_ENV === 'production' && !(env.MEDIA_R2_BUCKET && env.MEDIA_PUBLIC_BASE)) {
+      ctx.addIssue({ code: 'custom', path: ['MEDIA_R2_BUCKET'], message: 'MEDIA_R2_BUCKET and MEDIA_PUBLIC_BASE required in production' });
     }
     // Channels poll export links for years; a localhost or non-https link would silently break every calendar.
     if (

@@ -21,6 +21,7 @@ const PRISMA_ALLOWED = [
   'modules/ical/exports.service.ts', // public token lookup (SECURITY DEFINER) before any org context exists
   'modules/inventory/owners.service.ts', // reads the global invitation table for portal status
   'modules/messaging/message-dispatch.job.ts', // cross-org claim via claim_outbound (SECURITY DEFINER); sends run in OrgDb
+  'modules/website/listing-photos.job.ts', // cross-org claim via claim_listing_photos (SECURITY DEFINER); each photo is read and updated under its org's RLS
   'modules/public/public-org.service.ts', // slug lookup via public_org_lookup (SECURITY DEFINER) before any org context exists
 ];
 

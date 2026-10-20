@@ -9,6 +9,7 @@ import {
 } from '@boogbe/shared';
 import type { OrgTx } from '../../common/db/org-db.service';
 import { OrgDb } from '../../common/db/org-db.service';
+import { loadEnv } from '../../env';
 import { newId } from '../../common/db/ids';
 import { AuditService } from '../../common/audit/audit.service';
 import { AppError, notFound } from '../../common/http/app-error';
@@ -20,6 +21,9 @@ import { toListing } from './listings.mappers';
 // change /site bumps site_version in the same transaction (Global Constraints).
 @Injectable()
 export class ListingsService {
+  /** MEDIA_PUBLIC_BASE for photo previews; null until the media bucket is configured. */
+  private readonly mediaBase: string | null = loadEnv().MEDIA_PUBLIC_BASE ?? null;
+
   constructor(
     private readonly orgDb: OrgDb,
     private readonly audit: AuditService,
@@ -29,7 +33,7 @@ export class ListingsService {
     return this.orgDb.run(ctx.orgId, async (tx) => {
       const rows = await tx.listing.findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }] });
       const parts = await this.attachments(tx, rows.map((r) => r.id));
-      return rows.map((r) => toListing(r, parts.units.get(r.id) ?? [], parts.photos.get(r.id) ?? []));
+      return rows.map((r) => toListing(r, parts.units.get(r.id) ?? [], parts.photos.get(r.id) ?? [], this.mediaBase));
     });
   }
 
@@ -42,7 +46,7 @@ export class ListingsService {
     const row = await tx.listing.findFirst({ where: { id } });
     if (!row) throw notFound('Listing');
     const parts = await this.attachments(tx, [id]);
-    return toListing(row, parts.units.get(id) ?? [], parts.photos.get(id) ?? []);
+    return toListing(row, parts.units.get(id) ?? [], parts.photos.get(id) ?? [], this.mediaBase);
   }
 
   private async attachments(tx: OrgTx, listingIds: string[]) {

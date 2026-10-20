@@ -26,6 +26,7 @@ export const ERROR_CODES = [
   'UNIT_LINKED',
   'PUBLISH_BLOCKED',
   'PUBLISHED_BEFORE',
+  'TOO_MANY_PHOTOS',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 export interface ApiErrorBody {
