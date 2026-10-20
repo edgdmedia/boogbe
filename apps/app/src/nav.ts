@@ -25,6 +25,7 @@ export const OPERATOR_NAV: NavItem[] = [
   { to: '/guests', label: 'Guests', icon: Contact, permission: 'guests.read', tab: true },
   { to: '/money', label: 'Money', icon: Wallet, permission: 'payments.read', tab: true },
   { to: '/conflicts', label: 'Conflicts', icon: TriangleAlert, permission: 'bookings.read' },
+  { to: '/website/listings', label: 'Website', icon: Globe, permission: 'inventory.read', section: 'setup' },
   { to: '/settings', label: 'Business', icon: Settings, permission: 'org.settings.read', section: 'settings', end: true },
   { to: '/settings/properties', label: 'Properties', icon: Building2, permission: 'inventory.read', section: 'settings' },
   { to: '/settings/owners', label: 'Owners', icon: UserRound, permission: 'owners.read', section: 'settings' },
