@@ -84,42 +84,45 @@ model Verification {
 
 /// The operator (tenant).
 model Organization {
-  id                  String               @id
-  name                String
-  slug                String               @unique
-  logo                String?
-  createdAt           DateTime             @default(now())
-  metadata            String?
-  timezone            String               @default("Africa/Lagos")
-  currency            String               @default("NGN")
-  status              String               @default("active")
-  contactEmail        String?
-  contactPhone        String?
-  whatsappPhone       String?
-  address             String?
-  members             Member[]
-  invitations         Invitation[]
-  orgSettings         OrgSettings?
-  orgCounters         OrgCounter[]
-  auditLogs           AuditLog[]
-  owners              Owner[]
-  properties          Property[]
-  units               Unit[]
-  unitOwnerships      UnitOwnership[]
-  unitFees            UnitFee[]
-  blocks              Block[]
-  files               File[]
-  guests              Guest[]
-  bookings            Booking[]
-  bookingLines        BookingLine[]
-  bookingStatusEvents BookingStatusEvent[]
-  notifications       Notification[]
-  payments            Payment[]
-  icalFeeds           IcalFeed[]
-  icalExports         IcalExport[]
-  syncConflicts       SyncConflict[]
-  messageTemplates    MessageTemplate[]
-  outboundMessages    OutboundMessage[]
+  id                   String               @id
+  name                 String
+  slug                 String               @unique
+  logo                 String?
+  createdAt            DateTime             @default(now())
+  metadata             String?
+  timezone             String               @default("Africa/Lagos")
+  currency             String               @default("NGN")
+  status               String               @default("active")
+  contactEmail         String?
+  contactPhone         String?
+  whatsappPhone        String?
+  address              String?
+  members              Member[]
+  invitations          Invitation[]
+  orgSettings          OrgSettings?
+  orgCounters          OrgCounter[]
+  auditLogs            AuditLog[]
+  owners               Owner[]
+  properties           Property[]
+  units                Unit[]
+  unitOwnerships       UnitOwnership[]
+  unitFees             UnitFee[]
+  blocks               Block[]
+  files                File[]
+  guests               Guest[]
+  bookings             Booking[]
+  bookingLines         BookingLine[]
+  bookingStatusEvents  BookingStatusEvent[]
+  notifications        Notification[]
+  payments             Payment[]
+  icalFeeds            IcalFeed[]
+  icalExports          IcalExport[]
+  syncConflicts        SyncConflict[]
+  messageTemplates     MessageTemplate[]
+  outboundMessages     OutboundMessage[]
+  listings             Listing[]
+  listingSlugHistories ListingSlugHistory[]
+  listingPhotos        ListingPhoto[]
 
   @@map("organization")
 }
@@ -201,6 +204,7 @@ model OrgSettings {
   publicOrigins        String[]     @default([]) @map("public_origins")
   publicSiteUrl        String?      @map("public_site_url")
   notifyEmails         String[]     @default([]) @map("notify_emails")
+  siteVersion          BigInt       @default(1) @map("site_version")
   createdAt            DateTime     @default(now()) @map("created_at")
   updatedAt            DateTime     @updatedAt @map("updated_at")
   org                  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "org_settings_org_fk")
@@ -303,10 +307,13 @@ model Unit {
   feeFixedMonthlyKobo     BigInt          @default(0) @map("fee_fixed_monthly_kobo")
   active                  Boolean         @default(true)
   publicListed            Boolean         @default(false) @map("public_listed")
+  listingId               String?         @map("listing_id")
+  listingLabel            String?         @map("listing_label")
   sortOrder               Int             @default(0) @map("sort_order")
   createdAt               DateTime        @default(now()) @map("created_at")
   updatedAt               DateTime        @updatedAt @map("updated_at")
   org                     Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "unit_org_fk")
+  listing                 Listing?        @relation(fields: [listingId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "unit_listing_fk")
   ownerships              UnitOwnership[]
   fees                    UnitFee[]
   blocks                  Block[]
@@ -655,4 +662,78 @@ model OutboundMessage {
   @@index([status, nextAttemptAt])
   @@index([orgId, bookingId, createdAt])
   @@map("outbound_message")
+}
+
+// ───────────── Website listings (tenant, RLS) — WL ─────────────
+// One listing = one apartment page on the operator's website. Photos' category CHECK, the
+// slug CHECK, the deferrable cover FK and public_site_lookup() are raw SQL in 0009_website_listings.
+
+model Listing {
+  id             String               @id
+  orgId          String               @map("org_id")
+  name           String
+  slug           String
+  area           String?
+  highlight      String?
+  intro          String?
+  description    String?
+  amenities      String[]             @default([])
+  houseRules     String[]             @default([]) @map("house_rules")
+  bathroomsLabel String?              @map("bathrooms_label")
+  layoutLabel    String?              @map("layout_label")
+  seoTitle       String?              @map("seo_title")
+  seoDescription String?              @map("seo_description")
+  coverPhotoId   String?              @map("cover_photo_id")
+  sortOrder      Int                  @default(0) @map("sort_order")
+  published      Boolean              @default(false)
+  publishedAt    DateTime?            @map("published_at")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  org            Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "listing_org_fk")
+  coverPhoto     ListingPhoto?        @relation("ListingCover", fields: [coverPhotoId], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "listing_cover_photo_fk")
+  photos         ListingPhoto[]       @relation("ListingPhotos")
+  slugHistory    ListingSlugHistory[]
+  units          Unit[]
+
+  @@unique([orgId, slug])
+  @@index([orgId, sortOrder])
+  @@map("listing")
+}
+
+model ListingSlugHistory {
+  id         String       @id
+  orgId      String       @map("org_id")
+  listingId  String       @map("listing_id")
+  slug       String
+  replacedAt DateTime     @default(now()) @map("replaced_at")
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "listing_slug_history_org_fk")
+  listing    Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "listing_slug_history_listing_fk")
+
+  @@unique([orgId, slug])
+  @@index([orgId, listingId])
+  @@map("listing_slug_history")
+}
+
+model ListingPhoto {
+  id            String       @id
+  orgId         String       @map("org_id")
+  listingId     String       @map("listing_id")
+  fileId        String       @map("file_id")
+  alt           String       @default("")
+  category      String
+  width         Int?
+  height        Int?
+  sortOrder     Int          @default(0) @map("sort_order")
+  variants      Int[]        @default([])
+  variantsReady Boolean      @default(false) @map("variants_ready")
+  attempts      Int          @default(0)
+  lastError     String?      @map("last_error")
+  sourceRef     String?      @map("source_ref")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "listing_photo_org_fk")
+  listing       Listing      @relation("ListingPhotos", fields: [listingId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "listing_photo_listing_fk")
+  coverOf       Listing[]    @relation("ListingCover")
+
+  @@index([orgId, listingId])
+  @@map("listing_photo")
 }

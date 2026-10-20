@@ -28,7 +28,7 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 ## Tenant tables (RLS)
 
 ### Settings & counters
-**`org_settings`** (1 row per org): `check_in_time` (`time`, 14:00), `check_out_time` (12:00), `hold_hours` (24), `auto_confirm_on_payment` (true), `owner_sees_guest_names` (false), `receipt_prefix`, `statement_prefix`, `booking_prefix`, `logo_key`; online booking: `public_enabled` (false), `public_hold_minutes` (120, CHECK 15–1440), `public_origins` (`text[]`, exact origins allowed by CORS on public routes), `public_site_url` (null), `notify_emails` (`text[]`, extra team recipients for website requests). Public routes resolve an org by slug via the `SECURITY DEFINER` function `public_org_lookup(slug) returns (org_id, timezone, public_origins, public_hold_minutes)` — only active orgs with `public_enabled`.
+**`org_settings`** (1 row per org): `check_in_time` (`time`, 14:00), `check_out_time` (12:00), `hold_hours` (24), `auto_confirm_on_payment` (true), `owner_sees_guest_names` (false), `receipt_prefix`, `statement_prefix`, `booking_prefix`, `logo_key`; online booking: `public_enabled` (false), `public_hold_minutes` (120, CHECK 15–1440), `public_origins` (`text[]`, exact origins allowed by CORS on public routes), `public_site_url` (null), `notify_emails` (`text[]`, extra team recipients for website requests); website listings: `site_version` (bigint, default 1 — every write that changes the public `/site` output bumps it in the same transaction). Public routes resolve an org by slug via the `SECURITY DEFINER` function `public_org_lookup(slug) returns (org_id, timezone, public_origins, public_hold_minutes)` — only active orgs with `public_enabled`. The public site payload uses `public_site_lookup(slug) returns (org_id, timezone, public_enabled, public_origins)` — only an active org, **ignoring** `public_enabled`, so switching online booking off never takes the apartment pages down.
 
 **`org_counter`**: `(org_id, name)` PK; `value bigint`. Names: `receipt`, `statement`, `booking`.
 
@@ -37,13 +37,20 @@ Source of truth once M0 lands: `prisma/schema.prisma` + `prisma/migrations`. Thi
 
 **`property`**: `id, org_id, name, address, area, default_owner_id (nullable → owner), fee_type (pct_gross|pct_net|none), fee_bps, fee_fixed_monthly_kobo, notes, active, sort_order`.
 
-**`unit`**: `id, org_id, property_id, name, bedrooms, max_guests, nightly_rate_kobo, default_assignee_member_id (nullable), check_in_instructions (text), owner_follows_property (bool, default true — the unit's owner tracks the property's default owner), fee_override (boolean), fee_type, fee_bps, fee_fixed_monthly_kobo (used only when fee_override), active, public_listed (bool, default false — shown on the operator website), sort_order`. Unique `(org_id, property_id, name)`.
+**`unit`**: `id, org_id, property_id, name, bedrooms, max_guests, nightly_rate_kobo, default_assignee_member_id (nullable), check_in_instructions (text), owner_follows_property (bool, default true — the unit's owner tracks the property's default owner), fee_override (boolean), fee_type, fee_bps, fee_fixed_monthly_kobo (used only when fee_override), active, public_listed (bool, default false — shown on the operator website), listing_id (nullable → listing; a unit belongs to at most one listing), listing_label (nullable — the option label shown on the listing page, e.g. "1 bedroom"), sort_order`. Unique `(org_id, property_id, name)`.
 
 **`unit_ownership`** (effective-dated, OWN-07): `id, org_id, unit_id, owner_id (nullable = operator-owned), effective_from date, effective_to date null`. Exclusion constraint: no overlapping ranges per unit. The "current" owner shown in UI = row covering today; when a property's default owner changes, rows for units without their own override are closed and reopened.
 
 **`unit_fee`**: `id, org_id, unit_id, kind (caution_deposit|cleaning|extra_guest|other), label, amount_kobo, basis (per_stay|per_night|per_guest_night), included_guests int null, refundable bool, active`.
 
 **`block`**: `id, org_id, unit_id, start date, end date (exclusive), source (manual|ical), reason (maintenance|owner_stay|other|external), note, feed_id null, external_uid null, external_summary null`. Unique `(feed_id, external_uid)` where source = ical. Manual blocks: exclusion constraint among manual blocks per unit.
+
+### Website listings
+**`listing`** (one apartment page on the operator's website): `id, org_id, name, slug (unique per org; CHECK slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' and length ≤ 60; every slug ever used stays reserved through listing_slug_history), area, highlight, intro, description, amenities (text[]), house_rules (text[]), bathrooms_label, layout_label, seo_title, seo_description, cover_photo_id (nullable → listing_photo, ON DELETE SET NULL, deferrable), sort_order, published (false), published_at`. RLS.
+
+**`listing_slug_history`**: `id, org_id, listing_id (CASCADE), slug (same CHECK), replaced_at`. Unique `(org_id, slug)` — so a slug current on one listing and a slug historical on another can never collide. Old slugs become 301s on the site.
+
+**`listing_photo`**: `id, org_id, listing_id (CASCADE), file_id (private-bucket original, no FK), alt ('' allowed while editing — publishing blocks instead), category (CHECK — Living spaces|Bedrooms|Kitchen & dining|Bathrooms|Outdoor spaces|Building & shared spaces|Cinema & leisure|Design details), width, height, sort_order, variants (int[] — ready variant widths), variants_ready (false), attempts (0), last_error, source_ref (import provenance)`. The resize job (T-WL-05) makes WebP variants 480/800/1600/2400 in the public media bucket.
 
 ### Guests & bookings
 **`guest`**: `id, org_id, full_name, phone_e164, email null, notes, anonymised_at null`. Indexes: `(org_id, phone_e164)`, `(org_id, lower(email))`, trigram on `full_name` (`pg_trgm`).
@@ -104,6 +111,7 @@ EXCLUDE USING gist (
 ```
 organization 1─* member, invitation, org_settings(1), every tenant table
 property 1─* unit 1─* unit_fee, unit_ownership, block, ical_feed, ical_export, booking, task
+listing 1─* listing_photo, listing_slug_history, unit (unit.listing_id) ; listing.cover_photo_id → listing_photo (deferrable)
 owner 1─* unit_ownership, statement ; property.default_owner_id → owner
 guest 1─* booking 1─* booking_line, payment, booking_status_event, outbound_message, sync_conflict, task
 expense 1─* expense_allocation
