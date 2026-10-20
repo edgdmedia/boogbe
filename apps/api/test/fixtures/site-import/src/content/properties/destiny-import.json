@@ -1,0 +1,34 @@
+{
+  "name": "Destiny",
+  "slug": "destiny-import",
+  "service": "short-let",
+  "status": "enquire",
+  "area": "Ikate, Lekki",
+  "address": "Brownstone Estate, Ikate",
+  "beds": 2,
+  "config": "1 or 2 bedrooms",
+  "bathrooms": "2 bathrooms · 3 toilets",
+  "feature": "A home with room to slow down.",
+  "intro": "Curved seating and two balconies.",
+  "description": "Destiny pairs a sociable living area with calmer bedrooms.",
+  "amenities": ["Shared pool", "Fitted kitchen", "24-hour power"],
+  "notes": ["Gym is currently listed as inactive.", "Third-floor apartment; confirm elevator operation."],
+  "rate": 175000,
+  "rates": [
+    { "label": "1 bedroom", "amount": 175000 },
+    { "label": "2 bedrooms", "amount": 210000 }
+  ],
+  "cautionFee": 100000,
+  "hero": 11,
+  "gallery": [
+    { "id": 11, "file": "import-001", "category": "Living spaces", "alt": "Destiny living room", "width": 3024, "height": 4032 },
+    { "id": 12, "file": "import-002", "category": "Bedrooms", "alt": "Destiny bedroom", "width": 4032, "height": 3024 },
+    { "id": 13, "file": "import-003", "category": "Kitchen & dining", "alt": "Destiny kitchen", "width": 4000, "height": 3000 }
+  ],
+  "boogbe": {
+    "units": [
+      { "label": "1 bedroom", "unitId": "UNIT1" },
+      { "label": "2 bedrooms", "unitId": "UNIT2" }
+    ]
+  }
+}
