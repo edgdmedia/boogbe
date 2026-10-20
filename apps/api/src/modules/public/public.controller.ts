@@ -1,9 +1,10 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Query, Req } from '@nestjs/common';
-import type { Request } from 'express';
+import { Body, Controller, Get, HttpCode, Param, Post, Query, Req, Res } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import type { z } from 'zod';
 import { AvailabilityQuery, BookingRequestInput, PublicQuoteQuery } from '@boogbe/shared';
 import { PublicRequestsService } from './public-requests.service';
+import { PublicSiteService } from './public-site.service';
 import { Public } from '../../common/auth/decorators';
 import { AppError } from '../../common/http/app-error';
 import { invalidDates, PublicReadService } from './public-read.service';
@@ -28,7 +29,36 @@ export class PublicController {
     private readonly orgs: PublicOrgService,
     private readonly read: PublicReadService,
     private readonly requests: PublicRequestsService,
+    private readonly site: PublicSiteService,
   ) {}
+
+  // Website listings (WL): the version probe is cheap and edge-cached 15 s; the payload is
+  // immutable per version, and a missing or stale `v` is bounced to the current one (plan §5.6).
+  @Get('site/version')
+  @Public()
+  @Throttle({ default: { limit: 120, ttl: 60_000 } })
+  async siteVersion(@Param('slug') slug: string, @Res() res: Response) {
+    const org = await this.orgs.resolveSite(slug);
+    const version = await this.site.version(org.orgId);
+    res.setHeader('Cache-Control', 'public, max-age=15');
+    return res.json({ version });
+  }
+
+  @Get('site')
+  @Public()
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  async sitePayload(@Param('slug') slug: string, @Query('v') v: unknown, @Res() res: Response) {
+    const org = await this.orgs.resolveSite(slug);
+    const current = await this.site.version(org.orgId);
+    if (Number(v) !== current) {
+      // no-store on the bounce, so a cache never keeps the redirect itself for a year.
+      res.setHeader('Cache-Control', 'no-store');
+      return res.redirect(302, `/v1/public/${slug.toLowerCase()}/site?v=${current}`);
+    }
+    const payload = await this.site.payload(org, slug.toLowerCase());
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    return res.json(payload);
+  }
 
   @Get('units')
   @Public()
