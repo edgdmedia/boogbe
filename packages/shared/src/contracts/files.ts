@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const FileKind = z.enum(['logo', 'receipt_image', 'task_photo', 'statement_pdf', 'receipt_pdf']);
+export const FileKind = z.enum(['logo', 'receipt_image', 'task_photo', 'statement_pdf', 'receipt_pdf', 'listing_photo']);
 export type FileKind = z.infer<typeof FileKind>;
 export const FILE_LIMITS: Record<FileKind, { maxBytes: number; types: readonly string[]; uploadable: boolean }> = {
   logo: { maxBytes: 2 * 1024 * 1024, types: ['image/png', 'image/jpeg', 'image/webp'], uploadable: true },
@@ -12,6 +12,13 @@ export const FILE_LIMITS: Record<FileKind, { maxBytes: number; types: readonly s
   task_photo: { maxBytes: 1024 * 1024, types: ['image/jpeg', 'image/webp'], uploadable: true },
   statement_pdf: { maxBytes: 10 * 1024 * 1024, types: ['application/pdf'], uploadable: false },
   receipt_pdf: { maxBytes: 2 * 1024 * 1024, types: ['application/pdf'], uploadable: false },
+  // Listing originals (WL). sharp's prebuilt binaries cannot decode HEIC, so iOS Safari's
+  // upload-time JPEG conversion is relied on; a HEIC file is refused here with the same copy.
+  listing_photo: {
+    maxBytes: 15 * 1024 * 1024,
+    types: ['image/jpeg', 'image/png', 'image/webp'],
+    uploadable: true,
+  },
 };
 export const PresignInput = z
   .object({ kind: FileKind, contentType: z.string(), sizeBytes: z.number().int().positive() })

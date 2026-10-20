@@ -26,6 +26,7 @@ const UPLOAD_PERMS: Record<FileKind, Permission[]> = {
   task_photo: ['tasks.write_own', 'tasks.write'],
   statement_pdf: [],
   receipt_pdf: [],
+  listing_photo: ['inventory.write'],
 };
 // notifications.read is held by every role, so any member may see the operator logo.
 const READ_PERMS: Record<FileKind, Permission[]> = {
@@ -34,6 +35,7 @@ const READ_PERMS: Record<FileKind, Permission[]> = {
   task_photo: ['tasks.read_own', 'tasks.read'],
   statement_pdf: ['statements.read', 'portal.read'],
   receipt_pdf: ['payments.read'],
+  listing_photo: ['inventory.read'],
 };
 
 @Injectable()
