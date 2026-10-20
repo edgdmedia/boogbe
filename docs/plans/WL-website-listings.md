@@ -295,17 +295,17 @@
   - On a 409 `STALE`, a banner: "Someone else updated this listing at {time}. Reload to see their changes."
   - The publish bar shows the blockers as a list while blocked, and **Publish** stays disabled until there are none. Published listings show **Unpublish**.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - the list renders badges and order
   - the editor saves and shows the toast
   - `STALE` shows the banner
   - an empty draft lists all 7 blockers and Publish is disabled
   - changing the slug on a published listing shows the redirect warning
   - a front-desk role sees no edit controls
-- [ ] **Step 2: Run them.** `pnpm --filter @boogbe/app test -- website` gives FAIL.
-- [ ] **Step 3: Implement** them with the existing form, card and toast components (see `features/inventory/PropertyDetail.tsx` and `UnitForm.tsx`).
-- [ ] **Step 4: Run them.** PASS. `pnpm typecheck` and `pnpm lint` are clean.
-- [ ] **Step 5: Commit.** `feat(app): Website → Listings list and editor [T-WL-07]`
+- [x] **Step 2: Run them.** `pnpm --filter @boogbe/app test -- website` gives FAIL.
+- [x] **Step 3: Implement** them with the existing form, card and toast components (see `features/inventory/PropertyDetail.tsx` and `UnitForm.tsx`). (No toast exists — inline "Saved." pattern like OnlineBooking)
+- [x] **Step 4: Run them.** PASS. `pnpm typecheck` and `pnpm lint` are clean. (website 10/10, app 124)
+- [x] **Step 5: Commit.** `feat(app): Website → Listings list and editor [T-WL-07]` — merged via [#101](https://github.com/edgdmedia/boogbe/pull/101)
 
 ---
 
