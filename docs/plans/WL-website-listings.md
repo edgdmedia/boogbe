@@ -349,16 +349,16 @@
   3. For each gallery image, in order: if no photo has `source_ref = '<slug>/<file>'`, read `public/assets/images/<file>-1600.webp`, `STORAGE.put` it as a confirmed `listing_photo` file, and attach it with the image's alt and category. The cover is the `hero` image.
 - It prints a per-listing summary (created or updated, photos added or skipped, units linked). `--dry-run` writes nothing. Publishing happens in the app after review (T-WL-12), not in the script.
 
-- [ ] **Step 1: Write the failing test:**
+- [x] **Step 1: Write the failing test:**
   - the import creates 1 listing, links 2 units and attaches 3 photos with `source_ref`
   - a second run adds nothing
   - `--dry-run` writes nothing
   - property notes gain the marker once
   - an unknown unit id fails with a clear message and writes nothing for that listing
-- [ ] **Step 2: Run it.** FAIL.
-- [ ] **Step 3: Implement** it, reusing the services from Tasks 4 and 5 through the Nest application context (the same pattern as `scripts/seed-tanuhomes.ts`).
-- [ ] **Step 4: Run it.** PASS.
-- [ ] **Step 5: Commit.** `feat(api): import website listings from the Tanuhomes repo [T-WL-09]`
+- [x] **Step 2: Run it.** FAIL.
+- [x] **Step 3: Implement** it, reusing the services from Tasks 4 and 5 through the Nest application context (the same pattern as `scripts/seed-tanuhomes.ts`). (source_ref stamped by the script; hero cover written directly — the attach pipeline leaves photos unprocessed)
+- [x] **Step 4: Run it.** PASS. (6/6; full int 313/313)
+- [x] **Step 5: Commit.** `feat(api): import website listings from the Tanuhomes repo [T-WL-09]` — merged via [#103](https://github.com/edgdmedia/boogbe/pull/103)
 
 ---
 
