@@ -19,7 +19,7 @@ export default defineConfig({
   ],
   webServer: prodBase ? undefined : [
     {
-      command: `PORT=${apiPort} E2E=1 NODE_ENV=test APP_ORIGIN=${appOrigin} BETTER_AUTH_URL=${appOrigin} pnpm --filter @boogbe/api dev`,
+      command: `PORT=${apiPort} E2E=1 NODE_ENV=test APP_ORIGIN=${appOrigin} API_PUBLIC_ORIGIN=http://localhost:${apiPort} MEDIA_PUBLIC_BASE=http://localhost:${apiPort}/v1/__media BETTER_AUTH_URL=${appOrigin} pnpm --filter @boogbe/api dev`,
       url: `http://localhost:${apiPort}/v1/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

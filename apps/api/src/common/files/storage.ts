@@ -90,10 +90,13 @@ export class R2Storage implements Storage {
   }
 }
 
-/** Dev/test storage: objects in memory, URLs `memory://<key>` (uploads) and `memory://get/<key>` (downloads). */
+/** Dev/test storage: objects in memory. With `httpBase` (E2E), presign points at the API's e2e blob
+ *  routes so a real browser PUT works; without it the URL stays the `memory://<key>` the tests use. */
 export class MemoryStorage implements Storage {
   readonly objects = new Map<string, { body: Buffer; contentType: string }>();
+  constructor(private readonly httpBase?: string) {}
   async presignPut(key: string, contentType: string) {
+    if (this.httpBase) return { url: `${this.httpBase}/v1/__test/blob/${key}`, headers: { 'content-type': contentType } };
     return { url: `memory://${key}`, headers: { 'content-type': contentType } };
   }
   async presignGet(key: string) {

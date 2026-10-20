@@ -15,6 +15,7 @@ import { useProperties, useUnits } from '../inventory/hooks';
 import { useListing } from './hooks';
 import { ChipListInput } from './ChipListInput';
 import { ListingUnitsField, type UnitPick } from './ListingUnitsField';
+import { PhotoManager } from './PhotoManager';
 
 interface Form {
   name: string;
@@ -61,7 +62,6 @@ export function ListingEditor() {
   const { data: propertiesData } = useProperties();
   const [form, setForm] = useState<Form | null>(null);
   const [picked, setPicked] = useState<UnitPick[]>([]);
-  const [baseline, setBaseline] = useState('');
   const [stale, setStale] = useState<{ at: string; by: string | null } | null>(null);
   const [savedMsg, setSavedMsg] = useState(false);
   const [unitsError, setUnitsError] = useState<string | null>(null);
@@ -73,7 +73,6 @@ export function ListingEditor() {
     if (!listing || form !== null) return;
     setForm(fromListing(listing));
     setPicked(listing.units.map((u) => ({ unitId: u.id, label: u.label })));
-    setBaseline(listing.updatedAt);
   }, [listing, form]);
 
   if (!listing || !form) return <Spinner />;
@@ -126,7 +125,9 @@ export function ListingEditor() {
     setStale(null);
     setBusy(true);
     try {
-      const patch = { ...body(), expectedUpdatedAt: baseline };
+      // The freshest loaded updatedAt, not one captured at mount: this page's own photo manager
+      // bumps the listing too, and that must not read as a conflict.
+      const patch = { ...body(), expectedUpdatedAt: listing.updatedAt };
       const updated = await api(`/v1/listings/${listing.id}`, { method: 'PATCH', body: patch, schema: Listing });
       if (unitsChanged) {
         try {
@@ -138,7 +139,6 @@ export function ListingEditor() {
       }
       setForm(fromListing(updated));
       setPicked(updated.units.map((u) => ({ unitId: u.id, label: u.label })));
-      setBaseline(updated.updatedAt);
       setSavedMsg(true);
       await mutate();
     } catch (err) {
@@ -158,7 +158,6 @@ export function ListingEditor() {
     try {
       const updated = await api(`/v1/listings/${listing.id}/${publish ? 'publish' : 'unpublish'}`, { method: 'POST', schema: Listing });
       setForm(fromListing(updated));
-      setBaseline(updated.updatedAt);
       await mutate();
     } catch (err) {
       if (err instanceof ApiError) setTextErrors({ publish: err.message });
@@ -168,7 +167,6 @@ export function ListingEditor() {
   };
 
   const E = (key: keyof Form | 'publish') => textErrors[key];
-  const photoSlot = null; // PhotoManager mounts here in T-WL-08
 
   return (
     <div className="flex flex-col gap-4">
@@ -262,7 +260,7 @@ export function ListingEditor() {
         />
       </div>
 
-      {photoSlot}
+      <PhotoManager listingId={listing.id} />
 
       {canWrite && (
         <div className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card">
