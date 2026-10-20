@@ -30,6 +30,8 @@ describe('loadEnv', () => {
       R2_BUCKET: 'b',
       R2_ACCESS_KEY_ID: 'k',
       R2_SECRET_ACCESS_KEY: 's',
+      MEDIA_R2_BUCKET: 'm',
+      MEDIA_PUBLIC_BASE: 'https://media.boogbe.com',
     };
     expect(() => loadEnv(prod)).toThrow('API_PUBLIC_ORIGIN');
     expect(() => loadEnv({ ...prod, API_PUBLIC_ORIGIN: 'http://api.boogbe.com' })).toThrow('API_PUBLIC_ORIGIN');

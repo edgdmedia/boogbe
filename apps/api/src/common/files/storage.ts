@@ -2,6 +2,8 @@ import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from 
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export const STORAGE = 'BOOGBE_STORAGE';
+/** Public media bucket (WL variants). Its own token so a module can't accidentally write the private one. */
+export const MEDIA_STORAGE = 'BOOGBE_MEDIA_STORAGE';
 
 export interface Storage {
   presignPut(
@@ -11,7 +13,7 @@ export interface Storage {
   ): Promise<{ url: string; headers: Record<string, string> }>;
   presignGet(key: string, filename?: string): Promise<string>;
   head(key: string): Promise<{ size: number } | null>;
-  put(key: string, body: Buffer, contentType: string): Promise<void>;
+  put(key: string, body: Buffer, contentType: string, opts?: { cacheControl?: string }): Promise<void>;
   get(key: string): Promise<Buffer | null>;
 }
 
@@ -65,9 +67,15 @@ export class R2Storage implements Storage {
     }
   }
 
-  async put(key: string, body: Buffer, contentType: string) {
+  async put(key: string, body: Buffer, contentType: string, opts?: { cacheControl?: string }) {
     await this.s3.send(
-      new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: body, ContentType: contentType }),
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+        ...(opts?.cacheControl && { CacheControl: opts.cacheControl }),
+      }),
     );
   }
 
@@ -100,5 +108,32 @@ export class MemoryStorage implements Storage {
   }
   async get(key: string) {
     return this.objects.get(key)?.body ?? null;
+  }
+}
+
+/** Keys a namespace into another storage — dev/test keeps the media bucket separate from originals
+ *  in one in-memory store, under `media/` (plan: "reuse the existing dev or test storage under a media/ prefix"). */
+export class PrefixedStorage implements Storage {
+  constructor(
+    private readonly inner: Storage,
+    private readonly prefix: string,
+  ) {}
+  private k(key: string) {
+    return `${this.prefix}${key}`;
+  }
+  presignPut(key: string, contentType: string, sizeBytes: number) {
+    return this.inner.presignPut(this.k(key), contentType, sizeBytes);
+  }
+  presignGet(key: string, filename?: string) {
+    return this.inner.presignGet(this.k(key), filename);
+  }
+  head(key: string) {
+    return this.inner.head(this.k(key));
+  }
+  put(key: string, body: Buffer, contentType: string, opts?: { cacheControl?: string }) {
+    return this.inner.put(this.k(key), body, contentType, opts);
+  }
+  get(key: string) {
+    return this.inner.get(this.k(key));
   }
 }

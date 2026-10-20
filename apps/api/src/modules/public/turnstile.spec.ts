@@ -46,6 +46,8 @@ describe('CloudflareTurnstile', () => {
       R2_BUCKET: 'b',
       R2_ACCESS_KEY_ID: 'k',
       R2_SECRET_ACCESS_KEY: 's',
+      MEDIA_R2_BUCKET: 'm',
+      MEDIA_PUBLIC_BASE: 'https://media.boogbe.com',
     };
     expect(() => loadEnv({ ...base, TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA' } as never)).toThrow(/TURNSTILE_SECRET_KEY/);
     expect(() => loadEnv({ ...base, TURNSTILE_SECRET_KEY: '0x4AAAAAAAreal' } as never)).not.toThrow();

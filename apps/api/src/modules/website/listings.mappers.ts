@@ -4,7 +4,8 @@ import { kobo } from '../inventory/mappers';
 
 type UnitWithProperty = UnitRow & { property: { active: boolean } };
 
-export function toListingPhoto(r: PhotoRow): ListingPhoto {
+/** `mediaBase` = MEDIA_PUBLIC_BASE (null until the media bucket is configured — then previews appear). */
+export function toListingPhoto(r: PhotoRow, mediaBase: string | null): ListingPhoto {
   return {
     id: r.id,
     alt: r.alt,
@@ -15,8 +16,7 @@ export function toListingPhoto(r: PhotoRow): ListingPhoto {
     ready: r.variantsReady,
     // failed = the resize job gave up (T-WL-05 semantics).
     failed: !r.variantsReady && r.attempts >= 3,
-    // Filled from MEDIA_PUBLIC_BASE once the photo pipeline lands (T-WL-05).
-    previewUrl: null,
+    previewUrl: r.variantsReady && mediaBase ? `${mediaBase}/org/${r.orgId}/listing/${r.id}-480.webp` : null,
   };
 }
 
@@ -24,7 +24,7 @@ export function toListingPhoto(r: PhotoRow): ListingPhoto {
  * `bookable = active && publicListed && property active` (T-WL-04 Step 3) — a listing whose units
  * are all archived still maps fine; the site falls back to the rate card when none are bookable.
  */
-export function toListing(row: ListingRow, units: UnitWithProperty[], photos: PhotoRow[]): Listing {
+export function toListing(row: ListingRow, units: UnitWithProperty[], photos: PhotoRow[], mediaBase: string | null): Listing {
   return {
     id: row.id,
     name: row.name,
@@ -52,6 +52,6 @@ export function toListing(row: ListingRow, units: UnitWithProperty[], photos: Ph
       maxGuests: u.maxGuests,
       bookable: u.active && u.publicListed && u.property.active,
     })),
-    photos: photos.map(toListingPhoto),
+    photos: photos.map((p) => toListingPhoto(p, mediaBase)),
   };
 }
