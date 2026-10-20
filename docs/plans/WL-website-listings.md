@@ -223,7 +223,7 @@
   - Then, under the org's RLS: set width, height, `variants` and `variants_ready = true`, and call `bumpSiteVersion`.
   - On error: `attempts + 1` and `last_error`. `failed` in the response means `attempts >= 3 && !variants_ready`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `image-variants.spec.ts`:
     - an 8000×6000 orientation-6 JPEG gives width 6000, height 8000, and variant widths `[480, 800, 1600, 2400]`
     - a 700 px-wide PNG gives `[480]`
@@ -236,10 +236,10 @@
     - the job processes a photo, after which the variants exist in the media storage and `ready` is true
     - a corrupt file fails 3 times and then shows `failed: true`
     - ordering, cover and delete each bump the version
-- [ ] **Step 2: Run them.** FAIL.
-- [ ] **Step 3: Implement** in this order: `image-variants.ts`, then the storage and env changes, then the service and controller, then migration 0010 and the job.
-- [ ] **Step 4: Run them** with `files.int.ts` and `jobs.int.ts`. PASS.
-- [ ] **Step 5: Commit.** `feat(api): listing photos with WebP variants on media storage [T-WL-05]`
+- [x] **Step 2: Run them.** FAIL. (unit: module absent; int: job/media storage absent)
+- [x] **Step 3: Implement** in this order: `image-variants.ts`, then the storage and env changes, then the service and controller, then migration 0010 and the job. (HEIC copy landed in the `PresignInput` contract — the global pipe emits that 400)
+- [x] **Step 4: Run them** with `files.int.ts` and `jobs.int.ts`. PASS. (6/6 · 8/8 · 5/5 · 1/1; full int 297/297 after fixing the prod cookie fixture for the new required MEDIA_* vars)
+- [x] **Step 5: Commit.** `feat(api): listing photos with WebP variants on media storage [T-WL-05]` — merged via [#99](https://github.com/edgdmedia/boogbe/pull/99)
 
 ---
 
