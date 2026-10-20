@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Link } from 'react-router-dom';
 import { useId } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Unit, UnitInput } from '@boogbe/shared';
 import { Button, Field, Input, Select, Textarea } from '@boogbe/ui';
 import { api, ApiError } from '../../lib/api';
+import { useListings } from '../website/hooks';
 import { MoneyInput, PercentInput } from './money-input';
 
 export function UnitForm({
@@ -36,6 +38,10 @@ export function UnitForm({
   const publicHint = useId();
   const override = f.watch('feeOverride');
   const e = f.formState.errors;
+  // Read-only line: which website listing page, if any, holds this unit (T-WL-08).
+  const { data: listingsData } = useListings();
+  const holder = initial ? listingsData?.items.find((l) => l.units.some((u) => u.id === initial.id)) : undefined;
+  const holderLabel = holder && initial ? holder.units.find((u) => u.id === initial.id)?.label : null;
   return (
     <form
       noValidate
@@ -81,6 +87,18 @@ export function UnitForm({
           Guests can see availability and request this apartment on your website.
         </p>
       </div>
+      {initial &&
+        (holder ? (
+          <p className="text-sm text-ink md:col-span-2">
+            On website:{' '}
+            <Link to={`/website/listings/${holder.id}`} className="font-semibold text-brand hover:underline">
+              {holder.name}
+              {holderLabel ? ` (${holderLabel})` : ''}
+            </Link>
+          </p>
+        ) : (
+          <p className="text-sm text-ink-muted md:col-span-2">Not on your website</p>
+        ))}
       <label className="flex items-center gap-2 text-sm md:col-span-2">
         <input type="checkbox" {...f.register('feeOverride')} />
         Use a different management fee for this unit

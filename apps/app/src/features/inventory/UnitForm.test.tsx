@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { ReactElement } from 'react';
 import type { Unit } from '@boogbe/shared';
 import { UnitForm } from './UnitForm';
 
@@ -64,5 +66,32 @@ describe('UnitForm — Show on website', () => {
     await user.click(screen.getByRole('button', { name: 'Save unit' }));
     await waitFor(() => expect(onSaved).toHaveBeenCalled());
     expect(bodies[0]).toMatchObject({ publicListed: false });
+  });
+});
+
+// The listing link line (T-WL-08): which website page, if any, holds this unit.
+const listings: unknown[] = [];
+vi.mock('../website/hooks', () => ({ useListings: () => ({ data: { items: listings }, mutate: vi.fn() }) }));
+
+describe('UnitForm — On website line', () => {
+  afterEach(() => {
+    listings.length = 0;
+  });
+
+  const withRouter = (ui: ReactElement) => render(<MemoryRouter>{ui}</MemoryRouter>);
+
+  it('says Not on your website when no listing holds the unit', () => {
+    withRouter(<UnitForm propertyId="p1" initial={unit} onSaved={vi.fn()} />);
+    expect(screen.getByText('Not on your website')).toBeInTheDocument();
+  });
+
+  it('names the listing and its option label, linking to the editor', () => {
+    listings.push({ id: 'l1', name: 'Destiny', slug: 'destiny', units: [{ id: 'u1', label: '1 bedroom' }] });
+    withRouter(<UnitForm propertyId="p1" initial={unit} onSaved={vi.fn()} />);
+    expect(screen.getByText('On website:')).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: /Destiny/ });
+    expect(link).toHaveAttribute('href', '/website/listings/l1');
+    expect(link.textContent).toContain('Destiny');
+    expect(link.textContent).toContain('1 bedroom');
   });
 });

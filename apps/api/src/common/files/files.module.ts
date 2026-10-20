@@ -12,7 +12,7 @@ import { MemoryStorage, MEDIA_STORAGE, PrefixedStorage, R2Storage, STORAGE } fro
         const e = loadEnv();
         return e.R2_ENDPOINT && e.NODE_ENV !== 'test'
           ? new R2Storage(e.R2_ENDPOINT, e.R2_BUCKET!, e.R2_ACCESS_KEY_ID!, e.R2_SECRET_ACCESS_KEY!)
-          : new MemoryStorage();
+          : new MemoryStorage(process.env.E2E === '1' ? e.API_PUBLIC_ORIGIN : undefined);
       },
     },
     {

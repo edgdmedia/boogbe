@@ -14,6 +14,7 @@ import { AUTH } from './common/auth/auth.tokens';
 import type { Auth } from './common/auth/auth';
 import { publicCors } from './modules/public/public-cors';
 import { PublicOrgService } from './modules/public/public-org.service';
+import { MEDIA_STORAGE, STORAGE, type Storage } from './common/files/storage';
 
 /** `overrides` swap providers (tests only), e.g. a fake iCal fetcher. */
 export async function buildApp(
@@ -47,6 +48,33 @@ export async function buildApp(
   http.use('/v1/public', publicCors(app.get(PublicOrgService)));
   const appCors = cors({ origin: [env.APP_ORIGIN], credentials: true });
   http.use((req, res, next) => ((req as { publicRoute?: boolean }).publicRoute ? next() : appCors(req, res, next)));
+  if (process.env.E2E === '1') {
+    // E2E with in-memory storage: presign points the browser's PUT here, and GET serves the
+    // media bucket's variants so the app's <img> previews resolve. Test process only, never deployed.
+    const storage = app.get(STORAGE) as Storage;
+    const media = app.get(MEDIA_STORAGE) as Storage;
+    http.put('/v1/__test/blob/*', (req, res, next) => {
+      const chunks: Buffer[] = [];
+      req.on('data', (c: Buffer) => chunks.push(c));
+      req.on('end', () => {
+        const key = decodeURIComponent(req.path.slice('/v1/__test/blob/'.length));
+        storage
+          .put(key, Buffer.concat(chunks), String(req.headers['content-type'] ?? 'application/octet-stream'))
+          .then(() => res.status(200).end())
+          .catch(next);
+      });
+    });
+    http.get('/v1/__media/*', async (req, res, next) => {
+      try {
+        const buf = await media.get(decodeURIComponent(req.path.slice('/v1/__media/'.length)));
+        if (!buf) return res.status(404).end();
+        res.setHeader('content-type', 'image/webp');
+        res.send(buf);
+      } catch (e) {
+        next(e);
+      }
+    });
+  }
   // Better Auth reads its own body, so it must be mounted before the JSON parser.
   const auth = app.get<Auth>(AUTH);
   http.all('/v1/auth/*', toNodeHandler(auth));
