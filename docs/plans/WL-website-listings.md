@@ -385,7 +385,7 @@
 - `getListings(ctx: { api: string; slug: string; cache: Cache; snapshot: SitePayload; fetchImpl? }): Promise<{ properties: Property[]; version: number | 'snapshot' }>`. It applies spec §4's fallback order. It stores the last good payload under the cache key `https://site-cache.internal/<slug>/last-good` for 30 days, and keeps the last version this data centre saw under `…/last-version`.
 - `scripts/site-snapshot.mjs` writes `src/generated/site-snapshot.json` from `BOOGBE_SITE_FIXTURE` when that is set, otherwise from the API. It exits non-zero when the API is unreachable or returns zero listings.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - `toProperties(fixture)` deep-equals today's six properties on every field the pages use (name, slug, rates, cautionFee, beds, config, feature, intro, description, amenities, gallery order, alt, category, hero)
   - all units unbookable gives `boogbe` undefined and a rate still present
   - `getListings` covers four cases, each with a mocked fetch and an in-memory `Cache`:
@@ -394,10 +394,10 @@
     - `/site` failing, which uses last-good
     - everything failing with an empty cache, which uses the snapshot
   - `fetchSite` follows a 302
-- [ ] **Step 2: Run them.** `npm test` gives FAIL.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run them.** PASS.
-- [ ] **Step 5: Commit** on `astro-rebuild`: `feat: site data layer from Boogbe with cache fallbacks [T-WL-10]`
+- [x] **Step 2: Run them.** `npm test` gives FAIL. (site-data/site-cache suites red on missing modules; validate/properties/format red on the old shapes)
+- [x] **Step 3: Implement.** (tanuhomes PR [#2](https://github.com/EDGD-Media/tanuhomes/pull/2) — owner merges site PRs, WB-08 pattern; npm test 109 green + full fixture build passes locally)
+- [x] **Step 4: Run them.** PASS. (11 files / 109; `BOOGBE_SITE_FIXTURE=… npm run build` → 16 pages, validation passed)
+- [ ] **Step 5: Commit** on `astro-rebuild`: `feat: site data layer from Boogbe with cache fallbacks [T-WL-10]` — committed on `t-wl-10-site-data`; merge pending with the owner (site-repo rule)
 
 ---
 
