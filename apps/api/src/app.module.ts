@@ -26,6 +26,7 @@ import { MeModule } from './modules/me/me.module';
 import { OrgModule } from './modules/org/org.module';
 import { PlatformModule } from './modules/platform/platform.module';
 import { TestSupportModule } from './modules/test-support/test-support.module';
+import { WebsiteModule } from './modules/website/website.module';
 
 const e2e = process.env.NODE_ENV !== 'production' && (process.env.E2E === '1' || process.env.NODE_ENV === 'test');
 
@@ -43,6 +44,7 @@ const e2e = process.env.NODE_ENV !== 'production' && (process.env.E2E === '1' ||
     OrgModule,
     CalendarModule, // before InventoryModule: BlocksService registers itself as a calendar source
     InventoryModule,
+    WebsiteModule, // WL: reads inventory contracts, its writes bump site_version like inventory's
     GuestsModule,
     BookingsModule,
     PaymentsModule,
