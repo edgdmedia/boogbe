@@ -116,8 +116,8 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-WL-01 | [schema] Migration 0009: listings, photos, unit link, site_version, `public_site_lookup` | schema | T-WB-01 | opencode | done | [#95](https://github.com/edgdmedia/boogbe/pull/95) | Merged 2026-10-20. Inline self-review (owner directed inline execution — no reviewer subagent this milestone). Gate: listings-schema 7/7, int 261/261 |
 | T-WL-02 | Shared contracts: listing, photo, site payload, publish blockers, slugify, file kind | contract | T-WL-01 | opencode | done | [#96](https://github.com/edgdmedia/boogbe/pull/96) | Merged 2026-10-20; int 261/261. Review caught: `.partial()` re-applied create-time array defaults — ListingUpdate now plain-optional (pinned by test) |
 | T-WL-03 | `bumpSiteVersion` + wiring into units, fees, properties, public_enabled | api | T-WL-01, T-WL-02 | opencode | done | [#97](https://github.com/edgdmedia/boogbe/pull/97) | Merged 2026-10-20; int 276/276. Deviation: no bump in units.create (listingId unreachable there — links bump in T-WL-04). One flaky full-gate run seen once, not reproduced |
-| T-WL-04 | Listings API: CRUD, units, order, publish, slug history | api | T-WL-03 | opencode | in_progress | | Plan Task 4. Claimed 2026-10-20 |
-| T-WL-05 | Listing photos API, media storage, resize job (sharp) | api | T-WL-04 |  | todo | | Plan Task 5 |
+| T-WL-04 | Listings API: CRUD, units, order, publish, slug history | api | T-WL-03 | opencode | done | [#98](https://github.com/edgdmedia/boogbe/pull/98) | Merged 2026-10-20; int 44 files/289 twice. {items} envelope; previewUrl null until T-WL-05 |
+| T-WL-05 | Listing photos API, media storage, resize job (sharp) | api | T-WL-04 | opencode | in_progress | | Plan Task 5. Claimed 2026-10-20 |
 | T-WL-06 | Public `/site/version` and `/site` endpoints | api | T-WL-05 |  | todo | | Plan Task 6 |
 | T-WL-07 | App: Website → Listings list and editor | ui | T-WL-04 |  | todo | | Plan Task 7 |
 | T-WL-08 | App: photo manager; unit "On website" line | ui | T-WL-05, T-WL-07 |  | todo | | Plan Task 8 |
@@ -125,6 +125,7 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-WL-10 | Site: data layer, cache and fallbacks, snapshot (tanuhomes repo) | site | T-WL-06 |  | todo | | Plan Task 10. Repo `~/Projects/tanuhomes`, branch `astro-rebuild` |
 | T-WL-11 | Site: Cloudflare adapter, on-demand pages, redirects, removals, parity | site | T-WL-10 |  | todo | | Plan Task 11. Removals of old property images only after T-WL-12's import |
 | T-WL-12 | Owner: media bucket, deploy, import, production checks, handoff note | infra | all WL |  | todo | | Plan Task 12. Owner + builder |
+| FLAKE-1 | `outbox.int > skip locked prevents double send` intermittently dies with Prisma "Can't reach database server at localhost:5433" under the full int gate (seen 2026-10-20 on first runs of #97/#98/loop-1; re-runs and standalone always green). Suspect connection-pool exhaustion around the raw `$queryRaw` double-claim, not test logic. Owner decision whether to fix or raise the suite's pool/timeout | infra, test | — |  | todo | | Found while gating T-WL-03/04; blocks nothing — re-run passes |
 
 ## Parallelism map (by milestone)
 

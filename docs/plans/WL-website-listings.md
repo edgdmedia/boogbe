@@ -183,7 +183,7 @@
 - `DELETE /v1/listings/:id` works only when `published = false` and no slug history exists (otherwise 409 `PUBLISHED_BEFORE`; unpublish instead). Deleted photos' variants are left for the public bucket's lifecycle.
 - Every write calls `bumpSiteVersion` and writes an audit entry (`listing.created|updated|published|unpublished|deleted|units_set|reordered`).
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - CRUD round trip
   - the slug default and collision suffix
   - the a→b→c→a history case (Review Focus 3)
@@ -194,10 +194,10 @@
   - publish succeeds with fixtures (3 ready photos seeded directly in the DB)
   - a front-desk role gets 403 on writes
   - every write bumps the version once
-- [ ] **Step 2: Run them.** FAIL.
-- [ ] **Step 3: Implement** the controller, service and mappers. `Listing.units[].bookable = unit.active && unit.publicListed && property.active`.
-- [ ] **Step 4: Run them**, plus `guards.int.ts`. PASS.
-- [ ] **Step 5: Commit.** `feat(api): website listings CRUD, units, publish [T-WL-04]`
+- [x] **Step 2: Run them.** FAIL. (13 × missing-route failures after fixing a test-side syntax slip)
+- [x] **Step 3: Implement** the controller, service and mappers. `Listing.units[].bookable = unit.active && unit.publicListed && property.active`.
+- [x] **Step 4: Run them**, plus `guards.int.ts`. PASS. (13/13 · guards 9/9 · isolation 1/1 · full int 289/289 twice; pre-existing flake filed as FLAKE-1)
+- [x] **Step 5: Commit.** `feat(api): website listings CRUD, units, publish [T-WL-04]` — merged via [#98](https://github.com/edgdmedia/boogbe/pull/98)
 
 ---
 
