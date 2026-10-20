@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:int": "vitest run --config vitest.int.config.ts",
     "prisma:generate": "prisma generate --schema ../../prisma/schema.prisma",
-    "prisma:migrate:dev": "dotenv -e ../../.env -v DATABASE_URL=$DATABASE_MIGRATE_URL -- prisma migrate dev --schema ../../prisma/schema.prisma",
+    "prisma:migrate:dev": "dotenv -e ../../.env -- sh -c 'DATABASE_URL=$DATABASE_MIGRATE_URL prisma migrate dev --schema ../../prisma/schema.prisma'",
     "prisma:migrate:deploy": "prisma migrate deploy --schema ../../prisma/schema.prisma",
     "prisma:reset": "dotenv -e ../../.env -- sh -c 'DATABASE_URL=$DATABASE_MIGRATE_URL prisma migrate reset --force --skip-seed --schema ../../prisma/schema.prisma'",
     "create-platform-admin": "tsx scripts/create-platform-admin.ts"
