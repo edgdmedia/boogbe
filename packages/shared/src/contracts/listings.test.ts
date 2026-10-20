@@ -101,6 +101,9 @@ describe('listing contracts', () => {
     expect(ListingInput.safeParse({ ...base, amenities: Array.from({ length: 41 }, () => 'a') }).success).toBe(false);
     expect(ListingUpdate.safeParse(base).success).toBe(false);
     expect(ListingUpdate.safeParse({ expectedUpdatedAt: '2026-10-20T10:00:00.000Z' }).success).toBe(true);
+    // A PATCH body must not carry the create-time defaults — the T-WL-04 service treats a present
+    // key as a change, and `amenities: []` here would wipe the listing's amenities.
+    expect(ListingUpdate.safeParse({ expectedUpdatedAt: '2026-10-20T10:00:00.000Z' }).data).not.toHaveProperty('amenities');
   });
 
   it('ListingPhotoAttach defaults alt and category', () => {

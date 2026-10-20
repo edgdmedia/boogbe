@@ -38,6 +38,9 @@ export function slugify(name: string): string {
     .replace(/-+$/, '');
 }
 
+const Amenities = z.array(z.string().trim().min(1).max(60)).max(40);
+const HouseRules = z.array(z.string().trim().min(1).max(200)).max(30);
+
 export const ListingInput = z.object({
   name: z.string().trim().min(1).max(80),
   slug: opt(ListingSlug), // filled from the name on create when left empty
@@ -45,8 +48,8 @@ export const ListingInput = z.object({
   highlight: opt(z.string().trim().max(120)),
   intro: opt(z.string().trim().max(300)),
   description: opt(z.string().trim().max(4000)),
-  amenities: z.array(z.string().trim().min(1).max(60)).max(40).default([]),
-  houseRules: z.array(z.string().trim().min(1).max(200)).max(30).default([]),
+  amenities: Amenities.default([]),
+  houseRules: HouseRules.default([]),
   bathroomsLabel: opt(z.string().trim().max(60)), // free text, e.g. "2 bathrooms · 3 toilets" (deviation 2)
   layoutLabel: opt(z.string().trim().max(60)), // empty lets the site derive it from the units
   seoTitle: opt(z.string().trim().max(70)),
@@ -54,7 +57,15 @@ export const ListingInput = z.object({
 });
 export type ListingInput = z.infer<typeof ListingInput>;
 
-export const ListingUpdate = ListingInput.partial().extend({ expectedUpdatedAt: z.string().datetime({ offset: true }) });
+// The update must NOT re-apply the create-time defaults: a present `amenities: []` key would read
+// as "clear the amenities" to the service. `.partial()` keeps defaults, so these two go optional-only.
+export const ListingUpdate = ListingInput.omit({ amenities: true, houseRules: true })
+  .partial()
+  .extend({
+    amenities: Amenities.optional(),
+    houseRules: HouseRules.optional(),
+    expectedUpdatedAt: z.string().datetime({ offset: true }),
+  });
 export type ListingUpdate = z.infer<typeof ListingUpdate>;
 
 export const ListingUnitsInput = z
