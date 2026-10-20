@@ -11,6 +11,14 @@ export interface PublicOrg {
   holdMinutes: number;
 }
 
+/** Resolved by public_site_lookup: active org, ignoring the booking switch (WL). */
+export interface PublicSite {
+  orgId: string;
+  timezone: string;
+  publicEnabled: boolean;
+  origins: string[];
+}
+
 /** Unknown, suspended, switched-off orgs and unlisted units all look the same, so slugs can't be probed. */
 export const unavailable = () => new AppError('UNAVAILABLE', 404, 'Online booking is not available');
 
@@ -41,6 +49,34 @@ export class PublicOrgService {
     const org = await this.find(slug);
     if (!org) throw unavailable();
     return org;
+  }
+
+  /**
+   * The site payload's lookup (0009): an ACTIVE org, whatever `public_enabled` says — switching
+   * online booking off must never take the apartment pages down (WL deviation 4). Not cached:
+   * it answers even the version probe.
+   */
+  async resolveSite(rawSlug: string): Promise<PublicSite> {
+    const slug = rawSlug.toLowerCase();
+    const site = slug && SLUG.test(slug) ? await this.findSite(slug) : null;
+    if (!site) throw unavailable();
+    return site;
+  }
+
+  private async findSite(slug: string): Promise<PublicSite | null> {
+    const [row] = await this.prisma.$queryRaw<
+      { org_id: string; timezone: string; public_enabled: boolean; public_origins: string[] }[]
+    >`SELECT * FROM public_site_lookup(${slug})`;
+    return row
+      ? { orgId: row.org_id, timezone: row.timezone, publicEnabled: row.public_enabled, origins: row.public_origins }
+      : null;
+  }
+
+  /** CORS needs the org's origins even when booking is off — GET /site* routes only. */
+  async siteOrigins(rawSlug: string): Promise<string[]> {
+    const slug = rawSlug.toLowerCase();
+    if (!slug || !SLUG.test(slug)) return [];
+    return (await this.findSite(slug).catch(() => null))?.origins ?? [];
   }
 
   /** Tests: settings changed in the database must be seen at once. */

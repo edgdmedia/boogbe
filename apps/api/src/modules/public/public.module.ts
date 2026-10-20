@@ -9,8 +9,10 @@ import { WebsiteEmailsModule } from './website-emails.service';
 import { PublicController } from './public.controller';
 import { PublicOrgService } from './public-org.service';
 import { PublicReadService } from './public-read.service';
+import { PublicSiteService } from './public-site.service';
 
-/** Unauthenticated, per-operator online booking API under `/v1/public/:slug` (WB). Off unless `public_enabled`. */
+/** Unauthenticated, per-operator online booking API under `/v1/public/:slug` (WB). Off unless `public_enabled`.
+ *  The WL site payload (/site*) is the exception: it serves any ACTIVE org, booking switch or not. */
 @Module({
   imports: [BookingsModule, MessagingModule, NotificationsModule, WebsiteEmailsModule],
   controllers: [PublicController],
@@ -18,6 +20,7 @@ import { PublicReadService } from './public-read.service';
     PublicOrgService,
     PublicReadService,
     PublicRequestsService,
+    PublicSiteService,
     { provide: TURNSTILE_VERIFIER, useFactory: () => new CloudflareTurnstile(loadEnv().TURNSTILE_SECRET_KEY) },
   ],
   exports: [PublicOrgService, PublicReadService],

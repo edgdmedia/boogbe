@@ -10,10 +10,15 @@ export function publicCors(orgs: PublicOrgService) {
   return async (req: Request, res: Response, next: NextFunction) => {
     (req as Request & { publicRoute?: boolean }).publicRoute = true;
     res.setHeader('Vary', 'Origin');
-    const slug = req.path.split('/')[1];
+    const parts = req.path.split('/'); // mounted under /v1/public → ['', '<slug>', '<route>', …]
+    const slug = parts[1];
     const origin = req.headers.origin;
     const org = slug && origin ? await orgs.find(slug).catch(() => null) : null;
-    const allowed = !!org && !!origin && org.origins.includes(origin);
+    // WL: GET /site and /site/version answer for any ACTIVE org, so their origins come from the
+    // site lookup when the booking lookup is off. Other routes keep WB's rule exactly.
+    const isSiteRoute = parts[2] === 'site' && req.method === 'GET';
+    const origins = org ? org.origins : !org && isSiteRoute && slug && origin ? await orgs.siteOrigins(slug) : [];
+    const allowed = !!origin && origins.includes(origin);
     if (allowed) res.setHeader('Access-Control-Allow-Origin', origin);
     if (req.method === 'OPTIONS') {
       if (allowed) {
