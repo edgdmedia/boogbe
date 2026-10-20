@@ -6,6 +6,7 @@ import { OrgDb } from '../../common/db/org-db.service';
 import { AuditService } from '../../common/audit/audit.service';
 import { FilesService } from '../../common/files/files.service';
 import type { OrgCtx } from '../../common/auth/request-ctx';
+import { bumpSiteVersion } from '../website/site-version';
 
 const ORG_FIELDS = ['name', 'contactEmail', 'contactPhone', 'whatsappPhone', 'address'] as const;
 
@@ -75,6 +76,10 @@ export class OrgService {
       if (input.notifyEmails)
         settingsPatch.notifyEmails = [...new Set(input.notifyEmails.map((e) => e.toLowerCase()))];
       if (Object.keys(settingsPatch).length) await tx.orgSettings.updateMany({ data: settingsPatch });
+      // Toggling online booking flips every unit's `bookable` in /site (spec §5.2). Saving the
+      // same value back is not a change and must not bump.
+      if (input.publicEnabled !== undefined && input.publicEnabled !== before.settings.publicEnabled)
+        await bumpSiteVersion(tx);
       await this.audit.record(tx, {
         actor: ctx,
         action: 'settings.update',
