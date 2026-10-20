@@ -144,7 +144,7 @@
 - Produces `bumpSiteVersion(tx: OrgTx): Promise<void>`. It runs `UPDATE org_settings SET site_version = site_version + 1 WHERE org_id = app_current_org()`.
 - Produces `siteRelevant(unit: { listingId: string | null }): boolean`. Inventory writes on units with no listing don't bump.
 
-- [ ] **Step 1: Write the failing test.** It's a table-driven test: for each write, read `site_version` before and after. These must give **+1**:
+- [x] **Step 1: Write the failing test.** It's a table-driven test: for each write, read `site_version` before and after. These must give **+1**:
   - unit rate change on a linked unit
   - maxGuests change
   - `setActive(false)`
@@ -159,10 +159,10 @@
   - a block created
 
   A failed write (the validation error path) must not bump.
-- [ ] **Step 2: Run it.** FAIL.
-- [ ] **Step 3: Implement the helper** and call it inside each listed `orgDb.run` transaction.
-- [ ] **Step 4: Run it** together with `inventory.int.ts`, `fees-blocks.int.ts` and `public-settings.int.ts`. All PASS.
-- [ ] **Step 5: Commit.** `feat(api): site_version bumps on website-relevant writes [T-WL-03]`
+- [x] **Step 2: Run it.** FAIL. (8 × "expected 1 to be 2" — nothing bumped; the +0 cases already held)
+- [x] **Step 3: Implement the helper** and call it inside each listed `orgDb.run` transaction. (Deviation: `units.create` cannot carry `listingId`, so no bump there — the link bumps in T-WL-04)
+- [x] **Step 4: Run it** together with `inventory.int.ts`, `fees-blocks.int.ts` and `public-settings.int.ts`. All PASS. (15/15 · 13/13 · 4/4 · 5/5; full int 276/276)
+- [x] **Step 5: Commit.** `feat(api): site_version bumps on website-relevant writes [T-WL-03]` — merged via [#97](https://github.com/edgdmedia/boogbe/pull/97)
 
 ---
 
