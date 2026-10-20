@@ -118,8 +118,8 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-WL-03 | `bumpSiteVersion` + wiring into units, fees, properties, public_enabled | api | T-WL-01, T-WL-02 | opencode | done | [#97](https://github.com/edgdmedia/boogbe/pull/97) | Merged 2026-10-20; int 276/276. Deviation: no bump in units.create (listingId unreachable there — links bump in T-WL-04). One flaky full-gate run seen once, not reproduced |
 | T-WL-04 | Listings API: CRUD, units, order, publish, slug history | api | T-WL-03 | opencode | done | [#98](https://github.com/edgdmedia/boogbe/pull/98) | Merged 2026-10-20; int 44 files/289 twice. {items} envelope; previewUrl null until T-WL-05 |
 | T-WL-05 | Listing photos API, media storage, resize job (sharp) | api | T-WL-04 | opencode | done | [#99](https://github.com/edgdmedia/boogbe/pull/99) | Merged 2026-10-20; int 297/297. sharp added (plan stack). HEIC copy in PresignInput refine (not files.service — same message). Photo writes carry no audit rows (plan lists none) |
-| T-WL-06 | Public `/site/version` and `/site` endpoints | api | T-WL-05 | opencode | in_progress | | Plan Task 6. Claimed 2026-10-20 |
-| T-WL-07 | App: Website → Listings list and editor | ui | T-WL-04 |  | todo | | Plan Task 7 |
+| T-WL-06 | Public `/site/version` and `/site` endpoints | api | T-WL-05 | opencode | done | [#100](https://github.com/edgdmedia/boogbe/pull/100) | Merged 2026-10-20; int 307/307 first try. CORS site fallback scoped to /site* GETs (WB disabled-operator rule preserved) |
+| T-WL-07 | App: Website → Listings list and editor | ui | T-WL-04 | opencode | in_progress | | Plan Task 7. Claimed 2026-10-20 |
 | T-WL-08 | App: photo manager; unit "On website" line | ui | T-WL-05, T-WL-07 |  | todo | | Plan Task 8 |
 | T-WL-09 | Import script for today's six Tanuhomes listings | api, script | T-WL-05 |  | todo | | Plan Task 9 |
 | T-WL-10 | Site: data layer, cache and fallbacks, snapshot (tanuhomes repo) | site | T-WL-06 |  | todo | | Plan Task 10. Repo `~/Projects/tanuhomes`, branch `astro-rebuild` |

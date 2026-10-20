@@ -261,7 +261,7 @@
   - `oldSlugs` from history, excluding the current slug
   - `photos[].src = ${MEDIA_PUBLIC_BASE}/org/<org>/listing/<photoId>` and `widths = variants`
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - the shape is validated with `SitePayload.parse`
   - drafts are left out
   - a processing photo is left out
@@ -271,10 +271,10 @@
   - the current `v` sends the immutable header
   - an unknown or suspended org gives 404 `UNAVAILABLE`
   - the payload contains no `notes`, check-in instructions or member fields (assert on a JSON string search)
-- [ ] **Step 2: Run them.** FAIL.
-- [ ] **Step 3: Implement** the service and routes.
-- [ ] **Step 4: Run them** with `public-read.int.ts`. PASS.
-- [ ] **Step 5: Commit.** `feat(api): public site payload with versioned caching [T-WL-06]`
+- [x] **Step 2: Run them.** FAIL. (10 missing-route failures)
+- [x] **Step 3: Implement** the service and routes.
+- [x] **Step 4: Run them** with `public-read.int.ts`. PASS. (14/14 after scoping the CORS site fallback to /site* GETs)
+- [x] **Step 5: Commit.** `feat(api): public site payload with versioned caching [T-WL-06]` — merged via [#100](https://github.com/edgdmedia/boogbe/pull/100)
 
 ---
 
