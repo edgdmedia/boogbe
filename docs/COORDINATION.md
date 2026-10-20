@@ -114,8 +114,8 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-UI-04 | Redesign: money, inventory | ui | T-UI-02 | claude | done | [#93](https://github.com/edgdmedia/boogbe/pull/93) | Merged 2026-10-17; int 254/254, E2E 13/13. Reviewer: no Critical/Important |
 | T-UI-05 | Redesign: settings, auth, platform, placeholders | ui | T-UI-02 | claude | done | [#94](https://github.com/edgdmedia/boogbe/pull/94) | Merged 2026-10-17; int 254/254, E2E 13/13. Reviewer: 1 Important fixed (Team/Sessions divided rows). Redesign complete on dev; owner to walk locally, then release |
 | T-WL-01 | [schema] Migration 0009: listings, photos, unit link, site_version, `public_site_lookup` | schema | T-WB-01 | opencode | done | [#95](https://github.com/edgdmedia/boogbe/pull/95) | Merged 2026-10-20. Inline self-review (owner directed inline execution — no reviewer subagent this milestone). Gate: listings-schema 7/7, int 261/261 |
-| T-WL-02 | Shared contracts: listing, photo, site payload, publish blockers, slugify, file kind | contract | T-WL-01 | opencode | in_progress | | Plan Task 2. Claimed 2026-10-20 |
-| T-WL-03 | `bumpSiteVersion` + wiring into units, fees, properties, public_enabled | api | T-WL-01, T-WL-02 |  | todo | | Plan Task 3 |
+| T-WL-02 | Shared contracts: listing, photo, site payload, publish blockers, slugify, file kind | contract | T-WL-01 | opencode | done | [#96](https://github.com/edgdmedia/boogbe/pull/96) | Merged 2026-10-20; int 261/261. Review caught: `.partial()` re-applied create-time array defaults — ListingUpdate now plain-optional (pinned by test) |
+| T-WL-03 | `bumpSiteVersion` + wiring into units, fees, properties, public_enabled | api | T-WL-01, T-WL-02 | opencode | in_progress | | Plan Task 3. Claimed 2026-10-20 |
 | T-WL-04 | Listings API: CRUD, units, order, publish, slug history | api | T-WL-03 |  | todo | | Plan Task 4 |
 | T-WL-05 | Listing photos API, media storage, resize job (sharp) | api | T-WL-04 |  | todo | | Plan Task 5 |
 | T-WL-06 | Public `/site/version` and `/site` endpoints | api | T-WL-05 |  | todo | | Plan Task 6 |

@@ -121,15 +121,15 @@
 - `publishBlockers(l: Pick<Listing,'name'|'intro'|'description'|'coverPhotoId'|'units'|'photos'>): string[]`, which returns the exact copy from Global Constraints, in that order
 - `SitePayload`: the zod shape of spec §5.6, with `photos[].src` the base URL **without** `-<w>.webp`, and `photos[].category` added
 
-- [ ] **Step 1: Write the failing tests** in `listings.test.ts`:
+- [x] **Step 1: Write the failing tests** in `listings.test.ts`:
   - `slugify('Josephine’s Apartment (Ologolo)') === 'josephines-apartment-ologolo'`
   - `publishBlockers` on an empty draft returns all 7 messages in order
   - a complete listing whose only problem is 2 ready photos and 1 still processing returns only `['Add at least 3 photos']`
   - `ListingUnitsInput` rejects 11 entries
-- [ ] **Step 2: Run them.** `pnpm --filter @boogbe/shared test` gives FAIL.
-- [ ] **Step 3: Implement** `listings.ts` and the `files.ts` change.
-- [ ] **Step 4: Run them.** PASS. `pnpm typecheck` is clean (API and app compile against the new `FileKind`; add `listing_photo` to `UPLOAD_PERMS: ['inventory.write']` and `READ_PERMS: ['inventory.read']` in `files.service.ts`).
-- [ ] **Step 5: Commit.** `feat(shared): listing and site contracts [T-WL-02]`
+- [x] **Step 2: Run them.** `pnpm --filter @boogbe/shared test` gives FAIL.
+- [x] **Step 3: Implement** `listings.ts` and the `files.ts` change. (+ review catch: `.partial()` re-applied the create-time `amenities/houseRules` defaults; ListingUpdate fields are plain-optional now, pinned by a test.)
+- [x] **Step 4: Run them.** PASS. `pnpm typecheck` is clean (API and app compile against the new `FileKind`; add `listing_photo` to `UPLOAD_PERMS: ['inventory.write']` and `READ_PERMS: ['inventory.read']` in `files.service.ts`). — 8/8, gates green
+- [x] **Step 5: Commit.** `feat(shared): listing and site contracts [T-WL-02]` — merged via [#96](https://github.com/edgdmedia/boogbe/pull/96)
 
 ---
 
