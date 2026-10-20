@@ -1,6 +1,6 @@
 # Boogbe — Agent Coordination
 
-**One builder** works on this repo: **Claude Code** (`claude`). OpenCode stopped building on 2026-10-15 (owner decision); rows marked `opencode` are history. The human owner (EDGD Media) approves plans and merges only `dev` → `main` releases.
+Builders: **Claude Code** (`claude`) and **OpenCode** (`opencode`). OpenCode stopped building on 2026-10-15 (owner decision); the owner re-enabled it on 2026-10-20 to build the WL milestone (`docs/plans/WL-website-listings.md`). The human owner (EDGD Media) approves plans and merges only `dev` → `main` releases.
 
 ## Ground rules
 
@@ -113,6 +113,18 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-UI-03 | Redesign: bookings, calendar, guests, conflicts | ui | T-UI-02 | claude | done | [#92](https://github.com/edgdmedia/boogbe/pull/92) | Merged 2026-10-17; int 254/254, E2E 13/13. Reviewer: 1 Important fixed (status tints opaque so badge/pill text keeps AA off white) |
 | T-UI-04 | Redesign: money, inventory | ui | T-UI-02 | claude | done | [#93](https://github.com/edgdmedia/boogbe/pull/93) | Merged 2026-10-17; int 254/254, E2E 13/13. Reviewer: no Critical/Important |
 | T-UI-05 | Redesign: settings, auth, platform, placeholders | ui | T-UI-02 | claude | done | [#94](https://github.com/edgdmedia/boogbe/pull/94) | Merged 2026-10-17; int 254/254, E2E 13/13. Reviewer: 1 Important fixed (Team/Sessions divided rows). Redesign complete on dev; owner to walk locally, then release |
+| T-WL-01 | [schema] Migration 0009: listings, photos, unit link, site_version, `public_site_lookup` | schema | T-WB-01 | opencode | in_progress | | `docs/plans/WL-website-listings.md` Task 1. Claimed 2026-10-20 |
+| T-WL-02 | Shared contracts: listing, photo, site payload, publish blockers, slugify, file kind | contract | T-WL-01 |  | todo | | Plan Task 2 |
+| T-WL-03 | `bumpSiteVersion` + wiring into units, fees, properties, public_enabled | api | T-WL-01, T-WL-02 |  | todo | | Plan Task 3 |
+| T-WL-04 | Listings API: CRUD, units, order, publish, slug history | api | T-WL-03 |  | todo | | Plan Task 4 |
+| T-WL-05 | Listing photos API, media storage, resize job (sharp) | api | T-WL-04 |  | todo | | Plan Task 5 |
+| T-WL-06 | Public `/site/version` and `/site` endpoints | api | T-WL-05 |  | todo | | Plan Task 6 |
+| T-WL-07 | App: Website → Listings list and editor | ui | T-WL-04 |  | todo | | Plan Task 7 |
+| T-WL-08 | App: photo manager; unit "On website" line | ui | T-WL-05, T-WL-07 |  | todo | | Plan Task 8 |
+| T-WL-09 | Import script for today's six Tanuhomes listings | api, script | T-WL-05 |  | todo | | Plan Task 9 |
+| T-WL-10 | Site: data layer, cache and fallbacks, snapshot (tanuhomes repo) | site | T-WL-06 |  | todo | | Plan Task 10. Repo `~/Projects/tanuhomes`, branch `astro-rebuild` |
+| T-WL-11 | Site: Cloudflare adapter, on-demand pages, redirects, removals, parity | site | T-WL-10 |  | todo | | Plan Task 11. Removals of old property images only after T-WL-12's import |
+| T-WL-12 | Owner: media bucket, deploy, import, production checks, handoff note | infra | all WL |  | todo | | Plan Task 12. Owner + builder |
 
 ## Parallelism map (by milestone)
 
