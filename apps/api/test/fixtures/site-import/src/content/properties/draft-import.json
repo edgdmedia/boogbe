@@ -1,0 +1,22 @@
+{
+  "name": "Draftia",
+  "slug": "draft-import",
+  "service": "short-let",
+  "status": "draft",
+  "area": "Ikate",
+  "address": "Somewhere",
+  "beds": 1,
+  "config": "1 bedroom",
+  "bathrooms": null,
+  "feature": "x",
+  "intro": "x",
+  "description": "x",
+  "amenities": [],
+  "notes": [],
+  "rate": 100000,
+  "rates": [{ "label": "1 bedroom", "amount": 100000 }],
+  "cautionFee": null,
+  "hero": 21,
+  "gallery": [{ "id": 21, "file": "import-001", "category": "Bedrooms", "alt": "Bed", "width": 4000, "height": 3000 }],
+  "boogbe": { "units": [{ "label": "1 bedroom", "unitId": "UNIT1" }] }
+}
