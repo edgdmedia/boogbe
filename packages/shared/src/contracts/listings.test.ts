@@ -149,6 +149,7 @@ describe('listing contracts', () => {
       oldSlugs: ['destiny-ikate'],
       name: 'Destiny',
       area: 'Ikate, Lekki',
+      address: 'Brownstone Estate, Ikate',
       highlight: 'Sea breeze',
       intro: 'A calm two-bedroom.',
       description: '…',

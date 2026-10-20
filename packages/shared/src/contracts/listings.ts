@@ -170,6 +170,9 @@ export const SiteListing = z.object({
   oldSlugs: z.array(z.string()), // historical slugs of this listing — 301 sources; never the current one
   name: z.string(),
   area: z.string().nullable(),
+  // The estate's full street address, from the first linked unit's property (T-WL-06b). The
+  // apartment page shows it under 'Around your stay'; area alone broke the reference pixel parity.
+  address: z.string().nullable(),
   highlight: z.string().nullable(),
   intro: z.string().nullable(),
   description: z.string().nullable(),

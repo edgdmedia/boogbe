@@ -37,7 +37,7 @@ export class PublicSiteService {
       const listingIds = listings.map((l) => l.id);
       const units = await tx.unit.findMany({
         where: { listingId: { in: listingIds } },
-        include: { property: { select: { active: true } } },
+        include: { property: { select: { active: true, address: true } } },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       });
       // The same source the quote uses: the unit's active caution-deposit fees.
@@ -60,6 +60,9 @@ export class PublicSiteService {
           oldSlugs: history.filter((h) => h.listingId === l.id && h.slug !== l.slug).map((h) => h.slug),
           name: l.name,
           area: l.area,
+          // The estate address the page shows under 'Around your stay' — the address of the
+          // property owning the first linked unit (T-WL-06b; a listing is one estate).
+          address: units.find((u) => u.listingId === l.id)?.property.address ?? null,
           highlight: l.highlight,
           intro: l.intro,
           description: l.description,
