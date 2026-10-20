@@ -7,6 +7,7 @@ import { AuditService } from '../../common/audit/audit.service';
 import { notFound } from '../../common/http/app-error';
 import type { OrgCtx } from '../../common/auth/request-ctx';
 import { kobo } from './mappers';
+import { bumpSiteVersion, siteRelevant } from '../website/site-version';
 
 const toFee = (r: Row): UnitFee => ({
   id: r.id,
@@ -38,7 +39,8 @@ export class FeesService {
 
   create(ctx: OrgCtx, unitId: string, input: UnitFeeInput) {
     return this.orgDb.run(ctx.orgId, async (tx) => {
-      if (!(await tx.unit.findFirst({ where: { id: unitId } }))) throw notFound('Unit');
+      const u = await tx.unit.findFirst({ where: { id: unitId } });
+      if (!u) throw notFound('Unit');
       const r = await tx.unitFee.create({
         data: {
           id: newId(),
@@ -60,6 +62,8 @@ export class FeesService {
         entityId: r.id,
         after: input,
       });
+      // Any fee write on a linked unit can change the site's caution-deposit figure.
+      if (siteRelevant(u)) await bumpSiteVersion(tx);
       return toFee(r);
     });
   }
@@ -84,15 +88,20 @@ export class FeesService {
         before,
         after: input,
       });
+      const u = await tx.unit.findFirst({ where: { id: before.unitId } });
+      if (u && siteRelevant(u)) await bumpSiteVersion(tx);
       return toFee((await tx.unitFee.findFirst({ where: { id } }))!);
     });
   }
 
   archive(ctx: OrgCtx, id: string) {
     return this.orgDb.run(ctx.orgId, async (tx) => {
-      const r = await tx.unitFee.updateMany({ where: { id }, data: { active: false } });
-      if (!r.count) throw notFound('Fee');
+      const fee = await tx.unitFee.findFirst({ where: { id } });
+      if (!fee) throw notFound('Fee');
+      await tx.unitFee.updateMany({ where: { id }, data: { active: false } });
       await this.audit.record(tx, { actor: ctx, action: 'fee.archive', entity: 'unit_fee', entityId: id });
+      const u = await tx.unit.findFirst({ where: { id: fee.unitId } });
+      if (u && siteRelevant(u)) await bumpSiteVersion(tx);
       return { ok: true };
     });
   }

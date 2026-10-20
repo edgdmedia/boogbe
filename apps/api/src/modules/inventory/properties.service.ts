@@ -7,6 +7,7 @@ import { notFound } from '../../common/http/app-error';
 import type { OrgCtx } from '../../common/auth/request-ctx';
 import { OwnershipService } from './ownership.service';
 import { toProperty } from './mappers';
+import { bumpSiteVersion } from '../website/site-version';
 
 @Injectable()
 export class PropertiesService {
@@ -91,6 +92,8 @@ export class PropertiesService {
         entity: 'property',
         entityId: id,
       });
+      // The site shows a linked unit only while its property is active.
+      if (await tx.unit.count({ where: { propertyId: id, listingId: { not: null } } })) await bumpSiteVersion(tx);
     });
     return this.get(ctx, id);
   }

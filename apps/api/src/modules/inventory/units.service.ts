@@ -7,6 +7,7 @@ import { AppError, notFound } from '../../common/http/app-error';
 import type { OrgCtx } from '../../common/auth/request-ctx';
 import { OwnershipService } from './ownership.service';
 import { toUnit } from './mappers';
+import { bumpSiteVersion, siteRelevant } from '../website/site-version';
 
 @Injectable()
 export class UnitsService {
@@ -117,20 +118,32 @@ export class UnitsService {
         before,
         after: input,
       });
+      // Website-relevant fields only; listingId/listingLabel cannot arrive through this DTO —
+      // the link is set by the listings API (T-WL-04), which bumps on its own.
+      const siteChanged =
+        (input.nightlyRateKobo !== undefined && BigInt(input.nightlyRateKobo) !== before.nightlyRateKobo) ||
+        (input.maxGuests !== undefined && input.maxGuests !== before.maxGuests) ||
+        (input.bedrooms !== undefined && input.bedrooms !== before.bedrooms) ||
+        (input.name !== undefined && input.name !== before.name) ||
+        (input.publicListed !== undefined && input.publicListed !== before.publicListed);
+      if (siteChanged && siteRelevant(before)) await bumpSiteVersion(tx);
     });
     return this.get(ctx, id);
   }
 
   async setActive(ctx: OrgCtx, id: string, active: boolean) {
     await this.orgDb.run(ctx.orgId, async (tx) => {
-      const r = await tx.unit.updateMany({ where: { id }, data: { active } });
-      if (!r.count) throw notFound('Unit');
+      const u = await tx.unit.findFirst({ where: { id } });
+      if (!u) throw notFound('Unit');
+      await tx.unit.updateMany({ where: { id }, data: { active } });
       await this.audit.record(tx, {
         actor: ctx,
         action: active ? 'unit.unarchive' : 'unit.archive',
         entity: 'unit',
         entityId: id,
       });
+      // Archiving a linked unit drops it from /site's bookable set.
+      if (siteRelevant(u)) await bumpSiteVersion(tx);
     });
     return this.get(ctx, id);
   }
