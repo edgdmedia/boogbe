@@ -20,6 +20,12 @@ export const ERROR_CODES = [
   'VERIFICATION_FAILED',
   'TOO_MANY_GUESTS',
   'INVALID_DATES',
+  // Website listings (WL). Append-only registry (COORDINATION rule).
+  'STALE',
+  'SLUG_TAKEN',
+  'UNIT_LINKED',
+  'PUBLISH_BLOCKED',
+  'PUBLISHED_BEFORE',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 export interface ApiErrorBody {

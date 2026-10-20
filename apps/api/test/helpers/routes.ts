@@ -78,6 +78,18 @@ ISOLATION_FIXTURES.payment = async (orgId) => {
   return id;
 };
 ROUTE_FIXTURE.push({ match: /^\/v1\/payments\//, fixture: 'payment' });
+ISOLATION_FIXTURES.listing = async (orgId) => {
+  const c = await migratorClient();
+  const id = newId();
+  // newId() is time-ordered — the first chars repeat across quick calls, so the slug uses the tail.
+  await c.query(
+    `insert into listing(id, org_id, name, slug, updated_at) values ($1,$2,'Seed',concat('seed-', right(replace($3::text,'-',''), 12)),now())`,
+    [id, orgId, id],
+  );
+  await c.end();
+  return id;
+};
+ROUTE_FIXTURE.push({ match: /^\/v1\/listings\//, fixture: 'listing' });
 ISOLATION_FIXTURES.feed = async (orgId) => {
   const unitId = await ISOLATION_FIXTURES.unit!(orgId);
   const id = newId();
