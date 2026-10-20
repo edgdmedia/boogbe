@@ -120,8 +120,8 @@ Tasks are generated from the implementation plans in `docs/plans/`. Each plan li
 | T-WL-05 | Listing photos API, media storage, resize job (sharp) | api | T-WL-04 | opencode | done | [#99](https://github.com/edgdmedia/boogbe/pull/99) | Merged 2026-10-20; int 297/297. sharp added (plan stack). HEIC copy in PresignInput refine (not files.service — same message). Photo writes carry no audit rows (plan lists none) |
 | T-WL-06 | Public `/site/version` and `/site` endpoints | api | T-WL-05 | opencode | done | [#100](https://github.com/edgdmedia/boogbe/pull/100) | Merged 2026-10-20; int 307/307 first try. CORS site fallback scoped to /site* GETs (WB disabled-operator rule preserved) |
 | T-WL-07 | App: Website → Listings list and editor | ui | T-WL-04 | opencode | done | [#101](https://github.com/edgdmedia/boogbe/pull/101) | Merged 2026-10-20; int 307/307. Inline saved message (no toast primitive); drag reorder native HTML5 |
-| T-WL-08 | App: photo manager; unit "On website" line | ui | T-WL-05, T-WL-07 | opencode | in_progress | | Plan Task 8. Claimed 2026-10-20 |
-| T-WL-09 | Import script for today's six Tanuhomes listings | api, script | T-WL-05 |  | todo | | Plan Task 9 |
+| T-WL-08 | App: photo manager; unit "On website" line | ui | T-WL-05, T-WL-07 | opencode | done | [#102](https://github.com/edgdmedia/boogbe/pull/102) | Merged 2026-10-20; int 307/307, e2e website 1 passed (39.4s). E2E-only blob routes for in-memory uploads; editor STALE self-conflict fixed |
+| T-WL-09 | Import script for today's six Tanuhomes listings | api, script | T-WL-05 | opencode | in_progress | | Plan Task 9. Claimed 2026-10-20 |
 | T-WL-10 | Site: data layer, cache and fallbacks, snapshot (tanuhomes repo) | site | T-WL-06 |  | todo | | Plan Task 10. Repo `~/Projects/tanuhomes`, branch `astro-rebuild` |
 | T-WL-11 | Site: Cloudflare adapter, on-demand pages, redirects, removals, parity | site | T-WL-10 |  | todo | | Plan Task 11. Removals of old property images only after T-WL-12's import |
 | T-WL-12 | Owner: media bucket, deploy, import, production checks, handoff note | infra | all WL |  | todo | | Plan Task 12. Owner + builder |

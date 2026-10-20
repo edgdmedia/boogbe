@@ -320,7 +320,7 @@
 - **The grid:** each photo shows a thumbnail, or "Processing…" (refetching the listing every 5 s while any photo isn't ready), or "Couldn't process this photo – try another file" when failed. It has an alt input, a category select, **Set as cover**, delete, and drag to reorder.
 - Client checks before presign: type and 15 MB, with the same copy as the server.
 
-- [ ] **Step 1: Write the failing tests:**
+- [x] **Step 1: Write the failing tests:**
   - uploading 2 files calls presign, PUT, confirm and attach twice, in order
   - a HEIC file is refused with the copy and makes no network call
   - a processing photo shows "Processing…" and refetches
@@ -328,10 +328,10 @@
   - Set as cover calls `PUT /cover`
   - a new photo shows "Needs description", and the blocker clears once an alt is typed
   - UnitForm shows "On website: Destiny (1 bedroom)"
-- [ ] **Step 2: Run them.** FAIL.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run them.** PASS. Then run the app e2e smoke: `pnpm test:e2e -- website` (add `e2e/website.spec.ts`: create a listing, upload 3 small JPEGs with the job triggered through the test-support route, add descriptions, link a unit, publish, and see the Published badge).
-- [ ] **Step 5: Commit.** `feat(app): listing photo manager; unit shows its listing [T-WL-08]`
+- [x] **Step 2: Run them.** FAIL.
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run them.** PASS. Then run the app e2e smoke: `pnpm test:e2e -- website` (add `e2e/website.spec.ts`: create a listing, upload 3 small JPEGs with the job triggered through the test-support route, add descriptions, link a unit, publish, and see the Published badge). (1 passed, 39.4 s; needs `pnpm --filter @boogbe/shared build` for the dev-mode API)
+- [x] **Step 5: Commit.** `feat(app): listing photo manager; unit shows its listing [T-WL-08]` — merged via [#102](https://github.com/edgdmedia/boogbe/pull/102)
 
 ---
 
