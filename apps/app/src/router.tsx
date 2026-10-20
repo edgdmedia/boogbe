@@ -31,6 +31,8 @@ import { AuditLog } from './routes/settings/AuditLog';
 import { OrgProfile } from './routes/settings/OrgProfile';
 import { OnlineBooking } from './routes/settings/OnlineBooking';
 import { MoneyPage } from './features/payments/MoneyPage';
+import { ListingsPage } from './features/website/ListingsPage';
+import { ListingEditor } from './features/website/ListingEditor';
 import { ChooseOperator } from './routes/ChooseOperator';
 
 const operator = (children: ReactNode) => <AppShell nav={OPERATOR_NAV}>{children}</AppShell>;
@@ -63,6 +65,8 @@ export const router = createBrowserRouter([
       { path: '/settings/properties', element: settings(<PropertiesPage />) },
       { path: '/settings/properties/:id', element: settings(<PropertyDetail />) },
       { path: '/settings/owners', element: settings(<OwnersPage />) },
+      { path: '/website/listings', element: operator(<ListingsPage />) },
+      { path: '/website/listings/:id', element: operator(<ListingEditor />) },
       { path: '/money', element: operator(<MoneyPage />) },
       { path: '/bookings', element: operator(<BookingsPage />) },
       { path: '/bookings/new', element: operator(<NewBookingPage />) },

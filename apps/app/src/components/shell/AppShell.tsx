@@ -17,8 +17,8 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   permission?: Permission;
-  /** 'settings' items live in the settings side nav; the sidebar shows one "Settings" entry for them. */
-  section?: 'main' | 'settings';
+  /** 'settings' items live in the settings side nav; the sidebar shows one "Settings" entry for them. 'setup' items sit in the sidebar's Setup group above Settings. */
+  section?: 'main' | 'settings' | 'setup';
   /** Shown in the phone bottom bar. */
   tab?: boolean;
   end?: boolean;
@@ -80,6 +80,7 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
   const items = visibleNav(nav, role);
   const main = items.filter((n) => (n.section ?? 'main') === 'main');
   const settingsItems = items.filter((n) => n.section === 'settings');
+  const setupItems = items.filter((n) => n.section === 'setup');
   const tabs = main.filter((n) => n.tab);
   const { pathname } = useLocation();
   const inSettings = pathname === '/settings' || pathname.startsWith('/settings/');
@@ -121,12 +122,17 @@ export function AppShell({ nav, children }: { nav: NavItem[]; children: ReactNod
         {main.map((n) => (
           <SideLink key={n.to} item={n} mode={mode} badge={n.to === '/conflicts' ? openConflicts : undefined} />
         ))}
-        {settingsItems.length > 0 && (
+        {(setupItems.length > 0 || settingsItems.length > 0) && (
           <>
             <p className={clsx('eyebrow text-sidebar-muted', PAD[mode], mode !== 'rail' && (mode === 'auto' ? 'xl:pt-5' : 'pt-5'))}>
               <span className={LABEL[mode]}>Setup</span>
             </p>
-            <SideLink item={{ ...settingsItems[0]!, label: 'Settings', icon: SettingsIcon, end: false }} active={inSettings} mode={mode} />
+            {setupItems.map((n) => (
+              <SideLink key={n.to} item={n} mode={mode} />
+            ))}
+            {settingsItems.length > 0 && (
+              <SideLink item={{ ...settingsItems[0]!, label: 'Settings', icon: SettingsIcon, end: false }} active={inSettings} mode={mode} />
+            )}
           </>
         )}
       </nav>
