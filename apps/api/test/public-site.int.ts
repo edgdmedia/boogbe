@@ -91,6 +91,7 @@ describe('public site payload [WL]', () => {
     expect(r.body.org).toEqual({ name: expect.any(String), slug });
     expect(r.body.listings).toHaveLength(1);
     expect(r.body.listings[0].id).toBe(listingId);
+    expect(r.body.listings[0].address).toBe('Lekki Phase 1'); // the estate address from the first linked unit's property (T-WL-06b)
     expect(r.body.listings[0].photos.map((p: { alt: string }) => p.alt)).toEqual(['Bed', 'Living']); // ready only, in order
     const p0 = r.body.listings[0].photos[0];
     expect(p0).toMatchObject({ widths: [480, 800], category: 'Bedrooms', alt: 'Bed', width: 800, height: 600 });
