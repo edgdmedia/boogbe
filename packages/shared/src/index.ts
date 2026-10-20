@@ -10,6 +10,7 @@ export * from './contracts/common';
 export * from './contracts/inventory';
 export * from './contracts/calendar';
 export * from './contracts/files';
+export * from './contracts/listings';
 export * from './domain/ownership';
 export * from './domain/fees';
 export * from './domain/pricing';
